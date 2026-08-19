@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Trailwatt — Fluxo e Especificações</title>
+<style>
+:root{
+  --bg:#061018;--panel:#0b1721;--panel2:#0f1f2b;--line:#203342;
+  --text:#edf6f8;--muted:#9eb2bd;--green:#54e38e;--blue:#5ca9ff;
+  --yellow:#ffc857;--purple:#b993ff;--orange:#ff9b4a;--red:#ff6874;
+  --cyan:#45d6d0;--shadow:0 20px 60px #0008;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(circle at 50% -10%,#143344 0,#061018 42%,#03080c 100%);
+ color:var(--text);font:15px/1.55 Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+a{color:inherit;text-decoration:none}
+header{position:sticky;top:0;z-index:10;background:#061018e8;backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
+.nav{max-width:1400px;margin:auto;padding:14px 24px;display:flex;align-items:center;gap:28px}
+.logo{font-size:22px;font-weight:800;margin-right:auto}.logo span{color:var(--green)}
+nav a{color:var(--muted);margin-left:18px}nav a:hover{color:white}
+main{max-width:1400px;margin:auto;padding:42px 24px 80px}
+.hero{display:grid;grid-template-columns:1fr 1.15fr;gap:42px;align-items:center}
+h1{font-size:clamp(36px,5vw,68px);line-height:1.02;margin:0 0 18px}
+.lead{font-size:20px;color:var(--muted);max-width:650px}
+.badges{display:flex;gap:10px;flex-wrap:wrap;margin:25px 0}
+.badge{border:1px solid var(--line);background:#0b1923;padding:8px 12px;border-radius:999px;color:#c9d9df}
+.device-wrap{position:relative;min-height:560px;display:flex;align-items:center;justify-content:center}
+.laptop{width:min(780px,100%);background:#02070a;border:10px solid #1a252b;border-radius:22px;box-shadow:var(--shadow);padding:12px}
+.screen{background:linear-gradient(145deg,#07131c,#0b1a24);border-radius:10px;overflow:hidden}
+.screen-head{height:45px;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 16px;gap:18px}
+.screen-head b{margin-right:auto}.dots{display:flex;gap:5px}.dot{width:8px;height:8px;border-radius:50%;background:#5b6970}
+.flow-mini{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:18px}
+.mini{border:1px solid var(--line);border-radius:10px;padding:12px;min-height:90px;background:#0b1923}
+.mini strong{display:block;font-size:12px;color:var(--green)}.mini small{color:var(--muted)}
+.section{margin-top:70px}
+.section h2{font-size:34px;margin-bottom:8px}.sub{color:var(--muted);margin-top:0}
+.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:28px}
+.step{position:relative;padding:18px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(145deg,#0d1c27,#08131b);min-height:180px}
+.step:after{content:"→";position:absolute;right:-17px;top:68px;color:#5d7380;font-size:25px}.step:nth-child(5n):after{display:none}
+.num{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:9px;background:#112b3a;color:var(--green);font-weight:800}
+.step h3{margin:13px 0 7px}.step p{margin:0;color:var(--muted)}
+.specs{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.card{background:linear-gradient(145deg,#0d1c27,#08131b);border:1px solid var(--line);border-radius:16px;padding:20px}
+.card h3{margin:0 0 12px}.card ul{padding-left:18px;margin:0}.card li{margin:7px 0;color:#c7d5da}.tag{display:inline-block;font-size:11px;padding:4px 8px;border-radius:999px;background:#102735;color:var(--cyan);margin-bottom:10px}
+.contract{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+.principle{border:1px solid var(--line);background:#091720;border-radius:12px;padding:15px}.principle b{display:block;margin-bottom:4px}.principle span{color:var(--muted);font-size:13px}
+.arch{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+pre{margin:0;background:#03090d;border:1px solid var(--line);border-radius:14px;padding:20px;overflow:auto;color:#cde4ec}
+.note{border-left:3px solid var(--green);padding:14px 18px;background:#091920;border-radius:0 12px 12px 0;color:#c8d8dd}
+footer{border-top:1px solid var(--line);padding:30px 24px;color:var(--muted);text-align:center}
+@media(max-width:1000px){
+ .hero{grid-template-columns:1fr}.device-wrap{min-height:auto}.flow{grid-template-columns:repeat(2,1fr)}.step:after{display:none}
+ .specs{grid-template-columns:repeat(2,1fr)}.contract{grid-template-columns:repeat(3,1fr)}.arch{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+ header .nav{padding:12px 16px}nav{display:none}main{padding:28px 16px 60px}
+ .laptop{border-width:6px;padding:6px}.flow-mini{grid-template-columns:1fr 1fr}.flow{grid-template-columns:1fr}
+ .specs{grid-template-columns:1fr}.contract{grid-template-columns:1fr 1fr}
+ h1{font-size:43px}.lead{font-size:17px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="nav">
+    <div class="logo">🚴 <span>Trailwatt</span></div>
+    <nav>
+      <a href="#fluxo">Fluxo</a><a href="#specs">Especificações</a>
+      <a href="#arquitetura">Arquitetura</a><a href="#contrato">Contrato</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<section class="hero">
+  <div>
+    <div class="badges"><span class="badge">Spec 00 + 10 módulos</span><span class="badge">HR + Power</span><span class="badge">Implementation agnostic</span></div>
+    <h1>Do treino à rota que realmente executa o treino.</h1>
+    <p class="lead">Visão interativa do Trailwatt: o fluxo completo, as especificações modulares e as regras que protegem a integridade do treino.</p>
+    <div class="note">O treino é soberano. O Trailwatt procura uma rota que consiga executar o estímulo prescrito — não altera o treino para caber na estrada.</div>
+  </div>
+
+  <div class="device-wrap">
+    <div class="laptop">
+      <div class="screen">
+        <div class="screen-head"><b>Trailwatt · Visão geral</b><div class="dots"><i class="dot"></i><i class="dot"></i><i class="dot"></i></div></div>
+        <div class="flow-mini">
+          <div class="mini"><strong>01 · TREINO</strong><small>Power ou HR<br>trabalho + recuperação</small></div>
+          <div class="mini"><strong>02 · FÍSICA</strong><small>Esforço necessário<br>para o terreno</small></div>
+          <div class="mini"><strong>03 · TERRENO</strong><small>Segmentos executáveis<br>por intervalo</small></div>
+          <div class="mini"><strong>04 · ROTA</strong><small>Sequência + score<br>+ segurança</small></div>
+          <div class="mini"><strong>05 · EXECUÇÃO</strong><small>Atividade →<br>calibração</small></div>
+        </div>
+        <div style="padding:0 18px 18px;color:#8fa7b2">Desktop: visão completa · Mobile: execução e navegação do atleta</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="fluxo" class="section">
+<h2>Fluxo do Trailwatt</h2><p class="sub">Uma cadeia única, dividida em módulos para que a implantação possa evoluir cada parte independentemente.</p>
+<div class="flow">
+  <div class="step"><span class="num">1</span><h3>Treino & Atleta</h3><p>Define o treino, Power ou HR, zonas, FTP e dados do atleta.</p></div>
+  <div class="step"><span class="num">2</span><h3>Física do Ciclismo</h3><p>Estima o esforço necessário considerando terreno, velocidade, massa e ambiente.</p></div>
+  <div class="step"><span class="num">3</span><h3>Terrain Matching</h3><p>Encontra trechos capazes de executar cada intervalo, incluindo recuperação.</p></div>
+  <div class="step"><span class="num">4</span><h3>Route Matching</h3><p>Monta a rota completa respeitando sequência, continuidade e preferências.</p></div>
+  <div class="step"><span class="num">5</span><h3>Route Editing</h3><p>Permite editar a rota e recalcula o resultado antes de confirmar.</p></div>
+  <div class="step"><span class="num">6</span><h3>Execução & Calibração</h3><p>Compara atividade real com a previsão e melhora parâmetros quando houver dados.</p></div>
+  <div class="step"><span class="num">7</span><h3>Histórico</h3><p>Preserva o treino original e os dados realmente executados.</p></div>
+  <div class="step"><span class="num">8</span><h3>Integrações</h3><p>Importa atividades e exporta rotas sem acoplar o core a uma plataforma.</p></div>
+  <div class="step"><span class="num">9</span><h3>Safety & Traffic</h3><p>Avalia segurança e trânsito separadamente e trata dados desconhecidos como desconhecidos.</p></div>
+  <div class="step"><span class="num">10</span><h3>Experience</h3><p>Apresenta mapa, intervalos, confiança, avisos e a explicação da escolha.</p></div>
+</div>
+</section>
+
+<section id="specs" class="section">
+<h2>Especificações modulares</h2><p class="sub">Cada spec define comportamento e contratos de domínio. Nenhuma exige Dart ou uma tecnologia específica.</p>
+<div class="specs">
+  <article class="card"><span class="tag">01 · CORE</span><h3>Workout & Athlete</h3><ul><li>Potência e HR como métricas de primeira classe.</li><li>FTP, zonas e power curve/potencial.</li><li>Timeline trabalho → recuperação.</li><li>O alvo original nunca é silenciosamente alterado.</li></ul></article>
+  <article class="card"><span class="tag">02 · CORE</span><h3>Cycling Physics</h3><ul><li>Velocidade, gradiente, vento, superfície e temperatura quando disponíveis.</li><li>Massa do sistema, CdA, Crr e drivetrain.</li><li>Modelo físico único e universal.</li><li>Estimativas sempre com incerteza adequada.</li></ul></article>
+  <article class="card"><span class="tag">03 · CORE</span><h3>Terrain Matching</h3><ul><li>Encontra terreno executável para cada intervalo.</li><li>Considera duração contínua, gradiente, distância e elevação.</li><li>Recuperações podem usar plano ou descida quando apropriado.</li><li>Retorna alternativas e confiança.</li></ul></article>
+  <article class="card"><span class="tag">04 · CORE</span><h3>Route Matching</h3><ul><li>Respeita a sequência temporal do treino.</li><li>Score: intensidade, duração, sequência, continuidade, segurança, trânsito, superfície e praticidade.</li><li>Preferências alteram o ranking.</li><li>Pode retornar “nenhuma rota suficientemente adequada”.</li></ul></article>
+  <article class="card"><span class="tag">05</span><h3>Route Editing</h3><ul><li>Editar rota sem invalidar o treino.</li><li>Recalcular score após mudanças.</li><li>Mostrar comparação antes/depois.</li><li>Avisar quando a edição prejudicar significativamente o treino.</li></ul></article>
+  <article class="card"><span class="tag">06</span><h3>Calibration</h3><ul><li>Aprende com atividades reais.</li><li>Ajusta parâmetros quando houver evidência suficiente.</li><li>HR isolada não vira potência determinística.</li><li>Estado e confiança são versionados.</li></ul></article>
+  <article class="card"><span class="tag">07</span><h3>History</h3><ul><li>Planejado vs realizado.</li><li>Preserva target original em Power ou HR.</li><li>Guarda potência, HR e outros dados realmente disponíveis.</li><li>Registra o modelo/calibração usado.</li></ul></article>
+  <article class="card"><span class="tag">08</span><h3>Integrations</h3><ul><li>Adapters independentes para plataformas.</li><li>Importação e exportação.</li><li>Eventos externos viram candidatos, não atividades finais automaticamente.</li><li>Exportação de arquivo permanece fallback.</li></ul></article>
+  <article class="card"><span class="tag">09</span><h3>Safety & Traffic</h3><ul><li>Segurança e trânsito são dimensões diferentes.</li><li>Dados externos são opcionais e têm freshness.</li><li>Desconhecido não significa seguro nem perigoso automaticamente.</li><li>Não contamina o core físico.</li></ul></article>
+  <article class="card"><span class="tag">10</span><h3>Experience</h3><ul><li>Mapa e execução centrados no atleta.</li><li>Intervalos localizáveis na rota.</li><li>Explica “por que esta rota?”.</li><li>Mostra confiança, alertas e pontos críticos.</li></ul></article>
+</div>
+</section>
+
+<section id="arquitetura" class="section">
+<h2>Fluxo de dependências</h2>
+<div class="arch">
+<pre>
+Workout & Athlete
+       │
+       ▼
+Cycling Physics
+       │
+       ▼
+Terrain Matching
+       │
+       ▼
+Route Matching
+       │
+   ┌───┴─────────┐
+   ▼             ▼
+Route Editing   Experience
+   │
+   ▼
+Activity / History
+   │
+   ▼
+Calibration ─────────► Physics
+
+Safety & Traffic ─────► Route Matching
+Integrations ─────────► Activity / History
+</pre>
+<pre>
+IMPLEMENTAÇÃO
+
+Product Contract
+      │
+      ├── comportamento obrigatório
+      ├── invariantes
+      ├── métricas e unidades
+      └── critérios de aceitação
+
+        ↓
+
+A implantação decide:
+• linguagem
+• modelos internos
+• banco
+• APIs
+• mapas
+• engine numérico
+• cache
+• arquitetura de serviços
+• UI
+</pre>
+</div>
+</section>
+
+<section id="contrato" class="section">
+<h2>Product Contract · regras fundamentais</h2>
+<div class="contract">
+<article class="card"><span class="tag">⚡ EXECUÇÃO</span><h3>Execução transparente</h3><p>O método de execução do Terrain Matching é uma decisão interna da aplicação, não uma escolha do atleta.</p><pre>Treino
+   ↓
+Normalização
+   ↓
+Terrain Matching
+   ├── dados necessários disponíveis localmente?
+   │       ↓
+   │    executar localmente
+   │
+   └── dados necessários ausentes?
+           ↓
+       obter dados pela Internet
+           ↓
+       executar cálculo
+   ↓
+Ranking
+   ↓
+Resultado</pre><ul><li>Priorizar dados locais válidos quando forem suficientes.</li><li>Obter pela Internet apenas os dados necessários quando estes não estiverem disponíveis localmente.</li><li>A UX não expõe “calcular localmente” ou “calcular online” como opções normais.</li><li>A disponibilidade de rede não altera o contrato do treino nem o target original.</li></ul></article>
+
+  <div class="principle"><b>🎯 Treino soberano</b><span>O sistema não altera o treino para encaixá-lo na rota.</span></div>
+  <div class="principle"><b>⚙️ Física única</b><span>Uma mesma base física deve orientar as previsões.</span></div>
+  <div class="principle"><b>📈 Power + HR</b><span>Ambas são métricas de primeira classe.</span></div>
+  <div class="principle"><b>🔬 Transparência</b><span>Estimativas e incertezas não devem ser escondidas.</span></div>
+  <div class="principle"><b>📴 Core independente</b><span>A física não depende de rede para existir.</span></div>
+  <div class="principle"><b>🔐 Privacidade</b><span>O atleta é o dono dos seus dados.</span></div>
+</div>
+</section>
+
+<section class="section">
+<h2>Regra especial de HR</h2>
+<div class="note">
+<strong>HR-based workouts remain HR-based.</strong> O Trailwatt não transforma, por regra, “160 bpm” em “240 W”.
+Quando existirem dados individuais suficientes, pode estimar uma faixa de potência para avaliar viabilidade de rota, sempre com incerteza explícita. Em esforços curtos ou altamente variáveis, HR não deve ser usada como proxy de potência instantânea.
+</div>
+</section>
+</main>
+<footer>Trailwatt · Product Contract + Modular Specifications · Interface demonstrativa</footer>
+</body>
+</html>

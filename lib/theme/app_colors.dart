@@ -1,0 +1,32 @@
+import 'package:flutter/material.dart';
+
+/// Design tokens ported 1:1 from the Trailwatt HTML prototype
+/// (trailwatt_fluxo.html :root custom properties). Keep this file as the
+/// single source of truth - screens should never hardcode a hex value.
+class AppColors {
+  AppColors._();
+
+  static const ink = Color(0xFF0B2B2B);
+  static const primary = Color(0xFF028090);
+  static const secondary = Color(0xFF00A896);
+  static const accent = Color(0xFF02C39A);
+  static const warn = Color(0xFFC77C21);
+  static const paper = Color(0xFFF5F7F6);
+  static const inkSoft = Color(0xFF5B6B69);
+  static const line = Color(0xFFE2E8E6);
+  static const white = Colors.white;
+
+  static const greenBg = Color(0xFFDCF3EA);
+  static const greenText = Color(0xFF0F6E56);
+  static const warnBg = Color(0xFFFBEBD6);
+  static const warnText = Color(0xFF9C5B12);
+
+  /// Zone Z1-Z5 palette, shared everywhere training intensity is shown -
+  /// map, calendar, workout builder, history. See models/zone.dart.
+  /// (Constitution Article VII - shared nomenclature.)
+  static const zone1 = Color(0xFF8FA3AB); // Recuperacao
+  static const zone2 = Color(0xFF028090); // Resistencia
+  static const zone3 = Color(0xFF02C39A); // Tempo
+  static const zone4 = Color(0xFFC77C21); // Limiar
+  static const zone5 = Color(0xFFB23A3A); // VO2max
+}

@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trailwatt — Fluxo atualizado</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  :root{
+    --ink:#0B2B2B;
+    --teal:#028090;
+    --mint:#02C39A;
+    --clay:#C77C21;
+    --paper:#F5F7F6;
+    --ink-soft:#5B6B69;
+    --line:#E2E8E6;
+    --white:#FFFFFF;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);font-family:'Inter',sans-serif;color:var(--ink);}
+  .num{font-family:'IBM Plex Mono',monospace;font-weight:600;}
+
+  .hero{background:var(--ink);color:var(--white);padding:56px 64px 64px;position:relative;overflow:hidden;}
+  .hero::before{content:"";position:absolute;top:-140px;right:-100px;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(2,192,154,0.18),transparent 70%);}
+  .kicker{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.14em;color:var(--mint);margin-bottom:14px;text-transform:uppercase;}
+  h1{font-family:'Fraunces',serif;font-weight:600;font-size:38px;margin:0 0 12px;max-width:720px;line-height:1.16;}
+  .hero p{color:#AFC9C4;font-size:15px;max-width:600px;line-height:1.6;margin:0 0 40px;}
+
+  .flow{display:flex;align-items:center;gap:0;position:relative;max-width:1000px;flex-wrap:wrap;row-gap:16px;}
+  .flow-step{display:flex;flex-direction:column;align-items:flex-start;gap:6px;position:relative;}
+  .flow-dot{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.08);border:1.5px solid var(--mint);color:var(--mint);display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;}
+  .flow-step:first-child .flow-dot{background:var(--mint);color:var(--ink);}
+  .flow-label{font-size:12.5px;color:#D7E7E3;white-space:nowrap;}
+  .flow-arrow{color:#3C615B;font-size:16px;margin:0 14px;align-self:center;}
+
+  .board{padding:56px 64px 72px;}
+  .screens{display:flex;gap:28px;flex-wrap:wrap;align-items:flex-start;}
+  .screen-block{width:260px;}
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--teal);font-weight:600;margin-bottom:10px;letter-spacing:0.03em;}
+  .caption{font-size:12.5px;color:var(--ink-soft);line-height:1.55;margin-top:14px;}
+
+  .phone{width:260px;height:552px;background:var(--ink);border-radius:26px;padding:10px;box-shadow:0 18px 40px -18px rgba(11,43,43,0.45);}
+  .screen{background:var(--white);border-radius:18px;height:100%;width:100%;padding:18px 16px;overflow:hidden;position:relative;}
+
+  .s-title{font-family:'Fraunces',serif;font-size:16px;font-weight:600;margin:0 0 3px;}
+  .s-sub{font-size:11px;color:var(--ink-soft);margin:0 0 16px;line-height:1.4;}
+
+  .fld-label{font-size:10.5px;color:var(--ink-soft);margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;}
+  .pill-opt{font-size:8.5px;background:#EFF3F1;color:var(--ink-soft);padding:1px 6px;border-radius:8px;font-weight:500;}
+  .fld{background:var(--paper);border:1px solid var(--line);border-radius:7px;padding:8px 10px;font-size:12.5px;margin-bottom:11px;}
+  .fld.ph{color:#9AAAA7;}
+
+  .divider{display:flex;align-items:center;gap:8px;margin:14px 0 10px;}
+  .divider span{font-size:9.5px;color:var(--ink-soft);white-space:nowrap;}
+  .divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--line);}
+
+  .btn{border-radius:8px;padding:10px;text-align:center;font-size:12px;font-weight:600;margin-top:4px;}
+  .btn-primary{background:var(--mint);color:var(--white);}
+  .btn-secondary{background:var(--white);border:1px solid var(--line);color:var(--ink);}
+  .btn-secondary .sub{display:block;font-weight:400;font-size:9px;color:var(--ink-soft);margin-top:2px;}
+
+  .card-title{font-size:11.5px;font-weight:600;margin:0 0 2px;}
+  .card-sub{font-size:10px;color:var(--ink-soft);}
+
+  .stats-row{display:flex;gap:6px;margin-bottom:10px;}
+  .stat{flex:1;background:var(--paper);border-radius:7px;padding:8px 6px;text-align:center;}
+  .stat-label{font-size:8.5px;color:var(--ink-soft);}
+  .stat-value{font-size:14px;margin-top:3px;}
+
+  .chip-row{display:flex;gap:6px;margin-top:8px;}
+  .chip{flex:1;text-align:center;border:1px solid var(--line);border-radius:14px;padding:6px 4px;font-size:9.5px;background:var(--white);}
+
+  .route-card{border:1.5px solid var(--mint);border-radius:10px;padding:11px 12px;margin-bottom:12px;position:relative;}
+  .match-badge{position:absolute;top:10px;right:10px;background:#DCF3EA;color:#0F6E56;font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:6px;}
+  .map-link{font-size:10px;color:var(--teal);font-weight:600;margin:6px 0 0;}
+
+  .map-card{background:#EAF0E3;border-radius:10px;height:148px;margin-bottom:10px;overflow:hidden;position:relative;}
+  .map-card .leaflet-container{background:#EAF0E3;font-family:'Inter',sans-serif;}
+  .map-card .leaflet-control-attribution{font-size:6.5px;padding:0 3px;line-height:1.4;background:rgba(255,255,255,0.75);}
+  .map-card .leaflet-control-zoom{display:none;}
+  .map-legend{display:flex;gap:8px;margin-bottom:12px;}
+  .map-legend-item{display:flex;align-items:center;gap:3px;font-size:8.5px;color:var(--ink-soft);font-weight:600;}
+  .map-legend-dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
+
+  .note{font-size:9.5px;color:var(--ink-soft);text-align:center;margin-top:10px;line-height:1.4;}
+
+  .status-card{background:#EAF6F3;border:1px solid #BFE3D8;border-radius:10px;padding:12px;margin-bottom:12px;}
+  .status-top{display:flex;align-items:center;gap:6px;font-size:10px;color:#0F6E56;font-weight:600;margin-bottom:6px;letter-spacing:0.02em;}
+  .dot{width:6px;height:6px;border-radius:50%;background:#0F6E56;flex-shrink:0;}
+  .status-title{font-size:12px;font-weight:600;margin:2px 0 2px;}
+
+  .fallback{margin-top:14px;border-top:1px dashed var(--line);padding-top:12px;}
+  .fallback-label{font-size:10px;color:var(--clay);font-weight:600;margin-bottom:8px;letter-spacing:0.02em;}
+  .fallback-note{font-size:9px;color:var(--ink-soft);margin-top:6px;line-height:1.4;}
+
+  .hist-row{display:flex;justify-content:space-between;align-items:flex-start;border:1px solid var(--line);border-radius:9px;padding:9px 10px;margin-bottom:7px;gap:8px;}
+  .hist-date{font-size:11px;font-weight:600;}
+  .hist-detail{font-size:9.5px;color:var(--ink-soft);margin-top:2px;}
+  .src-tag{font-size:8px;background:var(--paper);color:var(--ink-soft);padding:3px 6px;border-radius:6px;white-space:nowrap;flex-shrink:0;}
+
+  /* ---- Landing page ---- */
+  .nav{display:flex;justify-content:space-between;align-items:center;padding:20px 64px;border-bottom:1px solid var(--line);background:var(--white);}
+  .nav-logo{font-family:'Fraunces',serif;font-weight:600;font-size:18px;color:var(--ink);display:flex;align-items:center;gap:8px;}
+  .nav-links{display:flex;gap:30px;font-size:13.5px;}
+  .nav-links a{color:var(--ink-soft);text-decoration:none;}
+  .nav-cta{border:1px solid var(--line);border-radius:7px;padding:8px 18px;font-size:13px;font-weight:600;color:var(--ink);text-decoration:none;}
+
+  .landing{background:var(--white);padding:80px 64px 0;text-align:center;}
+  .landing-kicker{font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:0.14em;color:var(--teal);text-transform:uppercase;margin-bottom:20px;}
+  .landing h1{font-family:'Fraunces',serif;font-weight:600;font-size:46px;line-height:1.15;max-width:760px;margin:0 auto 18px;}
+  .landing-sub{font-size:15.5px;color:var(--ink-soft);max-width:560px;margin:0 auto 34px;line-height:1.6;}
+  .cta-row{display:flex;gap:12px;justify-content:center;margin-bottom:22px;}
+  .cta-primary{background:var(--mint);color:var(--white);border:none;border-radius:8px;padding:13px 24px;font-size:14px;font-weight:600;text-decoration:none;display:inline-block;}
+  .cta-secondary{background:var(--white);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:13px 24px;font-size:14px;font-weight:600;text-decoration:none;display:inline-block;}
+  .trust-line{font-size:12px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;padding-bottom:64px;}
+
+  .feature-grid{display:flex;gap:36px;max-width:920px;margin:0 auto;text-align:left;padding:64px 0;border-top:1px solid var(--line);}
+  .feature{flex:1;}
+  .feature-mark{width:8px;height:8px;border-radius:2px;background:var(--mint);margin-bottom:16px;}
+  .feature h3{font-family:'Fraunces',serif;font-size:17px;font-weight:600;margin:0 0 8px;}
+  .feature p{font-size:13px;color:var(--ink-soft);line-height:1.55;margin:0;}
+
+  .platform-strip{padding:0 0 60px;text-align:center;max-width:920px;margin:0 auto;}
+  .platform-label{font-size:12px;color:var(--ink-soft);margin-bottom:16px;}
+  .platform-buttons{display:flex;gap:12px;justify-content:center;margin-bottom:18px;}
+  .platform-btn{border:1px solid var(--line);border-radius:8px;padding:11px 22px;font-size:13px;font-weight:600;color:var(--ink);}
+  .sync-note{font-size:12px;color:var(--ink-soft);}
+
+  .brand-showcase{max-width:920px;margin:0 auto;padding:60px 0 72px;border-top:1px solid var(--line);text-align:left;}
+  .brand-showcase-label{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--teal);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;}
+  .brand-showcase-title{font-family:'Fraunces',serif;font-size:20px;font-weight:600;color:var(--ink);margin:0 0 24px;}
+  .brand-panels{display:flex;gap:18px;}
+  .brand-panel{flex:1;border-radius:12px;padding:32px 20px 22px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
+  .brand-panel.light{background:var(--paper);border:1px solid var(--line);}
+  .brand-panel.dark{background:var(--ink);}
+  .brand-lockup{display:flex;align-items:center;gap:10px;}
+  .brand-wordmark{font-family:'Fraunces',serif;font-weight:600;font-size:19px;}
+  .brand-panel.light .brand-wordmark{color:var(--ink);}
+  .brand-panel.dark .brand-wordmark{color:var(--white);}
+  .brand-panel-caption{font-size:10.5px;color:var(--ink-soft);text-align:center;}
+  .brand-panel.dark .brand-panel-caption{color:#8FAFA9;}
+
+  .splash-screen{background:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0;}
+  .splash-mark{font-family:'Fraunces',serif;font-weight:600;font-size:26px;color:var(--white);}
+  .splash-tag{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:0.1em;color:var(--mint);margin-top:10px;text-transform:uppercase;}
+  .splash-loader{display:flex;gap:6px;margin-top:40px;}
+  .splash-loader span{width:6px;height:6px;border-radius:50%;background:#3C615B;display:inline-block;}
+  .splash-loader span:first-child{background:var(--mint);}
+
+  .edit-hint{font-size:9px;color:var(--ink-soft);text-align:center;margin:7px 0 12px;}
+  .btn-text-cancel{text-align:center;font-size:11.5px;color:var(--ink-soft);font-weight:600;margin-top:8px;padding:6px;}
+
+  .pill-target{font-size:8.5px;background:#EAF6F3;color:#0F6E56;padding:1px 6px;border-radius:8px;font-weight:600;white-space:nowrap;}
+  .field-block{margin-bottom:13px;}
+  .locale-note{font-size:8.5px;color:var(--ink-soft);text-align:center;margin-top:14px;padding-top:10px;border-top:1px dashed var(--line);line-height:1.4;}
+
+  .seg-control{display:flex;background:var(--paper);border-radius:8px;padding:3px;margin-bottom:16px;}
+  .seg-btn{flex:1;text-align:center;padding:7px 0;border-radius:6px;font-size:11px;font-weight:600;color:var(--ink-soft);}
+  .seg-btn.active{background:var(--white);color:var(--ink);box-shadow:0 1px 3px rgba(11,43,43,0.14);}
+
+  .week-grid{display:flex;gap:4px;margin-bottom:14px;}
+  .week-day{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .week-day-label{font-size:7.5px;color:var(--ink-soft);font-weight:600;}
+  .week-day-num{width:23px;height:23px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--ink);}
+  .week-day-num.selected{background:var(--ink);color:var(--white);}
+  .week-day-dot{width:5px;height:5px;border-radius:50%;display:block;}
+  .week-day-dot.empty{background:transparent;}
+
+  .day-detail{background:var(--paper);border-radius:10px;padding:12px 14px;margin-bottom:12px;}
+  .day-detail-zone{display:inline-block;font-size:8px;font-weight:700;color:var(--white);padding:2px 7px;border-radius:6px;margin-bottom:7px;letter-spacing:0.02em;}
+  .status-done{display:inline-block;font-size:8px;font-weight:700;color:#0F6E56;background:#DCF3EA;padding:2px 7px;border-radius:6px;letter-spacing:0.02em;}
+
+  .month-header-row{display:flex;gap:2px;margin-bottom:5px;}
+  .month-header-cell{flex:1;text-align:center;font-size:7px;color:var(--ink-soft);font-weight:600;}
+  .month-row{display:flex;gap:2px;margin-bottom:2px;}
+  .month-cell{flex:1;height:23px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:5px;}
+  .month-cell-num{font-size:8px;color:var(--ink);}
+  .month-cell.faded .month-cell-num{color:#C7D2CE;}
+  .month-cell.today{background:var(--ink);}
+  .month-cell.today .month-cell-num{color:var(--white);font-weight:700;}
+  .month-dot{width:4px;height:4px;border-radius:50%;}
+
+  html{scroll-behavior:smooth;}
+  .screen-block{scroll-margin-top:54px;}
+
+  .page-nav{position:sticky;top:0;z-index:50;background:var(--ink);border-bottom:1px solid rgba(255,255,255,0.1);margin:-56px -64px 40px;}
+  .page-nav-inner{display:flex;gap:2px;overflow-x:auto;padding:9px 24px;scrollbar-width:none;-ms-overflow-style:none;}
+  .page-nav-inner::-webkit-scrollbar{display:none;}
+  .page-nav-item{flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#9FC4C0;text-decoration:none;padding:6px 11px;border-radius:6px;white-space:nowrap;letter-spacing:0.01em;}
+  .page-nav-item:hover{background:rgba(255,255,255,0.09);color:var(--white);}
+
+  .auth-switch{text-align:center;font-size:11.5px;color:var(--ink-soft);margin-top:16px;}
+  .auth-switch b{color:var(--teal);font-weight:600;}
+  .forgot-link{text-align:right;font-size:10.5px;color:var(--teal);font-weight:600;margin:-6px 0 14px;}
+
+  .stimulus-card{background:var(--paper);border-radius:10px;padding:12px;margin-bottom:10px;}
+  .stimulus-card-title{font-size:11px;font-weight:700;color:var(--ink);margin-bottom:9px;}
+  .field-row{display:flex;gap:8px;margin-bottom:9px;}
+  .field-row .field-col{flex:1;}
+  .field-hint{font-size:8px;color:var(--ink-soft);margin-top:3px;}
+  .add-serie-btn{text-align:center;font-size:10.5px;font-weight:600;color:var(--teal);border:1.5px dashed var(--line);border-radius:8px;padding:7px;margin-bottom:12px;}
+  .block-name-select{width:100%;background:var(--white);border:1px solid var(--line);border-radius:7px;padding:7px 9px;font-size:11px;font-weight:700;color:var(--ink);margin-bottom:10px;font-family:'Inter',sans-serif;-webkit-appearance:none;appearance:none;}
+
+  .consent-row{display:flex;align-items:flex-start;gap:8px;margin:2px 0 14px;}
+  .checkbox-box{width:14px;height:14px;border-radius:4px;border:1.5px solid var(--line);flex-shrink:0;margin-top:1px;position:relative;}
+  .checkbox-box.checked{background:var(--mint);border-color:var(--mint);}
+  .checkbox-box.checked::after{content:"";position:absolute;left:4px;top:1px;width:4px;height:7px;border:solid var(--white);border-width:0 1.5px 1.5px 0;transform:rotate(45deg);}
+  .consent-text{font-size:9.5px;color:var(--ink-soft);line-height:1.4;}
+  .consent-text b{color:var(--ink);font-weight:600;}
+
+  .tab-bar{position:absolute;left:0;right:0;bottom:0;display:flex;border-top:1px solid var(--line);background:var(--white);padding:7px 0;}
+  .tab-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;text-decoration:none;color:#9AAAA7;}
+  .tab-item svg{width:17px;height:17px;}
+  .tab-item span{font-size:7.5px;font-weight:600;letter-spacing:0.01em;}
+  .tab-item.active{color:var(--primary);}
+</style>
+</head>
+<body>
+
+<nav class="nav" id="top">
+  <div class="nav-logo">
+    <svg width="24" height="24" viewBox="0 0 120 120" aria-hidden="true">
+      <path d="M94.4,84.1 A42,42 0 0 1 57.8,101.9" fill="none" stroke="#8FA3AB" stroke-width="15" stroke-linecap="round"/>
+      <path d="M57.8,101.9 A42,42 0 0 1 23.3,80.4" fill="none" stroke="#028090" stroke-width="15" stroke-linecap="round"/>
+      <path d="M23.3,80.4 A42,42 0 0 1 23.3,39.6" fill="none" stroke="#02C39A" stroke-width="15" stroke-linecap="round"/>
+      <path d="M23.3,39.6 A42,42 0 0 1 57.8,18.1" fill="none" stroke="#C77C21" stroke-width="15" stroke-linecap="round"/>
+      <path d="M57.8,18.1 A42,42 0 0 1 94.4,35.9" fill="none" stroke="#B23A3A" stroke-width="15" stroke-linecap="round"/>
+      <polygon points="64,32 108,60 64,88" fill="#02C39A"/>
+    </svg>
+    <span>Trailwatt</span>
+  </div>
+  <div class="nav-links">
+    <a href="#como-funciona">Como funciona</a>
+    <a href="#">Precos</a>
+    <a href="#">Blog</a>
+  </div>
+  <a href="#" class="nav-cta">Entrar</a>
+</nav>
+
+<section class="landing">
+  <div class="landing-kicker">PARA CICLISTAS, DO INICIANTE AO PRO</div>
+  <h1>Seu treino ja diz o percurso ideal.</h1>
+  <p class="landing-sub">Digite o alvo do treino de hoje e o Trailwatt sugere uma rota real que bate com ele — calculado no seu aparelho, sincronizado com a nuvem, pronto para exportar para o Strava, Garmin ou Wahoo.</p>
+  <div class="cta-row">
+    <a href="#" class="cta-primary">Comecar gratis</a>
+    <a href="#como-funciona" class="cta-secondary">Ver como funciona</a>
+  </div>
+  <p class="trust-line">iPhone e Android &nbsp;·&nbsp; processamento local &nbsp;·&nbsp; dados na AWS</p>
+
+  <div class="feature-grid">
+    <div class="feature">
+      <div class="feature-mark"></div>
+      <h3>Alvo por potencia ou FC</h3>
+      <p>Do FTP de 150w ao de 300w, o motor calcula o gradiente certo para o seu nivel — a mesma logica serve para quem treina por frequencia cardiaca.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-mark"></div>
+      <h3>Calculo 100% local</h3>
+      <p>O motor fisico roda no proprio aparelho. Funciona mesmo sem internet — a nuvem so entra depois, para guardar o que ja foi calculado.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-mark"></div>
+      <h3>Exporta e importa sozinho</h3>
+      <p>Manda a rota pronta para o Strava, Garmin ou Wahoo, e busca o resultado de volta pela API assim que o treino termina.</p>
+    </div>
+  </div>
+
+  <div class="platform-strip">
+    <p class="platform-label">Disponivel para</p>
+    <div class="platform-buttons">
+      <div class="platform-btn">iPhone</div>
+      <div class="platform-btn">Android</div>
+    </div>
+    <p class="sync-note">Sincroniza com Strava, Garmin e Wahoo</p>
+  </div>
+
+  <div class="brand-showcase">
+    <div class="brand-showcase-label">MARCA</div>
+    <p class="brand-showcase-title">Um aro para o ciclismo, uma seta de movimento para a corrida — nas mesmas 5 cores de zona usadas no app.</p>
+    <div class="brand-panels">
+      <div class="brand-panel light">
+        <svg width="88" height="88" viewBox="0 0 120 120" aria-hidden="true">
+          <path d="M94.4,84.1 A42,42 0 0 1 57.8,101.9" fill="none" stroke="#8FA3AB" stroke-width="13" stroke-linecap="round"/>
+          <path d="M57.8,101.9 A42,42 0 0 1 23.3,80.4" fill="none" stroke="#028090" stroke-width="13" stroke-linecap="round"/>
+          <path d="M23.3,80.4 A42,42 0 0 1 23.3,39.6" fill="none" stroke="#02C39A" stroke-width="13" stroke-linecap="round"/>
+          <path d="M23.3,39.6 A42,42 0 0 1 57.8,18.1" fill="none" stroke="#C77C21" stroke-width="13" stroke-linecap="round"/>
+          <path d="M57.8,18.1 A42,42 0 0 1 94.4,35.9" fill="none" stroke="#B23A3A" stroke-width="13" stroke-linecap="round"/>
+          <polygon points="64,32 108,60 64,88" fill="#02C39A"/>
+        </svg>
+        <p class="brand-panel-caption">Marca isolada</p>
+      </div>
+      <div class="brand-panel light">
+        <div class="brand-lockup">
+          <svg width="40" height="40" viewBox="0 0 120 120" aria-hidden="true">
+            <path d="M94.4,84.1 A42,42 0 0 1 57.8,101.9" fill="none" stroke="#8FA3AB" stroke-width="15" stroke-linecap="round"/>
+            <path d="M57.8,101.9 A42,42 0 0 1 23.3,80.4" fill="none" stroke="#028090" stroke-width="15" stroke-linecap="round"/>
+            <path d="M23.3,80.4 A42,42 0 0 1 23.3,39.6" fill="none" stroke="#02C39A" stroke-width="15" stroke-linecap="round"/>
+            <path d="M23.3,39.6 A42,42 0 0 1 57.8,18.1" fill="none" stroke="#C77C21" stroke-width="15" stroke-linecap="round"/>
+            <path d="M57.8,18.1 A42,42 0 0 1 94.4,35.9" fill="none" stroke="#B23A3A" stroke-width="15" stroke-linecap="round"/>
+            <polygon points="64,32 108,60 64,88" fill="#02C39A"/>
+          </svg>
+          <span class="brand-wordmark">Trailwatt</span>
+        </div>
+        <p class="brand-panel-caption">Sobre fundo claro</p>
+      </div>
+      <div class="brand-panel dark">
+        <div class="brand-lockup">
+          <svg width="40" height="40" viewBox="0 0 120 120" aria-hidden="true">
+            <path d="M94.4,84.1 A42,42 0 0 1 57.8,101.9" fill="none" stroke="#8FA3AB" stroke-width="15" stroke-linecap="round"/>
+            <path d="M57.8,101.9 A42,42 0 0 1 23.3,80.4" fill="none" stroke="#028090" stroke-width="15" stroke-linecap="round"/>
+            <path d="M23.3,80.4 A42,42 0 0 1 23.3,39.6" fill="none" stroke="#02C39A" stroke-width="15" stroke-linecap="round"/>
+            <path d="M23.3,39.6 A42,42 0 0 1 57.8,18.1" fill="none" stroke="#C77C21" stroke-width="15" stroke-linecap="round"/>
+            <path d="M57.8,18.1 A42,42 0 0 1 94.4,35.9" fill="none" stroke="#B23A3A" stroke-width="15" stroke-linecap="round"/>
+            <polygon points="64,32 108,60 64,88" fill="#02C39A"/>
+          </svg>
+          <span class="brand-wordmark">Trailwatt</span>
+        </div>
+        <p class="brand-panel-caption">Sobre fundo escuro</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="hero" id="como-funciona">
+  <div class="kicker">TRAILWATT · FLUXO ATUALIZADO</div>
+  <h1>Sugerir e exportar a rota.<br>Importar o resultado depois.</h1>
+  <p>O app nao grava nada em tempo real. Ele sugere a rota, exporta para o app que voce ja usa, e busca o resultado de volta pela API assim que o treino termina — entrada manual so como ultimo recurso.</p>
+
+  <div class="flow">
+    <div class="flow-step"><div class="flow-dot">1</div><div class="flow-label">Abertura</div></div>
+    <div class="flow-arrow">&#8594;</div>
+    <div class="flow-step"><div class="flow-dot">2</div><div class="flow-label">Perfil</div></div>
+    <div class="flow-arrow">&#8594;</div>
+    <div class="flow-step"><div class="flow-dot">3</div><div class="flow-label">Treino do dia</div></div>
+    <div class="flow-arrow">&#8594;</div>
+    <div class="flow-step"><div class="flow-dot">4</div><div class="flow-label">Rota no mapa</div></div>
+    <div class="flow-arrow">&#8594;</div>
+    <div class="flow-step"><div class="flow-dot">5</div><div class="flow-label">Editar rota</div></div>
+    <div class="flow-arrow">&#8594;</div>
+    <div class="flow-step"><div class="flow-dot">6</div><div class="flow-label">Importar resultado</div></div>
+    <div class="flow-arrow">&#8594;</div>
+    <div class="flow-step"><div class="flow-dot">7</div><div class="flow-label">Historico</div></div>
+    <div class="flow-arrow">&#8594;</div>
+    <div class="flow-step"><div class="flow-dot">8</div><div class="flow-label">Calendario</div></div>
+  </div>
+</section>
+
+<section class="board">
+  <nav class="page-nav">
+    <div class="page-nav-inner">
+      <a href="#top" class="page-nav-item">&#8593; Inicio</a>
+      <a href="#s01" class="page-nav-item">01 Abertura</a>
+      <a href="#s01a" class="page-nav-item">01a Login/Criar conta</a>
+      <a href="#s01b" class="page-nav-item">01b Exemplo preenchido</a>
+      <a href="#s02" class="page-nav-item">02 Perfil</a>
+      <a href="#s02a" class="page-nav-item">02a Criar treino</a>
+      <a href="#s02a2" class="page-nav-item">02a Mapa</a>
+      <a href="#s02b" class="page-nav-item">02b Exemplo 3 blocos</a>
+      <a href="#s02b2" class="page-nav-item">02b Bloco 3</a>
+      <a href="#s02b3" class="page-nav-item">02b Mapa</a>
+      <a href="#s03" class="page-nav-item">03 Treino</a>
+      <a href="#s04" class="page-nav-item">04 Mapa</a>
+      <a href="#s05" class="page-nav-item">05 Editar</a>
+      <a href="#s06" class="page-nav-item">06 Importar</a>
+      <a href="#s06a" class="page-nav-item">06a Manual intervalo</a>
+      <a href="#s06b" class="page-nav-item">06b Manual continuo</a>
+      <a href="#s07" class="page-nav-item">07 Historico</a>
+      <a href="#s08a" class="page-nav-item">08a Cal. semana</a>
+      <a href="#s08b" class="page-nav-item">08b Cal. concluido</a>
+      <a href="#s08c" class="page-nav-item">08c Cal. mes</a>
+    </div>
+  </nav>
+  <div class="screens">
+
+    <div class="screen-block" id="s01">
+      <div class="eyebrow">01 — ABERTURA</div>
+      <div class="phone"><div class="screen splash-screen">
+        <svg width="52" height="52" viewBox="0 0 120 120" aria-hidden="true" style="margin-bottom:14px;">
+          <path d="M94.4,84.1 A42,42 0 0 1 57.8,101.9" fill="none" stroke="#8FA3AB" stroke-width="13" stroke-linecap="round"/>
+          <path d="M57.8,101.9 A42,42 0 0 1 23.3,80.4" fill="none" stroke="#028090" stroke-width="13" stroke-linecap="round"/>
+          <path d="M23.3,80.4 A42,42 0 0 1 23.3,39.6" fill="none" stroke="#02C39A" stroke-width="13" stroke-linecap="round"/>
+          <path d="M23.3,39.6 A42,42 0 0 1 57.8,18.1" fill="none" stroke="#C77C21" stroke-width="13" stroke-linecap="round"/>
+          <path d="M57.8,18.1 A42,42 0 0 1 94.4,35.9" fill="none" stroke="#B23A3A" stroke-width="13" stroke-linecap="round"/>
+          <polygon points="64,32 108,60 64,88" fill="#02C39A"/>
+        </svg>
+        <div class="splash-mark">Trailwatt</div>
+        <div class="splash-tag">Sugerir. Exportar. Repetir.</div>
+        <div class="splash-loader"><span></span><span></span><span></span></div>
+      </div></div>
+      <p class="caption">Tela de abertura enquanto o app carrega o perfil salvo localmente no aparelho — some sozinha em menos de 1 segundo.</p>
+    </div>
+
+    <div class="screen-block" id="s01a">
+      <div class="eyebrow">01a — LOGIN / CRIAR CONTA</div>
+      <div class="phone"><div class="screen">
+        <p class="s-title">Bem-vindo</p>
+        <p class="s-sub" id="auth-subtitle">Acesse sua conta Trailwatt</p>
+
+        <div class="seg-control">
+          <div class="seg-btn active" id="auth-tab-login" onclick="trailwattSetAuthTab('login')">Entrar</div>
+          <div class="seg-btn" id="auth-tab-signup" onclick="trailwattSetAuthTab('signup')">Criar conta</div>
+        </div>
+
+        <div id="auth-fields-login">
+          <div class="fld-label">Email</div>
+          <div class="fld ph">nome@email.com</div>
+          <div class="fld-label">Senha</div>
+          <div class="fld ph">sua senha</div>
+          <p class="forgot-link">Esqueceu a senha?</p>
+        </div>
+
+        <div id="auth-fields-signup" style="display:none;">
+          <div class="fld-label">Nome</div>
+          <div class="fld ph">seu nome</div>
+          <div class="fld-label">Email</div>
+          <div class="fld ph">nome@email.com</div>
+          <div class="fld-label">Data de nascimento</div>
+          <div class="fld ph">DD/MM/AAAA</div>
+          <div class="fld-label">Senha</div>
+          <div class="fld ph">crie uma senha</div>
+          <div class="fld-label">Confirmar senha</div>
+          <div class="fld ph">repita a senha</div>
+          <div class="consent-row">
+            <span class="checkbox-box checked"></span>
+            <span class="consent-text">Concordo com os <b>Termos de Uso</b> e a <b>Politica de Privacidade</b></span>
+          </div>
+        </div>
+
+        <div class="btn btn-primary" id="auth-submit">Entrar</div>
+
+        <div id="auth-social-block">
+          <div class="divider"><span>OU</span></div>
+          <div class="btn btn-secondary" style="text-align:center;margin-bottom:8px;">Google</div>
+          <div class="btn btn-secondary" style="text-align:center;margin-bottom:8px;">Apple</div>
+          <div class="btn btn-secondary" style="text-align:center;">Microsoft</div>
+        </div>
+      </div></div>
+      <p class="caption">Criar conta agora pede os dados comuns de qualquer cadastro — nome, email, nascimento, senha (com confirmacao) e aceite dos termos. No login, Google/Apple/Microsoft continuam disponiveis; em criar conta, tudo e manual. Conta nova segue para o Perfil (02), conta existente vai direto ao Treino do dia (03).</p>
+    </div>
+
+    <div class="screen-block" id="s01b">
+      <div class="eyebrow">01b — CRIAR CONTA, EXEMPLO PREENCHIDO</div>
+      <div class="phone"><div class="screen">
+        <p class="s-title">Criar conta</p>
+        <p class="s-sub">Leva menos de um minuto</p>
+
+        <div class="seg-control">
+          <div class="seg-btn">Entrar</div>
+          <div class="seg-btn active">Criar conta</div>
+        </div>
+
+        <div class="fld-label">Nome</div>
+        <div class="fld">Marco Silva</div>
+        <div class="fld-label">Email</div>
+        <div class="fld">marco.silva@email.com</div>
+        <div class="fld-label">Data de nascimento</div>
+        <div class="fld">14/03/1994</div>
+        <div class="fld-label">Senha</div>
+        <div class="fld">&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;</div>
+        <div class="fld-label">Confirmar senha</div>
+        <div class="fld">&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;</div>
+        <div class="consent-row">
+          <span class="checkbox-box checked"></span>
+          <span class="consent-text">Concordo com os <b>Termos de Uso</b> e a <b>Politica de Privacidade</b></span>
+        </div>
+
+        <div class="btn btn-primary">Criar conta</div>
+      </div></div>
+      <p class="caption">Mesmo formulario da 01a, agora com dados de exemplo preenchidos — mostra exatamente onde cada informacao manual (nome, email, nascimento, senha) entra antes de tocar em "Criar conta".</p>
+    </div>
+
+    <div class="screen-block" id="s02">
+      <div class="eyebrow">02 — PERFIL</div>
+      <div class="phone"><div class="screen">
+        <p class="s-title">Criar perfil</p>
+        <p class="s-sub">Peso e FTP obrigatorios. O resto e opcional.</p>
+
+        <div class="fld-label">Peso (kg)</div>
+        <div class="fld">74</div>
+        <div class="fld-label">FTP (watts)</div>
+        <div class="fld">210</div>
+
+        <div class="divider"><span>CURVA DE POTENCIA</span></div>
+
+        <div class="fld-label">Potencia 5s (w) <span class="pill-opt">opcional</span></div>
+        <div class="fld ph">ex: 850</div>
+        <div class="fld-label">Potencia 1min (w) <span class="pill-opt">opcional</span></div>
+        <div class="fld ph">ex: 420</div>
+        <div class="fld-label">Potencia 5min (w) <span class="pill-opt">opcional</span></div>
+        <div class="fld ph">ex: 260</div>
+
+        <div class="btn btn-secondary">Importar do Strava/Garmin<span class="sub">preenche a curva via API</span></div>
+        <div class="btn btn-primary">Salvar perfil</div>
+      </div></div>
+      <p class="caption">Peso e FTP bastam para o motor funcionar. A curva de potencia refina estimulos curtos e intensos, e pode vir da API em vez de digitada a mao.</p>
+    </div>
+
+    <div class="screen-block" id="s02a">
+      <div class="eyebrow">02a — CRIAR TREINO (1/2)</div>
+      <div class="phone"><div class="screen">
+        <p class="s-title">Criar treino</p>
+        <p class="s-sub">Monte o treino e marque onde pedalar</p>
+
+        <div class="seg-control">
+          <div class="seg-btn active">Watts</div>
+          <div class="seg-btn">FC</div>
+        </div>
+
+        <div class="stimulus-card">
+          <select class="block-name-select">
+            <option>Recuperacao (Z1)</option>
+            <option>Resistencia (Z2)</option>
+            <option selected>Tempo (Z3)</option>
+            <option>Limiar (Z4)</option>
+            <option>VO2max (Z5)</option>
+          </select>
+          <div class="field-row">
+            <div class="field-col">
+              <div class="fld-label">Duracao (min)</div>
+              <div class="fld ph">8</div>
+            </div>
+            <div class="field-col">
+              <div class="fld-label">Repeticoes</div>
+              <div class="fld ph">4</div>
+              <div class="field-hint">1 = sem repeticao</div>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-col">
+              <div class="fld-label">Minimo (w)</div>
+              <div class="fld ph">170</div>
+            </div>
+            <div class="field-col">
+              <div class="fld-label">Maximo (w)</div>
+              <div class="fld ph">190</div>
+            </div>
+          </div>
+          <div class="field-row" style="margin-bottom:0;">
+            <div class="field-col">
+              <div class="fld-label">Descanso entre series (min)</div>
+              <div class="fld ph">2</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="add-serie-btn">+ Adicionar serie</div>
+      </div></div>
+      <p class="caption">Parte 1 de 2 — o nome do bloco usa a mesma nomenclatura de zona do resto do app. Continua na tela seguinte, como rolar a pagina num aparelho normal.</p>
+    </div>
+
+    <div class="screen-block" id="s02a2">
+      <div class="eyebrow">02a — CRIAR TREINO (2/2), MAPA</div>
+      <div class="phone"><div class="screen">
+        <p class="s-title">Criar treino</p>
+        <p class="s-sub">Continuacao — onde treinar</p>
+
+        <div class="fld-label">ONDE TREINAR</div>
+        <div class="map-card" id="zone-map" style="height:300px;"></div>
+        <p class="field-hint" style="text-align:center;margin:8px 0 16px;">Arraste o pino para marcar a area &middot; raio 8km</p>
+
+        <div class="btn btn-primary">Gerar sugestoes de rota</div>
+      </div></div>
+      <p class="caption">Parte 2 de 2 — o mapa em tamanho real, como apareceria depois de rolar a tela. A area alimenta a busca de rota da tela 04, sem apontar uma rota especifica ainda.</p>
+    </div>
+
+    <div class="screen-block" id="s02b">
+      <div class="eyebrow">02b — EXEMPLO 3 BLOCOS (1/3)</div>
+      <div class="phone"><div class="screen">
+        <p class="s-title">Criar treino</p>
+        <p class="s-sub">Aquecimento, limiar e VO2max num so treino</p>
+
+        <div class="seg-control">
+          <div class="seg-btn active">Watts</div>
+          <div class="seg-btn">FC</div>
+        </div>
+
+        <div class="stimulus-card">
+          <select class="block-name-select">
+            <option selected>Recuperacao (Z1)</option>
+            <option>Resistencia (Z2)</option>
+            <option>Tempo (Z3)</option>
+            <option>Limiar (Z4)</option>
+            <option>VO2max (Z5)</option>
+          </select>
+          <div class="field-row">
+            <div class="field-col">
+              <div class="fld-label">Duracao (min)</div>
+              <div class="fld">8</div>
+            </div>
+            <div class="field-col">
+              <div class="fld-label">Repeticoes</div>
+              <div class="fld">1</div>
+              <div class="field-hint">1 = sem repeticao</div>
+            </div>
+          </div>
+          <div class="field-row" style="margin-bottom:0;">
+            <div class="field-col">
+              <div class="fld-label">Minimo (w)</div>
+              <div class="fld">100</div>
+            </div>
+            <div class="field-col">
+              <div class="fld-label">Maximo (w)</div>
+              <div class="fld">120</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stimulus-card">
+          <select class="block-name-select">
+            <option>Recuperacao (Z1)</option>
+            <option>Resistencia (Z2)</option>
+            <option>Tempo (Z3)</option>
+            <option selected>Limiar (Z4)</option>
+            <option>VO2max (Z5)</option>
+          </select>
+          <div class="field-row">
+            <div class="field-col">
+              <div class="fld-label">Duracao (min)</div>
+              <div class="fld">3</div>
+            </div>
+            <div class="field-col">
+              <div class="fld-label">Repeticoes</div>
+              <div class="fld">4</div>
+              <div class="field-hint">1 = sem repeticao</div>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-col">
+              <div class="fld-label">Minimo (w)</div>
+              <div class="fld">190</div>
+            </div>
+            <div class="field-col">
+              <div class="fld-label">Maximo (w)</div>
+              <div class="fld">210</div>
+            </div>
+          </div>
+          <div class="field-row" style="margin-bottom:0;">
+            <div class="field-col">
+              <div class="fld-label">Descanso entre series (min)</div>
+              <div class="fld">2</div>
+            </div>
+          </div>
+        </div>
+      </div></div>
+      <p class="caption">Parte 1 de 3 — blocos 1 e 2 (Recuperacao, Limiar). Continua na proxima tela, como rolar a pagina num aparelho normal.</p>
+    </div>
+
+    <div class="screen-block" id="s02b2">
+      <div class="eyebrow">02b — EXEMPLO 3 BLOCOS (2/3)</div>
+      <div class="phone"><div class="screen">
+        <p class="s-title">Criar treino</p>
+        <p class="s-sub">Continuacao — terceiro bloco</p>
+
+        <div class="stimulus-card">
+          <select class="block-name-select">
+            <option>Recuperacao (Z1)</option>
+            <option>Resistencia (Z2)</option>
+            <option>Tempo (Z3)</option>
+            <option>Limiar (Z4)</option>
+            <option selected>VO2max (Z5)</option>
+          </select>
+          <div class="field-row">
+            <div class="field-col">
+              <div class="fld-label">Duracao (min)</div>
+              <div class="fld">1</div>
+            </div>
+            <div class="field-col">
+              <div class="fld-label">Repeticoes</div>
+              <div class="fld">4</div>
+              <div class="field-hint">1 = sem repeticao</div>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-col">
+              <div class="fld-label">Minimo (w)</div>
+              <div class="fld">250</div>
+            </div>
+            <div class="field-col">
+              <div class="fld-label">Maximo (w)</div>
+              <div class="fld">270</div>
+            </div>
+          </div>
+          <div class="field-row" style="margin-bottom:0;">
+            <div class="field-col">
+              <div class="fld-label">Descanso entre series (min)</div>
+              <div class="fld">1</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="add-serie-btn">+ Adicionar serie</div>
+      </div></div>
+      <p class="caption">Parte 2 de 3 — bloco 3 (VO2max) e o botao pra adicionar mais um, caso o treino precise.</p>
+    </div>
+
+    <div class="screen-block" id="s02b3">
+      <div class="eyebrow">02b — EXEMPLO 3 BLOCOS (3/3), MAPA</div>
+      <div class="phone"><div class="screen">
+        <p class="s-title">Criar treino</p>
+        <p class="s-sub">Continuacao — onde treinar</p>
+
+        <div class="fld-label">ONDE TREINAR</div>
+        <div class="map-card" id="zone-map-2" style="height:300px;"></div>
+        <p class="field-hint" style="text-align:center;margin:8px 0 16px;">Arraste o pino para marcar a area &middot; raio 8km</p>
+
+        <div class="btn btn-primary">Gerar sugestoes de rota</div>
+      </div></div>
+      <p class="caption">Parte 3 de 3 — mapa em tamanho real. Um unico mapa pro treino inteiro, mesmo com 3 blocos de zonas diferentes acima.</p>
+    </div>
+
+    <div class="screen-block" id="s03">
+      <div class="eyebrow">03 — TREINO DO DIA</div>
+      <div class="phone"><div class="screen">
+        <p class="s-title">Treino de hoje</p>
+        <p class="s-sub">4x8min a 180w</p>
+
+        <div class="stats-row">
+          <div class="stat"><div class="stat-label">ALVO</div><div class="stat-value num">180w        <div class="tab-bar">
+          <a href="#s03" class="tab-item active">
+            <svg viewBox="0 0 18 18" fill="none"><path d="M3 8.5L9 3.5L15 8.5V14.5C15 14.78 14.78 15 14.5 15H11V10.5H7V15H3.5C3.22 15 3 14.78 3 14.5V8.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+            <span>Treino</span>
+          </a>
+          <a href="#s08a" class="tab-item">
+            <svg viewBox="0 0 18 18" fill="none"><rect x="3" y="4" width="12" height="11" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M3 7.5H15" stroke="currentColor" stroke-width="1.4"/><path d="M6 2.5V5M12 2.5V5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            <span>Calendario</span>
+          </a>
+          <a href="#s07" class="tab-item">
+            <svg viewBox="0 0 18 18" fill="none"><rect x="3" y="10" width="3" height="5" rx="0.5" stroke="currentColor" stroke-width="1.4"/><rect x="7.5" y="6.5" width="3" height="8.5" rx="0.5" stroke="currentColor" stroke-width="1.4"/><rect x="12" y="3" width="3" height="12" rx="0.5" stroke="currentColor" stroke-width="1.4"/></svg>
+            <span>Historico</span>
+          </a>
+          <a href="#s02" class="tab-item">
+            <svg viewBox="0 0 18 18" fill="none"><circle cx="4" cy="9" r="1.4" fill="currentColor"/><circle cx="9" cy="9" r="1.4" fill="currentColor"/><circle cx="14" cy="9" r="1.4" fill="currentColor"/></svg>
+            <span>Mais</span>
+          </a>
+        </div>
+</div></div>
+          <div class="stat"><div class="stat-label">GRADIENTE</div><div class="stat-value num">4-6%</div></div>
+          <div class="stat"><div class="stat-label">TRECHO</div><div class="stat-value num">800m</div></div>
+        </div>
+
+        <div class="route-card">
+          <span class="match-badge">98%</span>
+          <p class="card-title">Subida da Serra</p>
+          <p class="card-sub num">5.2% · 850m</p>
+          <p class="map-link">Ver no mapa &#8594;</p>
+        </div>
+      </div></div>
+      <p class="caption">O motor traduz o alvo em gradiente e distancia, e ja mostra a rota real mais proxima que bate com o treino de hoje.</p>
+    </div>
+
+    <div class="screen-block" id="s04">
+      <div class="eyebrow">04 — ROTA NO MAPA</div>
+      <div class="phone"><div class="screen">
+        <p class="s-title">Subida da Serra</p>
+        <p class="s-sub">Trecho sugerido para o treino de hoje</p>
+
+        <div class="map-card" id="route-map"></div>
+        <div class="map-legend">
+          <span class="map-legend-item"><span class="map-legend-dot" style="background:#8FA3AB;"></span>Z1</span>
+          <span class="map-legend-item"><span class="map-legend-dot" style="background:#028090;"></span>Z2</span>
+          <span class="map-legend-item"><span class="map-legend-dot" style="background:#02C39A;"></span>Z3</span>
+          <span class="map-legend-item"><span class="map-legend-dot" style="background:#C77C21;"></span>Z4</span>
+          <span class="map-legend-item"><span class="map-legend-dot" style="background:#B23A3A;"></span>Z5</span>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat"><div class="stat-label">DISTANCIA</div><div class="stat-value num">850m</div></div>
+          <div class="stat"><div class="stat-label">GRADIENTE</div><div class="stat-value num">5.2%</div></div>
+          <div class="stat"><div class="stat-label">MATCH</div><div class="stat-value num" style="color:#0F6E56;">98%</div></div>
+        </div>
+
+        <div class="btn btn-secondary" style="text-align:center;">Editar rota manualmente</div>
+
+        <div class="fld-label" style="margin-top:12px;">EXPORTAR PARA</div>
+        <div class="chip-row">
+          <div class="chip">Strava</div>
+          <div class="chip">Garmin</div>
+          <div class="chip">Wahoo</div>
+        </div>
+        <div class="btn btn-primary" style="margin-top:8px;">Exportar rota</div>
+      </div></div>
+      <p class="caption">A cor do trecho segue a zona de esforco (Z1 a Z5, watts ou FC) prevista para aquele ponto da subida — nao so "dentro ou fora do alvo".</p>
+    </div>
+
+    <div class="screen-block" id="s05">
+      <div class="eyebrow">05 — EDITAR ROTA</div>
+      <div class="phone"><div class="screen">
+        <p class="s-title">Editar rota</p>
+        <p class="s-sub">O trecho do treino dentro do percurso completo</p>
+
+        <div class="map-card" id="edit-map" style="height:172px;"></div>
+        <p class="edit-hint">Tracejado = trecho ajustavel. Arraste os pontos para editar.</p>
+
+        <div class="stats-row">
+          <div class="stat"><div class="stat-label">PERCURSO TOTAL</div><div class="stat-value num">12,4km</div></div>
+          <div class="stat"><div class="stat-label">TRECHO DO TREINO</div><div class="stat-value num">850m</div></div>
+        </div>
+
+        <div class="btn btn-primary">Salvar alteracoes</div>
+        <div class="btn-text-cancel">Cancelar</div>
+      </div></div>
+      <p class="caption">O trecho ajustavel fica em cinza tracejado, sem cor de zona — assim ele nao compete com a legenda de esforco ate ser confirmado.</p>
+    </div>
+
+    <div class="screen-block" id="s06">
+      <div class="eyebrow">06 — IMPORTAR RESULTADO</div>
+      <div class="phone"><div class="screen">
+        <p class="s-title">Resultado do treino</p>
+        <p class="s-sub">Buscado automaticamente via API</p>
+
+        <div class="status-card">
+          <div class="status-top"><span class="dot"></span>CONECTADO AO STRAVA</div>
+          <p class="status-title">Atividade encontrada</p>
+          <p class="card-sub">Subida da Serra · hoje, 07:14</p>
+          <div class="stats-row" style="margin-top:10px;margin-bottom:0;">
+            <div class="stat"><div class="stat-label">POTENCIA MED.</div><div class="stat-value num">182w</div></div>
+            <div class="stat"><div class="stat-label">FC MEDIA</div><div class="stat-value num">152</div></div>
+            <div class="stat"><div class="stat-label">DURACAO</div><div class="stat-value num">41m</div></div>
+          </div>
+        </div>
+
+        <div class="btn btn-primary">Confirmar e salvar</div>
+
+        <div class="fallback">
+          <div class="fallback-label">SEM CONEXAO COM A API?</div>
+          <div class="fld-label">Potencia media (w)</div>
+          <div class="fld ph">informar manualmente</div>
+          <p class="fallback-note">Menos preciso — use apenas se a importacao automatica falhar.</p>
+        </div>
+      </div></div>
+      <p class="caption">A API busca a atividade correspondente automaticamente. A entrada manual so aparece como ultimo recurso, e fica visualmente secundaria.</p>
+    </div>
+
+    <div class="screen-block" id="s06a">
+      <div class="eyebrow">06a — MANUAL, INTERVALS</div>
+      <div class="phone"><div class="screen">
+        <p class="s-title">Workout result</p>
+        <p class="s-sub">Manual entry &middot; interval workout</p>
+
+        <div class="field-block">
+          <div class="fld-label">STIMULUS 1 &middot; 10 MIN <span class="pill-target">target 160w</span></div>
+          <div class="fld ph">avg watts</div>
+        </div>
+        <div class="field-block">
+          <div class="fld-label">STIMULUS 2 &middot; 4&times;3 MIN <span class="pill-target">target 200w</span></div>
+          <div class="fld ph">avg watts</div>
+        </div>
+        <div class="field-block">
+          <div class="fld-label">STIMULUS 3 &middot; 4&times;1 MIN <span class="pill-target">target 260w</span></div>
+          <div class="fld ph">avg watts</div>
+        </div>
+
+        <div class="btn btn-primary">Save workout</div>
+        <p class="locale-note">Shown in English &mdash; adapts to the rider's profile language.</p>
+      </div></div>
+      <p class="caption">Quando o treino tem estimulos diferentes, cada um vira um campo separado — uma media unica esconderia a diferenca entre eles.</p>
+    </div>
+
+    <div class="screen-block" id="s06b">
+      <div class="eyebrow">06b — MANUAL, CONTINUOUS</div>
+      <div class="phone"><div class="screen">
+        <p class="s-title">Workout result</p>
+        <p class="s-sub">Manual entry &middot; continuous workout</p>
+
+        <div class="field-block">
+          <div class="fld-label">ENDURANCE RIDE &middot; 60 MIN <span class="pill-target">target 150w</span></div>
+          <div class="fld ph">avg watts</div>
+        </div>
+
+        <div class="btn btn-primary">Save workout</div>
+        <p class="locale-note">Shown in English &mdash; adapts to the rider's profile language.</p>
+      </div></div>
+      <p class="caption">Treino continuo, alvo unico — uma entrada so basta, e mantem a tela rapida pra quem so quer registrar o resultado.</p>
+    </div>
+
+    <div class="screen-block" id="s07">
+      <div class="eyebrow">07 — HISTORICO</div>
+      <div class="phone"><div class="screen">
+        <p class="s-title">Seu progresso</p>
+        <p class="s-sub">Previsto vs. importado calibra o motor</p>
+
+        <div class="stats-row">
+          <div class="stat"><div class="stat-label">FTP ATUAL</div><div class="stat-value num">212w        <div class="tab-bar">
+          <a href="#s03" class="tab-item">
+            <svg viewBox="0 0 18 18" fill="none"><path d="M3 8.5L9 3.5L15 8.5V14.5C15 14.78 14.78 15 14.5 15H11V10.5H7V15H3.5C3.22 15 3 14.78 3 14.5V8.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+            <span>Treino</span>
+          </a>
+          <a href="#s08a" class="tab-item">
+            <svg viewBox="0 0 18 18" fill="none"><rect x="3" y="4" width="12" height="11" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M3 7.5H15" stroke="currentColor" stroke-width="1.4"/><path d="M6 2.5V5M12 2.5V5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            <span>Calendario</span>
+          </a>
+          <a href="#s07" class="tab-item active">
+            <svg viewBox="0 0 18 18" fill="none"><rect x="3" y="10" width="3" height="5" rx="0.5" stroke="currentColor" stroke-width="1.4"/><rect x="7.5" y="6.5" width="3" height="8.5" rx="0.5" stroke="currentColor" stroke-width="1.4"/><rect x="12" y="3" width="3" height="12" rx="0.5" stroke="currentColor" stroke-width="1.4"/></svg>
+            <span>Historico</span>
+          </a>
+          <a href="#s02" class="tab-item">
+            <svg viewBox="0 0 18 18" fill="none"><circle cx="4" cy="9" r="1.4" fill="currentColor"/><circle cx="9" cy="9" r="1.4" fill="currentColor"/><circle cx="14" cy="9" r="1.4" fill="currentColor"/></svg>
+            <span>Mais</span>
+          </a>
+        </div>
+</div></div>
+          <div class="stat"><div class="stat-label">PRECISAO</div><div class="stat-value num" style="color:#0F6E56;">94%</div></div>
+        </div>
+
+        <div class="hist-row">
+          <div>
+            <div class="hist-date">Subida da Serra</div>
+            <div class="hist-detail num">alvo 180w · real 178w</div>
+          </div>
+          <span class="src-tag">via Strava</span>
+        </div>
+        <div class="hist-row">
+          <div>
+            <div class="hist-date">Circuito do parque</div>
+            <div class="hist-detail num">alvo 150w · real 142w</div>
+          </div>
+          <span class="src-tag">via Garmin</span>
+        </div>
+        <div class="hist-row">
+          <div>
+            <div class="hist-date">Treino indoor</div>
+            <div class="hist-detail num">alvo 240w · real 241w</div>
+          </div>
+          <span class="src-tag">manual</span>
+        </div>
+      </div></div>
+      <p class="caption">Cada card mostra de onde veio o dado — a maior parte chega via API, entradas manuais ficam identificadas para o usuario saber a precisao.</p>
+    </div>
+
+    <div class="screen-block" id="s08a">
+      <div class="eyebrow">08a — CALENDARIO, SEMANA</div>
+      <div class="phone"><div class="screen">
+        <p class="s-title">Calendario</p>
+        <p class="s-sub">20 &ndash; 26 de julho</p>
+
+        <div class="seg-control">
+          <div class="seg-btn active">Semana</div>
+          <div class="seg-btn">Mes</div>
+        </div>
+
+        <div class="week-grid">
+          <div class="week-day"><span class="week-day-label">SEG</span><span class="week-day-num">20</span><span class="week-day-dot" style="background:#028090;"></span></div>
+          <div class="week-day"><span class="week-day-label">TER</span><span class="week-day-num">21</span><span class="week-day-dot empty"></span></div>
+          <div class="week-day"><span class="week-day-label">QUA</span><span class="week-day-num selected">22</span><span class="week-day-dot" style="background:#C77C21;"></span></div>
+          <div class="week-day"><span class="week-day-label">QUI</span><span class="week-day-num">23</span><span class="week-day-dot empty"></span></div>
+          <div class="week-day"><span class="week-day-label">SEX</span><span class="week-day-num">24</span><span class="week-day-dot" style="background:#02C39A;"></span></div>
+          <div class="week-day"><span class="week-day-label">SAB</span><span class="week-day-num">25</span><span class="week-day-dot" style="background:#028090;"></span></div>
+          <div class="week-day"><span class="week-day-label">DOM</span><span class="week-day-num">26</span><span class="week-day-dot empty"></span></div>
+        </div>
+
+        <div class="day-detail">
+          <span class="day-detail-zone" style="background:#C77C21;">Z4 &middot; THRESHOLD</span>
+          <p class="card-title">Subida da Serra</p>
+          <p class="card-sub num">4x8min a 180w</p>
+        </div>
+              <div class="tab-bar">
+          <a href="#s03" class="tab-item">
+            <svg viewBox="0 0 18 18" fill="none"><path d="M3 8.5L9 3.5L15 8.5V14.5C15 14.78 14.78 15 14.5 15H11V10.5H7V15H3.5C3.22 15 3 14.78 3 14.5V8.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+            <span>Treino</span>
+          </a>
+          <a href="#s08a" class="tab-item active">
+            <svg viewBox="0 0 18 18" fill="none"><rect x="3" y="4" width="12" height="11" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M3 7.5H15" stroke="currentColor" stroke-width="1.4"/><path d="M6 2.5V5M12 2.5V5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            <span>Calendario</span>
+          </a>
+          <a href="#s07" class="tab-item">
+            <svg viewBox="0 0 18 18" fill="none"><rect x="3" y="10" width="3" height="5" rx="0.5" stroke="currentColor" stroke-width="1.4"/><rect x="7.5" y="6.5" width="3" height="8.5" rx="0.5" stroke="currentColor" stroke-width="1.4"/><rect x="12" y="3" width="3" height="12" rx="0.5" stroke="currentColor" stroke-width="1.4"/></svg>
+            <span>Historico</span>
+          </a>
+          <a href="#s02" class="tab-item">
+            <svg viewBox="0 0 18 18" fill="none"><circle cx="4" cy="9" r="1.4" fill="currentColor"/><circle cx="9" cy="9" r="1.4" fill="currentColor"/><circle cx="14" cy="9" r="1.4" fill="currentColor"/></svg>
+            <span>Mais</span>
+          </a>
+        </div>
+</div></div>
+      <p class="caption">Por padrao o dia atual vem selecionado. Como ainda nao foi treinado, mostra o plano do dia.</p>
+    </div>
+
+    <div class="screen-block" id="s08b">
+      <div class="eyebrow">08b — CALENDARIO, DIA CONCLUIDO</div>
+      <div class="phone"><div class="screen">
+        <p class="s-title">Calendario</p>
+        <p class="s-sub">20 &ndash; 26 de julho</p>
+
+        <div class="seg-control">
+          <div class="seg-btn active">Semana</div>
+          <div class="seg-btn">Mes</div>
+        </div>
+
+        <div class="week-grid">
+          <div class="week-day"><span class="week-day-label">SEG</span><span class="week-day-num selected">20</span><span class="week-day-dot" style="background:#028090;"></span></div>
+          <div class="week-day"><span class="week-day-label">TER</span><span class="week-day-num">21</span><span class="week-day-dot empty"></span></div>
+          <div class="week-day"><span class="week-day-label">QUA</span><span class="week-day-num">22</span><span class="week-day-dot" style="background:#C77C21;"></span></div>
+          <div class="week-day"><span class="week-day-label">QUI</span><span class="week-day-num">23</span><span class="week-day-dot empty"></span></div>
+          <div class="week-day"><span class="week-day-label">SEX</span><span class="week-day-num">24</span><span class="week-day-dot" style="background:#02C39A;"></span></div>
+          <div class="week-day"><span class="week-day-label">SAB</span><span class="week-day-num">25</span><span class="week-day-dot" style="background:#028090;"></span></div>
+          <div class="week-day"><span class="week-day-label">DOM</span><span class="week-day-num">26</span><span class="week-day-dot empty"></span></div>
+        </div>
+
+        <div class="day-detail">
+          <span class="status-done">CONCLUIDO</span>
+          <span class="src-tag" style="margin-left:6px;">via Garmin</span>
+          <p class="card-title" style="margin-top:8px;">Circuito do parque</p>
+          <div class="stats-row" style="margin-top:8px;margin-bottom:0;">
+            <div class="stat"><div class="stat-label">REAL</div><div class="stat-value num">142w        <div class="tab-bar">
+          <a href="#s03" class="tab-item">
+            <svg viewBox="0 0 18 18" fill="none"><path d="M3 8.5L9 3.5L15 8.5V14.5C15 14.78 14.78 15 14.5 15H11V10.5H7V15H3.5C3.22 15 3 14.78 3 14.5V8.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+            <span>Treino</span>
+          </a>
+          <a href="#s08a" class="tab-item active">
+            <svg viewBox="0 0 18 18" fill="none"><rect x="3" y="4" width="12" height="11" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M3 7.5H15" stroke="currentColor" stroke-width="1.4"/><path d="M6 2.5V5M12 2.5V5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            <span>Calendario</span>
+          </a>
+          <a href="#s07" class="tab-item">
+            <svg viewBox="0 0 18 18" fill="none"><rect x="3" y="10" width="3" height="5" rx="0.5" stroke="currentColor" stroke-width="1.4"/><rect x="7.5" y="6.5" width="3" height="8.5" rx="0.5" stroke="currentColor" stroke-width="1.4"/><rect x="12" y="3" width="3" height="12" rx="0.5" stroke="currentColor" stroke-width="1.4"/></svg>
+            <span>Historico</span>
+          </a>
+          <a href="#s02" class="tab-item">
+            <svg viewBox="0 0 18 18" fill="none"><circle cx="4" cy="9" r="1.4" fill="currentColor"/><circle cx="9" cy="9" r="1.4" fill="currentColor"/><circle cx="14" cy="9" r="1.4" fill="currentColor"/></svg>
+            <span>Mais</span>
+          </a>
+        </div>
+</div></div>
+            <div class="stat"><div class="stat-label">ALVO</div><div class="stat-value num">150w</div></div>
+            <div class="stat"><div class="stat-label">DURACAO</div><div class="stat-value num">58m</div></div>
+          </div>
+        </div>
+      </div></div>
+      <p class="caption">Ao selecionar um dia ja treinado, o mesmo espaco mostra o resumo do que foi feito em vez do plano.</p>
+    </div>
+
+    <div class="screen-block" id="s08c">
+      <div class="eyebrow">08c — CALENDARIO, MES</div>
+      <div class="phone"><div class="screen">
+        <p class="s-title">Calendario</p>
+        <p class="s-sub">Julho 2026</p>
+
+        <div class="seg-control">
+          <div class="seg-btn">Semana</div>
+          <div class="seg-btn active">Mes</div>
+        </div>
+
+        <div class="month-header-row">
+          <div class="month-header-cell">S</div>
+          <div class="month-header-cell">T</div>
+          <div class="month-header-cell">Q</div>
+          <div class="month-header-cell">Q</div>
+          <div class="month-header-cell">S</div>
+          <div class="month-header-cell">S</div>
+          <div class="month-header-cell">D</div>
+        </div>
+
+        <div class="month-row">
+          <div class="month-cell faded"><span class="month-cell-num">29</span></div>
+          <div class="month-cell faded"><span class="month-cell-num">30</span></div>
+          <div class="month-cell"><span class="month-cell-num">1</span><span class="month-dot" style="background:#C77C21;"></span></div>
+          <div class="month-cell"><span class="month-cell-num">2</span></div>
+          <div class="month-cell"><span class="month-cell-num">3</span><span class="month-dot" style="background:#02C39A;"></span></div>
+          <div class="month-cell"><span class="month-cell-num">4</span><span class="month-dot" style="background:#8FA3AB;"></span></div>
+          <div class="month-cell"><span class="month-cell-num">5</span></div>
+        </div>
+        <div class="month-row">
+          <div class="month-cell"><span class="month-cell-num">6</span><span class="month-dot" style="background:#028090;"></span></div>
+          <div class="month-cell"><span class="month-cell-num">7</span></div>
+          <div class="month-cell"><span class="month-cell-num">8</span><span class="month-dot" style="background:#C77C21;"></span></div>
+          <div class="month-cell"><span class="month-cell-num">9</span></div>
+          <div class="month-cell"><span class="month-cell-num">10</span><span class="month-dot" style="background:#02C39A;"></span></div>
+          <div class="month-cell"><span class="month-cell-num">11</span><span class="month-dot" style="background:#028090;"></span></div>
+          <div class="month-cell"><span class="month-cell-num">12</span></div>
+        </div>
+        <div class="month-row">
+          <div class="month-cell"><span class="month-cell-num">13</span><span class="month-dot" style="background:#028090;"></span></div>
+          <div class="month-cell"><span class="month-cell-num">14</span></div>
+          <div class="month-cell"><span class="month-cell-num">15</span><span class="month-dot" style="background:#C77C21;"></span></div>
+          <div class="month-cell"><span class="month-cell-num">16</span></div>
+          <div class="month-cell"><span class="month-cell-num">17</span><span class="month-dot" style="background:#02C39A;"></span></div>
+          <div class="month-cell"><span class="month-cell-num">18</span><span class="month-dot" style="background:#B23A3A;"></span></div>
+          <div class="month-cell"><span class="month-cell-num">19</span></div>
+        </div>
+        <div class="month-row">
+          <div class="month-cell"><span class="month-cell-num">20</span><span class="month-dot" style="background:#028090;"></span></div>
+          <div class="month-cell"><span class="month-cell-num">21</span></div>
+          <div class="month-cell today"><span class="month-cell-num">22</span><span class="month-dot" style="background:#C77C21;"></span></div>
+          <div class="month-cell"><span class="month-cell-num">23</span></div>
+          <div class="month-cell"><span class="month-cell-num">24</span><span class="month-dot" style="background:#02C39A;"></span></div>
+          <div class="month-cell"><span class="month-cell-num">25</span><span class="month-dot" style="background:#028090;"></span></div>
+          <div class="month-cell"><span class="month-cell-num">26</span></div>
+        </div>
+        <div class="month-row">
+          <div class="month-cell"><span class="month-cell-num">27</span><span class="month-dot" style="background:#028090;"></span></div>
+          <div class="month-cell"><span class="month-cell-num">28</span></div>
+          <div class="month-cell"><span class="month-cell-num">29</span><span class="month-dot" style="background:#C77C21;"></span></div>
+          <div class="month-cell"><span class="month-cell-num">30</span></div>
+          <div class="month-cell"><span class="month-cell-num">31</span><span class="month-dot" style="background:#02C39A;"></span></div>
+          <div class="month-cell faded"><span class="month-cell-num">1</span></div>
+          <div class="month-cell faded"><span class="month-cell-num">2</span></div>
+        </div>
+
+        <div class="map-legend" style="margin-top:12px;margin-bottom:12px;">
+          <span class="map-legend-item"><span class="map-legend-dot" style="background:#8FA3AB;"></span>Z1</span>
+          <span class="map-legend-item"><span class="map-legend-dot" style="background:#028090;"></span>Z2</span>
+          <span class="map-legend-item"><span class="map-legend-dot" style="background:#02C39A;"></span>Z3</span>
+          <span class="map-legend-item"><span class="map-legend-dot" style="background:#C77C21;"></span>Z4</span>
+          <span class="map-legend-item"><span class="map-legend-dot" style="background:#B23A3A;"></span>Z5</span>
+        </div>
+
+        <div class="day-detail">
+          <span class="day-detail-zone" style="background:#C77C21;">Z4 &middot; THRESHOLD</span>
+          <p class="card-title">Subida da Serra</p>
+          <p class="card-sub num">4x8min a 180w</p>
+        </div>
+              <div class="tab-bar">
+          <a href="#s03" class="tab-item">
+            <svg viewBox="0 0 18 18" fill="none"><path d="M3 8.5L9 3.5L15 8.5V14.5C15 14.78 14.78 15 14.5 15H11V10.5H7V15H3.5C3.22 15 3 14.78 3 14.5V8.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+            <span>Treino</span>
+          </a>
+          <a href="#s08a" class="tab-item active">
+            <svg viewBox="0 0 18 18" fill="none"><rect x="3" y="4" width="12" height="11" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M3 7.5H15" stroke="currentColor" stroke-width="1.4"/><path d="M6 2.5V5M12 2.5V5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            <span>Calendario</span>
+          </a>
+          <a href="#s07" class="tab-item">
+            <svg viewBox="0 0 18 18" fill="none"><rect x="3" y="10" width="3" height="5" rx="0.5" stroke="currentColor" stroke-width="1.4"/><rect x="7.5" y="6.5" width="3" height="8.5" rx="0.5" stroke="currentColor" stroke-width="1.4"/><rect x="12" y="3" width="3" height="12" rx="0.5" stroke="currentColor" stroke-width="1.4"/></svg>
+            <span>Historico</span>
+          </a>
+          <a href="#s02" class="tab-item">
+            <svg viewBox="0 0 18 18" fill="none"><circle cx="4" cy="9" r="1.4" fill="currentColor"/><circle cx="9" cy="9" r="1.4" fill="currentColor"/><circle cx="14" cy="9" r="1.4" fill="currentColor"/></svg>
+            <span>Mais</span>
+          </a>
+        </div>
+</div></div>
+      <p class="caption">O mesmo resumo da visao semanal aparece aqui embaixo ao tocar num dia — plano se ainda nao foi feito, resultado se ja foi. Por padrao, o dia atual.</p>
+    </div>
+
+  </div>
+</section>
+
+<script>
+  function trailwattSetAuthTab(tab) {
+    var isLogin = tab === 'login';
+    document.getElementById('auth-tab-login').classList.toggle('active', isLogin);
+    document.getElementById('auth-tab-signup').classList.toggle('active', !isLogin);
+    document.getElementById('auth-fields-login').style.display = isLogin ? 'block' : 'none';
+    document.getElementById('auth-fields-signup').style.display = isLogin ? 'none' : 'block';
+    document.getElementById('auth-submit').textContent = isLogin ? 'Entrar' : 'Criar conta';
+    document.getElementById('auth-subtitle').textContent = isLogin ? 'Acesse sua conta Trailwatt' : 'Leva menos de um minuto';
+    document.getElementById('auth-social-block').style.display = isLogin ? 'block' : 'none';
+  }
+
+  window.addEventListener('DOMContentLoaded', function () {
+    var el = document.getElementById('route-map');
+    if (!el || typeof L === 'undefined') return;
+
+    var routeCoords = [
+      [37.4130, -122.2505],
+      [37.4108, -122.2465],
+      [37.4080, -122.2410],
+      [37.4055, -122.2350],
+      [37.4030, -122.2290],
+      [37.4005, -122.2220],
+      [37.3985, -122.2155]
+    ];
+
+    var map = L.map('route-map', {
+      zoomControl: false,
+      dragging: false,
+      scrollWheelZoom: false,
+      doubleClickZoom: false,
+      touchZoom: false,
+      boxZoom: false,
+      keyboard: false
+    });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    var ZONES = {
+      z1: '#8FA3AB', // recovery
+      z2: '#028090', // endurance
+      z3: '#02C39A', // tempo
+      z4: '#C77C21', // threshold
+      z5: '#B23A3A'  // vo2max
+    };
+
+    // Segment-by-segment zone matching the workout phases: warm-up, stimulus 1,
+    // stimulus 2, rest, stimulus 3, cool-down.
+    var segmentZones = [ZONES.z1, ZONES.z3, ZONES.z4, ZONES.z1, ZONES.z5, ZONES.z1];
+    for (var i = 0; i < routeCoords.length - 1; i++) {
+      L.polyline([routeCoords[i], routeCoords[i + 1]], {
+        color: segmentZones[i],
+        weight: 5,
+        lineCap: 'round'
+      }).addTo(map);
+    }
+
+    [routeCoords[0], routeCoords[routeCoords.length - 1]].forEach(function (pt) {
+      L.circleMarker(pt, { radius: 5, color: '#0B2B2B', fillColor: '#0B2B2B', fillOpacity: 1, weight: 0 }).addTo(map);
+    });
+
+    map.fitBounds(L.polyline(routeCoords).getBounds(), { padding: [16, 16] });
+
+    var editEl = document.getElementById('edit-map');
+    if (editEl && typeof L !== 'undefined') {
+      var HOME = [37.4175, -122.2560];
+      var ret = [
+        [37.3950, -122.2100],
+        [37.3990, -122.2350],
+        [37.4080, -122.2520],
+        HOME
+      ];
+
+      var editMap = L.map('edit-map', {
+        zoomControl: false,
+        dragging: false,
+        scrollWheelZoom: false,
+        doubleClickZoom: false,
+        touchZoom: false,
+        boxZoom: false,
+        keyboard: false
+      });
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+        attribution: '&copy; OpenStreetMap'
+      }).addTo(editMap);
+
+      L.polyline([HOME, routeCoords[0]], { color: '#AEBFB9', weight: 4, lineCap: 'round' }).addTo(editMap);
+      L.polyline(routeCoords, { color: '#5B6B69', weight: 4, lineCap: 'round', dashArray: '3, 5' }).addTo(editMap);
+      L.polyline([routeCoords[6]].concat(ret), { color: '#AEBFB9', weight: 4, lineCap: 'round' }).addTo(editMap);
+
+      L.circleMarker(HOME, { radius: 6, color: '#0B2B2B', fillColor: '#0B2B2B', fillOpacity: 1, weight: 0 }).addTo(editMap);
+      [routeCoords[1], routeCoords[5]].forEach(function (pt) {
+        L.circleMarker(pt, { radius: 5, color: '#028090', fillColor: '#FFFFFF', fillOpacity: 1, weight: 2.5 }).addTo(editMap);
+      });
+
+      var allPts = [HOME].concat(routeCoords, ret);
+      editMap.fitBounds(L.polyline(allPts).getBounds(), { padding: [14, 14] });
+    }
+
+    function initZoneMap(elementId) {
+      var el = document.getElementById(elementId);
+      if (!el || typeof L === 'undefined') return;
+      var ZONE_CENTER = [37.4020, -122.2380];
+      var zoneMap = L.map(elementId, {
+        zoomControl: false,
+        dragging: false,
+        scrollWheelZoom: false,
+        doubleClickZoom: false,
+        touchZoom: false,
+        boxZoom: false,
+        keyboard: false
+      }).setView(ZONE_CENTER, 12);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+        attribution: '&copy; OpenStreetMap'
+      }).addTo(zoneMap);
+
+      L.circle(ZONE_CENTER, {
+        radius: 8000,
+        color: '#02C39A',
+        weight: 2,
+        fillColor: '#02C39A',
+        fillOpacity: 0.14
+      }).addTo(zoneMap);
+
+      L.circleMarker(ZONE_CENTER, {
+        radius: 6,
+        color: '#0B2B2B',
+        fillColor: '#FFFFFF',
+        fillOpacity: 1,
+        weight: 3
+      }).addTo(zoneMap);
+    }
+    initZoneMap('zone-map');
+    initZoneMap('zone-map-2');
+  });
+</script>
+</body>
+</html>
