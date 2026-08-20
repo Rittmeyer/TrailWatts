@@ -397,5 +397,8 @@
     }
   },
   "routeHandoffCopy": "Copy GPX",
-  "routeHandoffCopied": "GPX copied"
+  "routeHandoffCopied": "GPX copied",
+  "importWorkoutNothingPlanned": "No structured workout planned in TrainingPeaks for the week ahead.",
+  "importWorkoutReconnect": "Your TrainingPeaks session ended. Connect it again under More › Integrations.",
+  "importWorkoutFailed": "Could not read the planned workout from TrainingPeaks."
 }

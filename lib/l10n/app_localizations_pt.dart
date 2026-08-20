@@ -792,4 +792,16 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get routeHandoffCopied => 'GPX copiado';
+
+  @override
+  String get importWorkoutNothingPlanned =>
+      'Nenhum treino estruturado planejado no TrainingPeaks para a próxima semana.';
+
+  @override
+  String get importWorkoutReconnect =>
+      'Sua sessão do TrainingPeaks terminou. Conecte de novo em Mais › Integrações.';
+
+  @override
+  String get importWorkoutFailed =>
+      'Não foi possível ler o treino planejado do TrainingPeaks.';
 }

@@ -171,10 +171,17 @@ downstream.
 - Imported blocks populate the same `WorkoutBlock`/`WorkoutBlockGroup`
   structures the manual builder edits, so an imported workout remains fully
   editable, exactly like a manually built one.
-- See `lib/services/training_peaks_import.dart` for the current
-  implementation, which stands in for the real TrainingPeaks API the same
-  way the rest of this feature's demo data stands in for Strava/Garmin
-  (README, "Status").
+- `lib/services/training_peaks_import.dart` reads the planned workouts in a
+  bounded window through the connected session, and maps TrainingPeaks'
+  structured-workout shape onto builder blocks: a `repetition` entry with an
+  interval step and a recovery step becomes exactly one `WorkoutBlockGroup`
+  repeated N times, which is the case the group model was added for.
+- **A step this app cannot represent honestly is dropped, never filled in.**
+  A step with no target would need an invented one; a step shorter than the
+  block model's minute resolution would need invented seconds; an HR-based
+  plan would need an anchor the rider may not have supplied. Each of those
+  is left out rather than guessed, and an import that yields nothing is
+  reported as "nothing planned" - the manual builder keeps working.
 
 ## Addendum: connection implementation
 

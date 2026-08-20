@@ -234,5 +234,8 @@
   "routeHandoffTitle": "Importar no {platform}",
   "routeHandoffBody": "O {platform} não tem endpoint oficial para criar rota, e o app não inventa um. Este é o GPX - importe pelo próprio importador de rotas do {platform}.",
   "routeHandoffCopy": "Copiar GPX",
-  "routeHandoffCopied": "GPX copiado"
+  "routeHandoffCopied": "GPX copiado",
+  "importWorkoutNothingPlanned": "Nenhum treino estruturado planejado no TrainingPeaks para a próxima semana.",
+  "importWorkoutReconnect": "Sua sessão do TrainingPeaks terminou. Conecte de novo em Mais › Integrações.",
+  "importWorkoutFailed": "Não foi possível ler o treino planejado do TrainingPeaks."
 }

@@ -6,6 +6,7 @@ import '../models/rider_profile.dart';
 import '../models/workout_block.dart';
 import '../models/zone.dart';
 import '../services/integrations_store.dart';
+import '../services/platform/platform_api_client.dart';
 import '../services/training_peaks_import.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -129,7 +130,7 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
     ),
   );
 
-  static const _importService = TrainingPeaksImportService();
+  final _importService = TrainingPeaksImportService();
   bool _importing = false;
 
   /// Seeded as the worked example: one block holding two stimuli - a
@@ -222,21 +223,47 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
       return;
     }
 
+    final messenger = ScaffoldMessenger.of(context);
+    final store = IntegrationsStore.instance;
+
     setState(() => _importing = true);
-    final imported = await _importService.importPreferredWorkout(_rider);
-    if (!mounted) return;
-    setState(() {
-      for (final g in _groups) {
-        g.dispose();
+    try {
+      final imported = await _importService.importPreferredWorkout(
+        credentials: store.credentialsFor(ResultSource.trainingPeaks),
+        tokens: await store.validTokensFor(ResultSource.trainingPeaks),
+        rider: _rider,
+      );
+      if (!mounted) return;
+
+      // Nothing structured planned is a real answer, not a failure: the
+      // blocks already on screen stay exactly as the rider left them.
+      if (imported.isEmpty) {
+        messenger.showSnackBar(
+            SnackBar(content: Text(t.importWorkoutNothingPlanned)));
+        return;
       }
-      _metric = ZoneMetric.power;
-      _groups
-        ..clear()
-        ..addAll(imported.map(_GroupForm.fromModel));
-      _importing = false;
-    });
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(t.importWorkoutSuccessSnack)));
+
+      setState(() {
+        for (final g in _groups) {
+          g.dispose();
+        }
+        _metric = ZoneMetric.power;
+        _groups
+          ..clear()
+          ..addAll(imported.map(_GroupForm.fromModel));
+      });
+      messenger
+          .showSnackBar(SnackBar(content: Text(t.importWorkoutSuccessSnack)));
+    } on PlatformApiException catch (e) {
+      messenger.showSnackBar(SnackBar(
+        content: Text(switch (e.failure) {
+          PlatformApiFailure.unauthorized => t.importWorkoutReconnect,
+          _ => t.importWorkoutFailed,
+        }),
+      ));
+    } finally {
+      if (mounted) setState(() => _importing = false);
+    }
   }
 
   @override

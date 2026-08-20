@@ -1507,6 +1507,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'GPX copied'**
   String get routeHandoffCopied;
+
+  /// No description provided for @importWorkoutNothingPlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'No structured workout planned in TrainingPeaks for the week ahead.'**
+  String get importWorkoutNothingPlanned;
+
+  /// No description provided for @importWorkoutReconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Your TrainingPeaks session ended. Connect it again under More › Integrations.'**
+  String get importWorkoutReconnect;
+
+  /// No description provided for @importWorkoutFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read the planned workout from TrainingPeaks.'**
+  String get importWorkoutFailed;
 }
 
 class _AppLocalizationsDelegate
