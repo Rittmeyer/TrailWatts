@@ -129,9 +129,12 @@ void main() {
   group('absolute bounds', () {
     test('power bounds come from FTP', () {
       const zones = PowerZoneSettings(scale: ZoneScale.seven);
-      // Z4 is 91-106% of a 200 W FTP.
+      // Z4 starts at 91% of a 200 W FTP.
       expect(zones.lowerBoundWatts(4, 200), 182);
-      expect(zones.upperBoundWatts(4, 200), 212);
+      // ...and ends one below where Z5 starts (106% = 212), not at 212
+      // itself - otherwise 212 W would sit in both zones.
+      expect(zones.lowerBoundWatts(5, 200), 212);
+      expect(zones.upperBoundWatts(4, 200), 211);
       // The top zone is open-ended.
       expect(zones.upperBoundWatts(7, 200), isNull);
     });
@@ -249,6 +252,59 @@ void main() {
       // one, where 195 W = 97.5% FTP would also be Z4 but with other edges.
       expect(rider.powerZones.lowerBoundWatts(4, 200), 190);
       expect(rider.powerZones.upperBoundWatts(4, 200), 229);
+    });
+  });
+
+  group('displayed bands never share a value', () {
+    /// The band shown for a zone must be exactly one below the next zone's
+    /// start, on every table, scale and anchor - generic or rider-edited.
+    void expectContiguous(int? Function(int) lower, int? Function(int) upper,
+        int count, String label) {
+      for (var i = 1; i < count; i++) {
+        expect(upper(i), isNotNull, reason: '$label Z$i has no upper bound');
+        expect(upper(i)! + 1, lower(i + 1),
+            reason: '$label: Z$i ends at ${upper(i)} but Z${i + 1} starts '
+                'at ${lower(i + 1)}');
+      }
+      expect(upper(count), isNull, reason: '$label top zone must be open');
+    }
+
+    test('generic power tables, both scales', () {
+      for (final scale in ZoneScale.values) {
+        final zones = PowerZoneSettings(scale: scale);
+        expectContiguous((i) => zones.lowerBoundWatts(i, 210),
+            (i) => zones.upperBoundWatts(i, 210), scale.count, 'power/$scale');
+      }
+    });
+
+    test('generic heart-rate tables, both scales and anchors', () {
+      for (final scale in ZoneScale.values) {
+        for (final anchor in HeartRateAnchor.values) {
+          final zones = HeartRateZoneSettings(
+            scale: scale,
+            anchor: anchor,
+            lthrBpm: 168,
+            hrMaxBpm: 184,
+          );
+          expectContiguous(zones.lowerBoundBpm, zones.upperBoundBpm,
+              scale.count, 'hr/$scale/$anchor');
+        }
+      }
+    });
+
+    test('rider-edited tables follow the same rule', () {
+      const zones = PowerZoneSettings(
+          scale: ZoneScale.five,
+          customLowerBoundsWatts: [0, 120, 160, 190, 230]);
+      expectContiguous((i) => zones.lowerBoundWatts(i, 210),
+          (i) => zones.upperBoundWatts(i, 210), 5, 'custom');
+      expect(zones.upperBoundWatts(4, 210), 229);
+    });
+
+    test('upperBoundFrom is the single rule both paths use', () {
+      expect(upperBoundFrom([0, 120, 160], 1), 119);
+      expect(upperBoundFrom([0, 120, 160], 2), 159);
+      expect(upperBoundFrom([0, 120, 160], 3), isNull);
     });
   });
 }

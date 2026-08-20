@@ -82,16 +82,14 @@ class ZoneDefinition {
   /// (FTP in watts, or LTHR / HR max in bpm).
   int minFor(num anchor) => (anchor * minPct / 100).round();
 
-  /// Absolute upper bound, or null on the open-ended top zone.
-  int? maxFor(num anchor) =>
+  /// The exclusive percentage boundary in absolute terms - i.e. where the
+  /// NEXT zone starts, not this zone's last usable value.
+  ///
+  /// Do not show this as a zone's upper bound: it equals the next zone's
+  /// lower bound, so displaying both would put one value in two zones. The
+  /// displayed upper bound comes from upperBoundFrom() in rider_profile.dart.
+  int? exclusiveMaxFor(num anchor) =>
       maxPct == null ? null : (anchor * maxPct! / 100).round();
-
-  /// e.g. "228-263 w", or "≥ 316 w" for the top zone.
-  String rangeLabel(num anchor, String unit) {
-    final min = minFor(anchor);
-    final max = maxFor(anchor);
-    return max == null ? '≥ $min $unit' : '$min-$max $unit';
-  }
 }
 
 /// A complete set of zones for one metric at one scale.

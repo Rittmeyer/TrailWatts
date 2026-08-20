@@ -1,5 +1,15 @@
 import 'zone.dart';
 
+/// A zone's inclusive upper bound is the next zone's lower bound minus one.
+/// Zones are contiguous and share no value, so any measurement belongs to
+/// exactly one zone - 118 w cannot be both the top of Z1 and the bottom of
+/// Z2. Returns null for the top zone, which is open-ended.
+///
+/// [zoneIndex] is 1-based; [lowerBounds] is 0-based, so `lowerBounds[zoneIndex]`
+/// is already the *next* zone's lower bound.
+int? upperBoundFrom(List<int> lowerBounds, int zoneIndex) =>
+    zoneIndex >= lowerBounds.length ? null : lowerBounds[zoneIndex] - 1;
+
 /// Shared rule for a rider-entered zone table: one lower bound per zone,
 /// starting at zero and strictly increasing. Anything else would leave a gap
 /// or an overlap, so a value could land in two zones or in none.
@@ -49,13 +59,11 @@ class PowerZoneSettings {
       customLowerBoundsWatts?[zoneIndex - 1] ??
       table.byIndex(zoneIndex).minFor(ftpWatts);
 
-  /// Upper bound in watts, or null on the open-ended top zone.
-  int? upperBoundWatts(int zoneIndex, int ftpWatts) {
-    if (zoneIndex >= scale.count) return null;
-    final custom = customLowerBoundsWatts;
-    if (custom != null) return custom[zoneIndex] - 1;
-    return table.byIndex(zoneIndex).maxFor(ftpWatts);
-  }
+  /// Upper bound in watts, or null on the open-ended top zone. Derived from
+  /// the next zone's lower bound so generic and custom tables follow the
+  /// same rule and never share a value.
+  int? upperBoundWatts(int zoneIndex, int ftpWatts) => upperBoundFrom(
+      customLowerBoundsWatts ?? derivedBounds(ftpWatts), zoneIndex);
 
   TrainingZone zone(int index) => TrainingZone(
         metric: ZoneMetric.power,
@@ -126,13 +134,8 @@ class HeartRateZoneSettings {
   }
 
   int? upperBoundBpm(int zoneIndex) {
-    if (zoneIndex >= scale.count) return null;
-    final custom = customLowerBoundsBpm;
-    if (custom != null) return custom[zoneIndex] - 1;
-    final anchorValue = anchorBpm;
-    return anchorValue == null
-        ? null
-        : table.byIndex(zoneIndex).maxFor(anchorValue);
+    final bounds = customLowerBoundsBpm ?? derivedBounds();
+    return bounds == null ? null : upperBoundFrom(bounds, zoneIndex);
   }
 
   TrainingZone zone(int index) => TrainingZone(

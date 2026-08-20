@@ -112,11 +112,14 @@ class _ZoneTableEditorState extends State<ZoneTableEditor> {
     setState(() {}); // refresh the derived upper bounds
   }
 
-  /// Upper bound shown for a row: the next lower bound minus one.
+  /// Upper bound shown for a row, using the same rule as the stored model
+  /// (upperBoundFrom) but applied to what is currently typed, so the label
+  /// tracks the field while it is being edited.
   String _upperLabel(int rowIndex) {
-    if (rowIndex == _controllers.length - 1) return '';
-    final next = int.tryParse(_controllers[rowIndex + 1].text.trim());
-    return next == null ? '?' : '${next - 1}';
+    final parsed = _read();
+    if (parsed == null) return '?';
+    final upper = upperBoundFrom(parsed, rowIndex + 1);
+    return upper == null ? '' : '$upper';
   }
 
   @override
