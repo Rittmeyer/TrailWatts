@@ -63,16 +63,51 @@ class _ZoneTableEditorState extends State<ZoneTableEditor> {
     _syncControllers();
   }
 
+  /// Set when the anchor (FTP / LTHR / HR max) moved after the rider had
+  /// already edited this table by hand. Their numbers are kept - they typed
+  /// them on purpose - but the table no longer follows the new anchor, and
+  /// saying so beats silently leaving it stale.
+  bool _anchorMovedSinceEdit = false;
+
   @override
   void didUpdateWidget(ZoneTableEditor old) {
     super.didUpdateWidget(old);
-    // The zone count or the underlying values changed (scale switch, new
-    // anchor, reverted to generic): rebuild the fields to match.
-    if (old.table.scale != widget.table.scale ||
-        old.bounds?.length != widget.bounds?.length ||
-        (widget.bounds == null) != (old.bounds == null)) {
+
+    final scaleChanged = old.table.scale != widget.table.scale;
+    final modeChanged = (old.bounds == null) != (widget.bounds == null);
+    final derivedChanged =
+        !_sameValues(old.derivedBounds, widget.derivedBounds);
+
+    if (scaleChanged || modeChanged) {
+      if (modeChanged) _anchorMovedSinceEdit = false;
       _syncControllers();
+      return;
     }
+
+    if (widget.bounds == null) {
+      // Generic table: it is derived from the anchor, so it must track it.
+      if (derivedChanged) _syncControllers();
+      return;
+    }
+
+    // Custom table. Re-sync only when the new bounds came from outside this
+    // widget (a "recalculate" tap); the echo of the rider's own typing would
+    // otherwise rebuild the field and drop the caret mid-edit.
+    if (!_sameValues(widget.bounds, _read())) {
+      _syncControllers();
+      _anchorMovedSinceEdit = false;
+    } else if (derivedChanged) {
+      _anchorMovedSinceEdit = true;
+    }
+  }
+
+  static bool _sameValues(List<int>? a, List<int>? b) {
+    if (a == null || b == null) return a == b;
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
   }
 
   void _syncControllers() {
@@ -236,6 +271,29 @@ class _ZoneTableEditorState extends State<ZoneTableEditor> {
                 ],
               ),
             ),
+          if (_anchorMovedSinceEdit && widget.derivedBounds != null) ...[
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'A ancora mudou. Estes limites sao os que voce digitou e '
+                    'nao acompanharam.',
+                    style: AppTextStyles.label
+                        .copyWith(fontSize: 8.5, color: AppColors.warnText),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                _TinyButton(
+                  label: 'Recalcular',
+                  onTap: () {
+                    widget.onValidityChanged?.call(true);
+                    widget.onChanged(List<int>.from(widget.derivedBounds!));
+                  },
+                ),
+              ],
+            ),
+          ],
           if (!valid) ...[
             const SizedBox(height: 6),
             Text(
