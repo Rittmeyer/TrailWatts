@@ -1,0 +1,16 @@
+# The build context is the repo; keep out everything the image rebuilds
+# itself, so a local build directory does not get shipped into the image
+# and invalidate every layer on each run.
+.git
+.dart_tool
+build/
+android/.gradle
+android/local.properties
+ios/Pods
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+docs/screenshots
+prototype
+ui
+spec-reference
+*.iml

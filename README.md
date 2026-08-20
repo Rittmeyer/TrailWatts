@@ -77,6 +77,40 @@ Two things about this Android config worth knowing:
   defaults (Gradle 8.7 / AGP 8.3.2 / Kotlin 1.9.22) so the build works on a
   current JDK; the shipped Gradle 8.3 rejects JDK 21.
 
+## Builds com Docker
+
+Uma imagem por plataforma, sem instalar SDK nenhum na sua máquina:
+
+```bash
+docker/build.sh web       # -> build/docker/web/
+docker/build.sh android   # -> build/docker/android/app-release.apk
+docker/build.sh all       # web + android
+```
+
+O `docker/Dockerfile` monta o SDK do Flutter (fixado em 3.24.5), e para o
+Android também JDK 17 e o Android SDK. Cada alvo termina num estágio
+`scratch` exportado com `--output type=local`, então o que sai é o artefato,
+não uma imagem de 3 GB para você extrair depois.
+
+Configuração de build passa por `DART_DEFINES`:
+
+```bash
+DART_DEFINES="--dart-define=TRAILWATT_STRAVA_CLIENT_ID=123 \
+              --dart-define=TRAILWATT_OSRM_URL=https://osrm.suainfra" \
+  docker/build.sh web
+```
+
+Esses valores ficam no histórico da imagem. Aqui isso é aceitável e **só
+aqui**: os fluxos OAuth são clientes públicos com PKCE, então nenhum client
+secret passa por um build. Não adicione um.
+
+`docker/build.sh ios` existe e não usa Docker - ele roda o build nativo e,
+fora do macOS, explica por quê em vez de falhar sem contexto. **Não existe
+imagem Docker capaz de compilar para iOS**: o Xcode só roda em macOS, e a
+licença da Apple não permite macOS em container fora de hardware Apple.
+Nenhuma configuração resolve isso; é a razão de o alvo iOS ser o único que
+sai do Docker.
+
 ## iOS
 
 O projeto Xcode está versionado em `ios/` (bundle id `app.trailwatt`,
