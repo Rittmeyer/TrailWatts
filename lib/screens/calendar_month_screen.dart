@@ -6,7 +6,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../services/activity_store.dart';
 import '../services/workout_plan_store.dart';
-import '../widgets/bottom_nav.dart';
+import '../widgets/app_shell.dart';
 import '../widgets/calendar_day_actions.dart';
 import '../widgets/segmented_control.dart';
 import 'calendar_demo_data.dart';
@@ -29,95 +29,91 @@ class _CalendarMonthScreenState extends State<CalendarMonthScreen> {
   Widget build(BuildContext context) {
     final t = tr(context);
     final locale = Localizations.localeOf(context).toString();
-    return Scaffold(
-      body: SafeArea(
-        // Rebuilds when the plan changes - adding, editing or removing a
-        // day - and when the activities do, since linking a ride is what
-        // makes a day read as done.
-        child: ListenableBuilder(
-          listenable: Listenable.merge(
-              [WorkoutPlanStore.instance, ActivityStore.instance]),
-          builder: (context, _) {
-            final entries = WorkoutPlanStore.instance.entries;
-            return Padding(
-              padding: const EdgeInsets.all(24),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(t.calendarTitle,
-                        style:
-                            AppTextStyles.screenTitle.copyWith(fontSize: 24)),
-                    const SizedBox(height: 4),
-                    Text(DateFormat.yMMMM(locale).format(_focusedDay),
-                        style: AppTextStyles.screenSubtitle),
-                    const SizedBox(height: 14),
-                    SegmentedControl(
-                      options: [t.calendarWeek, t.calendarMonth],
-                      selectedIndex: 1,
-                      onChanged: (i) {
-                        if (i == 0) {
-                          Navigator.of(context)
-                              .pushReplacementNamed('/calendar/week');
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 10),
-                    TableCalendar<bool>(
-                      firstDay: DateTime(2020),
-                      lastDay: DateTime(2030),
-                      focusedDay: _focusedDay,
-                      currentDay: DateTime(2026, 7, 20),
-                      calendarFormat: CalendarFormat.month,
-                      startingDayOfWeek: StartingDayOfWeek.monday,
-                      locale: locale,
-                      headerVisible: false,
-                      daysOfWeekHeight: 20,
-                      rowHeight: 42,
-                      selectedDayPredicate: (d) => isSameDay(d, _selectedDay),
-                      onDaySelected: (selected, focused) => setState(() {
-                        _selectedDay = selected;
-                        _focusedDay = focused;
-                      }),
-                      onPageChanged: (focused) =>
-                          setState(() => _focusedDay = focused),
-                      eventLoader: (day) =>
-                          entries.containsKey(normalizeDay(day))
-                              ? const [true]
-                              : const [],
-                      calendarBuilders: CalendarBuilders(
-                        dowBuilder: (context, day) => Center(
-                          child: Text(
-                              DateFormat.E(locale).format(day)[0].toUpperCase(),
-                              style: AppTextStyles.label.copyWith(fontSize: 9)),
-                        ),
-                      ),
-                      calendarStyle: const CalendarStyle(
-                        outsideDaysVisible: true,
-                        todayDecoration: BoxDecoration(
-                            color: AppColors.paper, shape: BoxShape.circle),
-                        todayTextStyle: TextStyle(
-                            color: AppColors.ink, fontWeight: FontWeight.w700),
-                        selectedDecoration: BoxDecoration(
-                            color: AppColors.accent, shape: BoxShape.circle),
-                        markerDecoration: BoxDecoration(
-                            color: AppColors.primary, shape: BoxShape.circle),
-                        markersAlignment: Alignment.bottomCenter,
+    return TrailwattShell(
+      navIndex: 1,
+      // Rebuilds when the plan changes - adding, editing or removing a
+      // day - and when the activities do, since linking a ride is what
+      // makes a day read as done.
+      child: ListenableBuilder(
+        listenable: Listenable.merge(
+            [WorkoutPlanStore.instance, ActivityStore.instance]),
+        builder: (context, _) {
+          final entries = WorkoutPlanStore.instance.entries;
+          return Padding(
+            padding: const EdgeInsets.all(24),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(t.calendarTitle,
+                      style: AppTextStyles.screenTitle.copyWith(fontSize: 24)),
+                  const SizedBox(height: 4),
+                  Text(DateFormat.yMMMM(locale).format(_focusedDay),
+                      style: AppTextStyles.screenSubtitle),
+                  const SizedBox(height: 14),
+                  SegmentedControl(
+                    options: [t.calendarWeek, t.calendarMonth],
+                    selectedIndex: 1,
+                    onChanged: (i) {
+                      if (i == 0) {
+                        Navigator.of(context)
+                            .pushReplacementNamed('/calendar/week');
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  TableCalendar<bool>(
+                    firstDay: DateTime(2020),
+                    lastDay: DateTime(2030),
+                    focusedDay: _focusedDay,
+                    currentDay: DateTime(2026, 7, 20),
+                    calendarFormat: CalendarFormat.month,
+                    startingDayOfWeek: StartingDayOfWeek.monday,
+                    locale: locale,
+                    headerVisible: false,
+                    daysOfWeekHeight: 20,
+                    rowHeight: 42,
+                    selectedDayPredicate: (d) => isSameDay(d, _selectedDay),
+                    onDaySelected: (selected, focused) => setState(() {
+                      _selectedDay = selected;
+                      _focusedDay = focused;
+                    }),
+                    onPageChanged: (focused) =>
+                        setState(() => _focusedDay = focused),
+                    eventLoader: (day) => entries.containsKey(normalizeDay(day))
+                        ? const [true]
+                        : const [],
+                    calendarBuilders: CalendarBuilders(
+                      dowBuilder: (context, day) => Center(
+                        child: Text(
+                            DateFormat.E(locale).format(day)[0].toUpperCase(),
+                            style: AppTextStyles.label.copyWith(fontSize: 9)),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    // No zone legend here on purpose: the calendar is a
-                    // month of days, not one effort. The zone belongs to the
-                    // individual workout, and the day panel below names it.
-                    CalendarDayActions(day: _selectedDay),
-                  ],
-                ),
+                    calendarStyle: const CalendarStyle(
+                      outsideDaysVisible: true,
+                      todayDecoration: BoxDecoration(
+                          color: AppColors.paper, shape: BoxShape.circle),
+                      todayTextStyle: TextStyle(
+                          color: AppColors.ink, fontWeight: FontWeight.w700),
+                      selectedDecoration: BoxDecoration(
+                          color: AppColors.accent, shape: BoxShape.circle),
+                      markerDecoration: BoxDecoration(
+                          color: AppColors.primary, shape: BoxShape.circle),
+                      markersAlignment: Alignment.bottomCenter,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // No zone legend here on purpose: the calendar is a
+                  // month of days, not one effort. The zone belongs to the
+                  // individual workout, and the day panel below names it.
+                  CalendarDayActions(day: _selectedDay),
+                ],
               ),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
-      bottomNavigationBar: const TrailwattBottomNav(currentIndex: 1),
     );
   }
 }

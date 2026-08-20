@@ -4,6 +4,7 @@ import 'package:latlong2/latlong.dart';
 import '../services/routing_service.dart';
 import '../l10n/domain_labels.dart';
 import '../theme/app_colors.dart';
+import '../theme/layout.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/map_layers.dart';
 import '../widgets/trailwatt_button.dart';
@@ -46,109 +47,113 @@ class _WorkoutLocationScreenState extends State<WorkoutLocationScreen> {
   Widget build(BuildContext context) {
     final t = tr(context);
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(t.locationTitle,
-                  style: AppTextStyles.screenTitle.copyWith(fontSize: 24)),
-              const SizedBox(height: 4),
-              Text(t.locationSubtitle, style: AppTextStyles.screenSubtitle),
-              const SizedBox(height: 12),
-              Text(t.locationWhere,
-                  style: AppTextStyles.label.copyWith(
-                      fontSize: 9,
-                      letterSpacing: 1.0,
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w700)),
-              const SizedBox(height: 8),
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(13),
-                  child: Stack(
-                    children: [
-                      FlutterMap(
-                        options: MapOptions(
-                          initialCenter: _center,
-                          initialZoom: 12,
-                          onTap: (tapPosition, point) => _placePin(point),
-                        ),
+      body: ContentWidth(
+          maxWidth: ContentWidth.wide,
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(t.locationTitle,
+                      style: AppTextStyles.screenTitle.copyWith(fontSize: 24)),
+                  const SizedBox(height: 4),
+                  Text(t.locationSubtitle, style: AppTextStyles.screenSubtitle),
+                  const SizedBox(height: 12),
+                  Text(t.locationWhere,
+                      style: AppTextStyles.label.copyWith(
+                          fontSize: 9,
+                          letterSpacing: 1.0,
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(13),
+                      child: Stack(
                         children: [
-                          trailwattTileLayer(),
-                          CircleLayer(circles: [
-                            CircleMarker(
-                              point: _center,
-                              radius: _radiusKm * 1000,
-                              useRadiusInMeter: true,
-                              color: AppColors.accent.withOpacity(0.15),
-                              borderColor: AppColors.accent,
-                              borderStrokeWidth: 1.5,
+                          FlutterMap(
+                            options: MapOptions(
+                              initialCenter: _center,
+                              initialZoom: 12,
+                              onTap: (tapPosition, point) => _placePin(point),
                             ),
-                          ]),
-                          MarkerLayer(markers: [
-                            Marker(
-                              point: _center,
-                              width: 32,
-                              height: 32,
-                              child: const Icon(Icons.location_on,
-                                  color: AppColors.primary, size: 32),
+                            children: [
+                              trailwattTileLayer(),
+                              CircleLayer(circles: [
+                                CircleMarker(
+                                  point: _center,
+                                  radius: _radiusKm * 1000,
+                                  useRadiusInMeter: true,
+                                  color: AppColors.accent.withOpacity(0.15),
+                                  borderColor: AppColors.accent,
+                                  borderStrokeWidth: 1.5,
+                                ),
+                              ]),
+                              MarkerLayer(markers: [
+                                Marker(
+                                  point: _center,
+                                  width: 32,
+                                  height: 32,
+                                  child: const Icon(Icons.location_on,
+                                      color: AppColors.primary, size: 32),
+                                ),
+                              ]),
+                              trailwattAttribution(context),
+                            ],
+                          ),
+                          if (_snapping)
+                            const Positioned(
+                              top: 10,
+                              right: 10,
+                              child: SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2, color: AppColors.primary),
+                              ),
                             ),
-                          ]),
-                          trailwattAttribution(context),
+                          Positioned(
+                            left: 10,
+                            right: 10,
+                            bottom: 10,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.92),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                t.locationHint(_radiusKm.round()),
+                                style:
+                                    AppTextStyles.label.copyWith(fontSize: 9),
+                              ),
+                            ),
+                          ),
                         ],
                       ),
-                      if (_snapping)
-                        const Positioned(
-                          top: 10,
-                          right: 10,
-                          child: SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                                strokeWidth: 2, color: AppColors.primary),
-                          ),
-                        ),
-                      Positioned(
-                        left: 10,
-                        right: 10,
-                        bottom: 10,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.92),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            t.locationHint(_radiusKm.round()),
-                            style: AppTextStyles.label.copyWith(fontSize: 9),
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
+                  Slider(
+                    value: _radiusKm,
+                    min: 3,
+                    max: 20,
+                    divisions: 17,
+                    activeColor: AppColors.accent,
+                    label: '${_radiusKm.round()} km',
+                    onChanged: (v) => setState(() => _radiusKm = v),
+                  ),
+                  const SizedBox(height: 8),
+                  TrailwattButton(
+                    label: t.locationGenerate,
+                    onPressed: () =>
+                        Navigator.of(context).pushNamed('/route-map'),
+                  ),
+                ],
               ),
-              Slider(
-                value: _radiusKm,
-                min: 3,
-                max: 20,
-                divisions: 17,
-                activeColor: AppColors.accent,
-                label: '${_radiusKm.round()} km',
-                onChanged: (v) => setState(() => _radiusKm = v),
-              ),
-              const SizedBox(height: 8),
-              TrailwattButton(
-                label: t.locationGenerate,
-                onPressed: () => Navigator.of(context).pushNamed('/route-map'),
-              ),
-            ],
-          ),
-        ),
-      ),
+            ),
+          )),
     );
   }
 }

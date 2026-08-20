@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../l10n/domain_labels.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
-import '../widgets/bottom_nav.dart';
+import '../widgets/app_shell.dart';
 
 /// Port of the "Mais" destination on the bottom tab bar (08a/08b/08c). A
 /// table of links to everything that isn't a tab of its own - profile and,
@@ -14,36 +14,34 @@ class MoreScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = tr(context);
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(t.moreTitle,
-                  style: AppTextStyles.screenTitle.copyWith(fontSize: 24)),
-              const SizedBox(height: 4),
-              Text(t.moreSubtitle, style: AppTextStyles.screenSubtitle),
-              const SizedBox(height: 20),
-              _MoreRow(
-                icon: Icons.person_outline,
-                title: t.moreProfile,
-                subtitle: t.moreProfileSubtitle,
-                onTap: () => Navigator.of(context).pushNamed('/profile'),
-              ),
-              const SizedBox(height: 10),
-              _MoreRow(
-                icon: Icons.sync_outlined,
-                title: t.moreIntegrations,
-                subtitle: t.moreIntegrationsSubtitle,
-                onTap: () => Navigator.of(context).pushNamed('/integrations'),
-              ),
-            ],
-          ),
+    return TrailwattShell(
+      navIndex: 3,
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(t.moreTitle,
+                style: AppTextStyles.screenTitle.copyWith(fontSize: 24)),
+            const SizedBox(height: 4),
+            Text(t.moreSubtitle, style: AppTextStyles.screenSubtitle),
+            const SizedBox(height: 20),
+            _MoreRow(
+              icon: Icons.person_outline,
+              title: t.moreProfile,
+              subtitle: t.moreProfileSubtitle,
+              onTap: () => Navigator.of(context).pushNamed('/profile'),
+            ),
+            const SizedBox(height: 10),
+            _MoreRow(
+              icon: Icons.sync_outlined,
+              title: t.moreIntegrations,
+              subtitle: t.moreIntegrationsSubtitle,
+              onTap: () => Navigator.of(context).pushNamed('/integrations'),
+            ),
+          ],
         ),
       ),
-      bottomNavigationBar: const TrailwattBottomNav(currentIndex: 3),
     );
   }
 }

@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 import '../l10n/domain_labels.dart';
 import '../services/routing_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/layout.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/map_layers.dart';
 import '../widgets/stat_box.dart';
@@ -105,170 +106,175 @@ class _RouteEditScreenState extends State<RouteEditScreen> {
         : 0.0;
 
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(t.editRouteTitle,
-                    style: AppTextStyles.screenTitle.copyWith(fontSize: 24)),
-                const SizedBox(height: 4),
-                Text(t.editRouteSubtitle, style: AppTextStyles.screenSubtitle),
-                const SizedBox(height: 10),
-                Text(
-                  t.editRouteHint,
-                  style: AppTextStyles.label.copyWith(fontSize: 9.5),
-                ),
-                const SizedBox(height: 12),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(13),
-                  child: SizedBox(
-                    height: 260,
-                    child: Stack(
-                      children: [
-                        FlutterMap(
-                          options: const MapOptions(
-                            initialCenter: LatLng(-23.5530, -46.6380),
-                            initialZoom: 14.2,
-                          ),
+      body: ContentWidth(
+          maxWidth: ContentWidth.wide,
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(t.editRouteTitle,
+                        style:
+                            AppTextStyles.screenTitle.copyWith(fontSize: 24)),
+                    const SizedBox(height: 4),
+                    Text(t.editRouteSubtitle,
+                        style: AppTextStyles.screenSubtitle),
+                    const SizedBox(height: 10),
+                    Text(
+                      t.editRouteHint,
+                      style: AppTextStyles.label.copyWith(fontSize: 9.5),
+                    ),
+                    const SizedBox(height: 12),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(13),
+                      child: SizedBox(
+                        height: 260,
+                        child: Stack(
                           children: [
-                            trailwattTileLayer(),
-                            PolylineLayer(polylines: [
-                              // Whole ride, in the route colour.
-                              Polyline(
-                                points: _fullRoute,
-                                strokeWidth: 5,
-                                color: AppColors.primary,
+                            FlutterMap(
+                              options: const MapOptions(
+                                initialCenter: LatLng(-23.5530, -46.6380),
+                                initialZoom: 14.2,
                               ),
-                              // The editable stretch: gray while it is being
-                              // moved or has not been re-matched to roads.
-                              if (path != null)
-                                Polyline(
-                                  points: path.polyline,
-                                  strokeWidth: 5,
-                                  color: _dragging || !path.followsRoads
-                                      ? AppColors.inkSoft
-                                      : AppColors.accent,
-                                ),
-                            ]),
-                            DragMarkers(
-                              markers: [
-                                for (var i = 0; i < _waypoints.length; i++)
-                                  DragMarker(
-                                    key: ValueKey('wp-$i'),
-                                    point: _waypoints[i],
-                                    size: const Size(26, 26),
-                                    onDragStart: (_, __) =>
-                                        setState(() => _dragging = true),
-                                    onDragEnd: (_, latLng) =>
-                                        _onWaypointDropped(i, latLng),
-                                    builder: (context, point, isDragging) =>
-                                        _WaypointHandle(active: isDragging),
+                              children: [
+                                trailwattTileLayer(),
+                                PolylineLayer(polylines: [
+                                  // Whole ride, in the route colour.
+                                  Polyline(
+                                    points: _fullRoute,
+                                    strokeWidth: 5,
+                                    color: AppColors.primary,
                                   ),
+                                  // The editable stretch: gray while it is being
+                                  // moved or has not been re-matched to roads.
+                                  if (path != null)
+                                    Polyline(
+                                      points: path.polyline,
+                                      strokeWidth: 5,
+                                      color: _dragging || !path.followsRoads
+                                          ? AppColors.inkSoft
+                                          : AppColors.accent,
+                                    ),
+                                ]),
+                                DragMarkers(
+                                  markers: [
+                                    for (var i = 0; i < _waypoints.length; i++)
+                                      DragMarker(
+                                        key: ValueKey('wp-$i'),
+                                        point: _waypoints[i],
+                                        size: const Size(26, 26),
+                                        onDragStart: (_, __) =>
+                                            setState(() => _dragging = true),
+                                        onDragEnd: (_, latLng) =>
+                                            _onWaypointDropped(i, latLng),
+                                        builder: (context, point, isDragging) =>
+                                            _WaypointHandle(active: isDragging),
+                                      ),
+                                  ],
+                                ),
+                                trailwattAttribution(context),
                               ],
                             ),
-                            trailwattAttribution(context),
+                            if (_busy)
+                              const Positioned(
+                                top: 10,
+                                right: 10,
+                                child: SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2, color: AppColors.primary),
+                                ),
+                              ),
                           ],
                         ),
-                        if (_busy)
-                          const Positioned(
-                            top: 10,
-                            right: 10,
-                            child: SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                  strokeWidth: 2, color: AppColors.primary),
-                            ),
+                      ),
+                    ),
+                    if (path != null && !path.followsRoads) ...[
+                      const SizedBox(height: 10),
+                      MapDegradedBanner(
+                          message:
+                              path.degradedReason?.label(t) ?? t.routeDegraded),
+                    ],
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                            child: StatBox(
+                                label: t.editRouteTotal, value: '12,4km')),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: StatBox(
+                            label: t.editRouteSegment,
+                            value: stretchKm == null
+                                ? '--'
+                                : '${stretchKm.toStringAsFixed(2)}km',
                           ),
+                        ),
                       ],
                     ),
-                  ),
-                ),
-                if (path != null && !path.followsRoads) ...[
-                  const SizedBox(height: 10),
-                  MapDegradedBanner(
-                      message:
-                          path.degradedReason?.label(t) ?? t.routeDegraded),
-                ],
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                        child:
-                            StatBox(label: t.editRouteTotal, value: '12,4km')),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: StatBox(
-                        label: t.editRouteSegment,
-                        value: stretchKm == null
-                            ? '--'
-                            : '${stretchKm.toStringAsFixed(2)}km',
+                    if (_edited && path != null) ...[
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.warnBg,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(t.editRouteImpact,
+                                style: AppTextStyles.body
+                                    .copyWith(fontWeight: FontWeight.w700)),
+                            const SizedBox(height: 6),
+                            _ImpactRow(
+                              label: t.editRouteDeviation,
+                              value: '${delta >= 0 ? '+' : ''}'
+                                  '${(delta / 1000).toStringAsFixed(2)} km',
+                            ),
+                            _ImpactRow(
+                              label: t.editRouteSnap,
+                              value: path.followsRoads
+                                  ? t.editRouteSnapMeters(
+                                      _lastSnapOffsetM.round())
+                                  : t.editRouteSnapUnverified,
+                            ),
+                            _ImpactRow(
+                              label: t.editRoutePredictedMatch,
+                              value: path.followsRoads
+                                  ? '94% → 87%'
+                                  : t.editRouteNeedsRoads,
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              t.editRouteImpactNote,
+                              style: AppTextStyles.label
+                                  .copyWith(fontSize: 9, height: 1.4),
+                            ),
+                          ],
+                        ),
                       ),
+                    ],
+                    const SizedBox(height: 20),
+                    TrailwattButton(
+                      label: t.editRouteSave,
+                      onPressed:
+                          _busy ? null : () => Navigator.of(context).pop(true),
+                    ),
+                    const SizedBox(height: 8),
+                    TrailwattButton(
+                      label: t.editRouteCancel,
+                      style: TrailwattButtonStyle.secondary,
+                      onPressed: () => Navigator.of(context).pop(),
                     ),
                   ],
                 ),
-                if (_edited && path != null) ...[
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.warnBg,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(t.editRouteImpact,
-                            style: AppTextStyles.body
-                                .copyWith(fontWeight: FontWeight.w700)),
-                        const SizedBox(height: 6),
-                        _ImpactRow(
-                          label: t.editRouteDeviation,
-                          value: '${delta >= 0 ? '+' : ''}'
-                              '${(delta / 1000).toStringAsFixed(2)} km',
-                        ),
-                        _ImpactRow(
-                          label: t.editRouteSnap,
-                          value: path.followsRoads
-                              ? t.editRouteSnapMeters(_lastSnapOffsetM.round())
-                              : t.editRouteSnapUnverified,
-                        ),
-                        _ImpactRow(
-                          label: t.editRoutePredictedMatch,
-                          value: path.followsRoads
-                              ? '94% → 87%'
-                              : t.editRouteNeedsRoads,
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          t.editRouteImpactNote,
-                          style: AppTextStyles.label
-                              .copyWith(fontSize: 9, height: 1.4),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 20),
-                TrailwattButton(
-                  label: t.editRouteSave,
-                  onPressed:
-                      _busy ? null : () => Navigator.of(context).pop(true),
-                ),
-                const SizedBox(height: 8),
-                TrailwattButton(
-                  label: t.editRouteCancel,
-                  style: TrailwattButtonStyle.secondary,
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-              ],
+              ),
             ),
-          ),
-        ),
-      ),
+          )),
     );
   }
 }

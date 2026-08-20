@@ -4,6 +4,7 @@ import '../l10n/domain_labels.dart';
 import '../models/zone.dart';
 import '../services/rider_profile_store.dart';
 import '../theme/app_colors.dart';
+import '../theme/layout.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/segmented_control.dart';
 import '../widgets/trailwatt_field.dart';
@@ -97,7 +98,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final t = tr(context);
     return Scaffold(
-      body: SafeArea(
+      body: ContentWidth(
+          child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: SingleChildScrollView(
@@ -224,7 +226,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
         ),
-      ),
+      )),
     );
   }
 }

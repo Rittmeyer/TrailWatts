@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../l10n/domain_labels.dart';
 import '../theme/app_colors.dart';
+import '../theme/layout.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/stat_box.dart';
 import '../widgets/trailwatt_field.dart';
@@ -17,7 +18,8 @@ class ImportResultScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = tr(context);
     return Scaffold(
-      body: SafeArea(
+      body: ContentWidth(
+          child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: SingleChildScrollView(
@@ -119,7 +121,7 @@ class ImportResultScreen extends StatelessWidget {
             ),
           ),
         ),
-      ),
+      )),
     );
   }
 }

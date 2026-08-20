@@ -8,6 +8,7 @@ import '../models/result_source.dart';
 import '../services/integrations_store.dart';
 import '../services/platform/platform_oauth_service.dart';
 import '../theme/app_colors.dart';
+import '../theme/layout.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/trailwatt_button.dart';
 import '../widgets/trailwatt_field.dart';
@@ -29,7 +30,8 @@ class IntegrationsScreen extends StatelessWidget {
     final store = IntegrationsStore.instance;
 
     return Scaffold(
-      body: SafeArea(
+      body: ContentWidth(
+          child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: ListenableBuilder(
@@ -67,7 +69,7 @@ class IntegrationsScreen extends StatelessWidget {
             ),
           ),
         ),
-      ),
+      )),
     );
   }
 }

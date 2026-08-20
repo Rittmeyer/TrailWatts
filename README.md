@@ -149,6 +149,34 @@ Sirva a pasta por HTTP; abrir `index.html` como `file://` não funciona
 (módulos e `fetch` de assets exigem origem). Para hospedar fora da raiz do
 domínio, passe `--base-href=/subpasta/`.
 
+## Layout por tamanho de tela
+
+A mesma build serve telefone, tablet e navegador, e escolhe a forma pela
+**largura da janela**, não pela plataforma: um navegador arrastado até ficar
+estreito se comporta como telefone, e um tablet deitado não recebe cromo de
+telefone.
+
+| Largura | Destinos | Conteúdo |
+| --- | --- | --- |
+| `< 600` | barra inferior | ocupa tudo |
+| `600 - 1099` | trilho lateral com ícone e rótulo | no máximo 760 px |
+| `>= 1100` | trilho lateral aberto, com o nome do app | no máximo 760 px |
+
+Os dois números vivem em `lib/theme/layout.dart` (`LayoutSize`), e a barra
+inferior e o trilho são duas formas da **mesma** lista de destinos
+(`lib/widgets/app_shell.dart`) - alargar a janela nunca muda o que o app
+oferece, só onde a oferta fica.
+
+O limite de largura (`ContentWidth`) existe por causa do comprimento de
+linha. Antes disso, o layout de telefone despejado numa janela de 1440 px
+dava 24 px de texto e 1300 px de nada entre um rótulo e o seu valor - era o
+que a versão web mostrava. Telas de mapa usam um limite maior, porque um
+mapa realmente melhora com espaço.
+
+`ContentAlignedFabLocation` mantém o botão flutuante junto da coluna em vez
+de no canto da janela, a algumas centenas de pixels do formulário em que ele
+age.
+
 ## Mapas e rotas
 
 As telas 02a2, 04 e 05 usam mapa real (tiles OSM via `flutter_map`) e resolvem
@@ -274,7 +302,7 @@ Datas e nomes de mês/dia vêm do `intl`, seguindo as convenções de cada idiom
 ```bash
 dart format --output=none --set-exit-if-changed lib test
 flutter analyze   # sem problemas
-flutter test      # 183 testes
+flutter test      # 192 testes
 ```
 
 Capturas de todas as telas em `docs/screenshots/` (veja o README de lá para o
@@ -286,8 +314,8 @@ motivo dos mapas aparecerem cinza nelas).
 lib/
   models/    domain types (rider profile, workout, route, calibration, ...)
   engine/    pure route-score calculation, shared by app and future API
-  theme/     colors, text styles, ThemeData - single source of design tokens
-  widgets/   shared building blocks (buttons, fields, zone pill, bottom nav)
+  theme/     colors, text styles, ThemeData, breakpoints - design tokens
+  widgets/   shared building blocks (buttons, fields, zone pill, app shell)
   screens/   one file per screen, wired together in lib/main.dart
   routes/    screen_inventory.dart - route table cross-referenced with specs
 prototype/   original HTML flow prototype these screens were ported from

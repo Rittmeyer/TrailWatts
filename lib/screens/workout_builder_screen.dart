@@ -11,6 +11,7 @@ import '../services/rider_profile_store.dart';
 import '../services/workout_plan_store.dart';
 import '../services/training_peaks_import.dart';
 import '../theme/app_colors.dart';
+import '../theme/layout.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/segmented_control.dart';
 import '../widgets/trailwatt_field.dart';
@@ -345,7 +346,8 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
     final table = _table;
 
     return Scaffold(
-      body: SafeArea(
+      body: ContentWidth(
+          child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: SingleChildScrollView(
@@ -433,7 +435,8 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
             ),
           ),
         ),
-      ),
+      )),
+      floatingActionButtonLocation: const ContentAlignedFabLocation(),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _importing ? null : _importFromTrainingPeaks,
         icon: _importing
