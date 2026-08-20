@@ -32,16 +32,40 @@ flutter pub get
 flutter run -d chrome   # or an attached device/emulator
 ```
 
-This repo ships `lib/`, `test/` and a hand-built `web/` platform folder, but
-not the generated native platform folders (`android/`, `ios/`, `macos/`,
-`windows/`, `linux/`) - those are machine- and SDK-version-specific and
-should be generated locally rather than hand-written:
+This repo ships `lib/`, `test/`, a hand-built `web/` folder and `android/`.
+The other platform folders (`ios/`, `macos/`, `windows/`, `linux/`) are not
+committed - generate the ones you need with `flutter create . --platforms=ios`,
+which only adds platform folders and does not touch `lib/`.
+
+## Android APK
 
 ```bash
-flutter create . --platforms=android,ios
+flutter build apk --release
+# build/app/outputs/flutter-apk/app-release.apk
 ```
 
-This only adds the missing platform folders; it does not touch `lib/`.
+Needs the Android SDK (platform + build-tools) and a JDK 17+; `flutter doctor
+--android-licenses` once if this is a fresh SDK. The release build is signed
+with the debug key, which is enough to sideload for testing but not to
+publish - add a real signing config in `android/app/build.gradle` before any
+store release.
+
+Smaller download, one ABI at a time:
+
+```bash
+flutter build apk --release --split-per-abi
+# app-arm64-v8a-release.apk covers essentially every current tablet/phone
+```
+
+Two things about this Android config worth knowing:
+
+- `INTERNET` is declared in the **main** manifest, not only the debug one.
+  Flutter's template puts it in `debug/` alone, which would leave a release
+  APK unable to fetch map tiles or reach the routing service - the app would
+  run but sit permanently in its degraded, straight-line state.
+- The Gradle wrapper, AGP and Kotlin were bumped past Flutter's template
+  defaults (Gradle 8.7 / AGP 8.3.2 / Kotlin 1.9.22) so the build works on a
+  current JDK; the shipped Gradle 8.3 rejects JDK 21.
 
 ## Mapas e rotas
 
