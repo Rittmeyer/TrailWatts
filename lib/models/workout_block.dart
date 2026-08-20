@@ -38,6 +38,15 @@ class WorkoutBlock {
   final WorkoutTarget target;
   final WorkoutBlockRole role;
 
+  /// What the rider calls this block ("Aquecimento", "Serie principal").
+  /// Null means they never named it, and the UI falls back to its position.
+  ///
+  /// It lives on the block rather than on the authoring group because the
+  /// plan stores the flattened block sequence: a name kept only on the
+  /// group would disappear the moment the workout was saved, which is a
+  /// worse feature than no naming at all.
+  final String? name;
+
   // Not const: the metric-agreement invariant below reads fields off the
   // zone and target objects, which a const constructor cannot evaluate.
   WorkoutBlock({
@@ -45,6 +54,7 @@ class WorkoutBlock {
     required this.durationMin,
     required this.target,
     this.role = WorkoutBlockRole.work,
+    this.name,
   })  : assert(durationMin > 0),
         // A block prescribed in watts must reference a power zone, and one
         // prescribed in heart rate a heart-rate zone: the two tables are
@@ -63,12 +73,14 @@ class WorkoutBlock {
     int? durationMin,
     WorkoutTarget? target,
     WorkoutBlockRole? role,
+    String? name,
   }) =>
       WorkoutBlock(
         zone: zone ?? this.zone,
         durationMin: durationMin ?? this.durationMin,
         target: target ?? this.target,
         role: role ?? this.role,
+        name: name ?? this.name,
       );
 }
 

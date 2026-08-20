@@ -277,5 +277,9 @@
   "backGeneric": "Voltar",
   "historyImportResult": "Importar resultado",
   "manualSwitchToContinuous": "Foi um treino contínuo",
-  "manualSwitchToIntervals": "Foi um treino intervalado"
+  "manualSwitchToIntervals": "Foi um treino intervalado",
+  "builderBlockNameLabel": "Nome do bloco",
+  "builderMoveUp": "Subir",
+  "builderMoveDown": "Descer",
+  "builderInsertHere": "+ Inserir bloco aqui"
 }

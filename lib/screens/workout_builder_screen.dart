@@ -62,13 +62,17 @@ class _BlockForm {
         minTarget = TextEditingController(text: other.minTarget.text),
         maxTarget = TextEditingController(text: other.maxTarget.text);
 
+  /// The block's name rides on the model, so reopening a saved day brings
+  /// it back; the group form lifts it out of the first stimulus.
+  String? loadedName;
+
   factory _BlockForm.fromModel(WorkoutBlock block) => _BlockForm(
         role: block.role,
         zoneIndex: block.zone.index,
         duration: '${block.durationMin}',
         minTarget: '${block.target.minValue}',
         maxTarget: '${block.target.maxValue}',
-      );
+      )..loadedName = block.name;
 
   int get durationMin => int.tryParse(duration.text) ?? 0;
 
@@ -86,19 +90,27 @@ class _GroupForm {
   List<_BlockForm> stimuli;
   final TextEditingController repeat;
 
+  /// Empty means unnamed, and the card shows its position instead. Kept as
+  /// a controller so the field is edited in place like every other one.
+  final TextEditingController name;
+
   _GroupForm({
     List<_BlockForm>? stimuli,
     String repeat = '1',
+    String name = '',
   })  : stimuli = stimuli ?? [_BlockForm()],
-        repeat = TextEditingController(text: repeat);
+        repeat = TextEditingController(text: repeat),
+        name = TextEditingController(text: name);
 
   _GroupForm.from(_GroupForm other)
       : stimuli = [for (final b in other.stimuli) _BlockForm.from(b)],
-        repeat = TextEditingController(text: other.repeat.text);
+        repeat = TextEditingController(text: other.repeat.text),
+        name = TextEditingController(text: other.name.text);
 
   factory _GroupForm.fromModel(WorkoutBlockGroup group) => _GroupForm(
         stimuli: [for (final b in group.stimuli) _BlockForm.fromModel(b)],
         repeat: '${group.repeatCount}',
+        name: group.stimuli.first.name ?? '',
       );
 
   int get repeatCount => (int.tryParse(repeat.text) ?? 1).clamp(1, 99);
@@ -111,6 +123,7 @@ class _GroupForm {
       b.dispose();
     }
     repeat.dispose();
+    name.dispose();
   }
 }
 
@@ -172,8 +185,10 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
     }
     _groups
       ..clear()
-      ..addAll(
-          planned.map((b) => _GroupForm(stimuli: [_BlockForm.fromModel(b)])));
+      ..addAll(planned.map((b) => _GroupForm(
+            stimuli: [_BlockForm.fromModel(b)],
+            name: b.name ?? '',
+          )));
   }
 
   /// The blocks as currently on screen, expanded into timeline order.
@@ -182,10 +197,13 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
   /// model guarantees rather than being trusted: a duration of at least a
   /// minute, a non-negative target, and a maximum no lower than its minimum.
   List<WorkoutBlock> _toBlocks() {
-    WorkoutBlock blockFrom(_BlockForm form) {
+    WorkoutBlock blockFrom(_BlockForm form, String groupName) {
       final min = (int.tryParse(form.minTarget.text) ?? 0).clamp(0, 9999);
       final max = (int.tryParse(form.maxTarget.text) ?? min).clamp(0, 9999);
       return WorkoutBlock(
+        // Every stimulus the group expands to carries the block's name, so
+        // the flattened plan can be read back into named blocks.
+        name: groupName.trim().isEmpty ? null : groupName.trim(),
         role: form.role,
         zone: TrainingZone(
           metric: _metric,
@@ -205,7 +223,7 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
       for (final g in _groups)
         WorkoutBlockGroup(
           repeatCount: g.repeatCount,
-          stimuli: [for (final b in g.stimuli) blockFrom(b)],
+          stimuli: [for (final b in g.stimuli) blockFrom(b, g.name.text)],
         ),
     ]);
   }
@@ -254,14 +272,31 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
     super.dispose();
   }
 
-  void _addBlock() => setState(() => _groups.add(_GroupForm(stimuli: [
+  _GroupForm _newGroup() => _GroupForm(stimuli: [
         _BlockForm(
           zoneIndex: 2,
           duration: '10',
           minTarget: '140',
           maxTarget: '160',
         ),
-      ])));
+      ]);
+
+  void _addBlock() => setState(() => _groups.add(_newGroup()));
+
+  /// Inserts a block at [index], which is how a block gets added before the
+  /// first one or between two existing ones - appending at the end was the
+  /// only way to add a block before this.
+  void _insertBlockAt(int index) =>
+      setState(() => _groups.insert(index, _newGroup()));
+
+  /// Moves the block at [index] one position in [delta]'s direction. The
+  /// order of the blocks IS the workout's timeline, so reordering them is
+  /// editing the workout, not rearranging a view.
+  void _moveBlock(int index, int delta) {
+    final target = index + delta;
+    if (target < 0 || target >= _groups.length) return;
+    setState(() => _groups.insert(target, _groups.removeAt(index)));
+  }
 
   void _addStimulus(int i) => setState(() {
         final last = _groups[i].stimuli.last;
@@ -390,6 +425,10 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
                 ),
                 const SizedBox(height: 12),
                 for (var i = 0; i < _groups.length; i++) ...[
+                  // One of these before every card, so "add a block here"
+                  // covers before the first and between any two - not only
+                  // the append at the bottom.
+                  _InsertHere(onTap: () => _insertBlockAt(i)),
                   _GroupCard(
                     index: i,
                     group: _groups[i],
@@ -401,6 +440,9 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
                     onRemoveStimulus: (j) => _removeStimulus(i, j),
                     onDuplicate: () => _duplicate(i),
                     onRemove: _groups.length > 1 ? () => _remove(i) : null,
+                    onMoveUp: i > 0 ? () => _moveBlock(i, -1) : null,
+                    onMoveDown:
+                        i < _groups.length - 1 ? () => _moveBlock(i, 1) : null,
                   ),
                   const SizedBox(height: 12),
                 ],
@@ -468,6 +510,11 @@ class _GroupCard extends StatelessWidget {
   final VoidCallback onDuplicate;
   final VoidCallback? onRemove;
 
+  /// Null at the ends of the list, which disables the arrow rather than
+  /// offering a move that would do nothing.
+  final VoidCallback? onMoveUp;
+  final VoidCallback? onMoveDown;
+
   const _GroupCard({
     required this.index,
     required this.group,
@@ -479,6 +526,8 @@ class _GroupCard extends StatelessWidget {
     required this.onRemoveStimulus,
     required this.onDuplicate,
     required this.onRemove,
+    required this.onMoveUp,
+    required this.onMoveDown,
   });
 
   @override
@@ -499,27 +548,71 @@ class _GroupCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(t.builderBlock(index + 1),
-                  style: AppTextStyles.label.copyWith(
-                      fontSize: 9,
-                      letterSpacing: 1.0,
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w700)),
-              const Spacer(),
-              Wrap(
-                spacing: 10,
-                runSpacing: 4,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  _TinyAction(
-                      label: t.builderAddStimulus, onTap: onAddStimulus),
-                  _TinyAction(label: t.builderDuplicate, onTap: onDuplicate),
-                  if (onRemove != null)
-                    _TinyAction(label: t.builderRemove, onTap: onRemove!),
-                ],
+              // The name replaces the fixed "BLOCK n" eyebrow, falling back
+              // to it as the hint. Once blocks can be reordered a positional
+              // label is actively wrong: the block the rider thinks of as
+              // the main set stops being number two the moment it moves.
+              Expanded(
+                child: Semantics(
+                  label: t.builderBlockNameLabel,
+                  textField: true,
+                  child: TextField(
+                    controller: group.name,
+                    onChanged: (_) => onChanged(),
+                    textCapitalization: TextCapitalization.sentences,
+                    style: AppTextStyles.label.copyWith(
+                        fontSize: 11,
+                        color: AppColors.ink,
+                        fontWeight: FontWeight.w700),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      // The app-wide field styling is a filled, outlined
+                      // box, which here would read as a stray rule across
+                      // the card. An underline on focus only: no chrome at
+                      // rest, clear feedback while it is being typed in.
+                      filled: false,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: const UnderlineInputBorder(
+                          borderSide: BorderSide(color: AppColors.primary)),
+                      contentPadding: const EdgeInsets.only(bottom: 2),
+                      hintText: t.builderBlock(index + 1),
+                      hintStyle: AppTextStyles.label.copyWith(
+                          fontSize: 9,
+                          letterSpacing: 1.0,
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ),
               ),
+              const SizedBox(width: 8),
+              _MoveButton(
+                  icon: Icons.arrow_upward,
+                  tooltip: t.builderMoveUp,
+                  onTap: onMoveUp),
+              _MoveButton(
+                  icon: Icons.arrow_downward,
+                  tooltip: t.builderMoveDown,
+                  onTap: onMoveDown),
             ],
+          ),
+          const SizedBox(height: 4),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Wrap(
+              spacing: 10,
+              runSpacing: 4,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                _TinyAction(label: t.builderAddStimulus, onTap: onAddStimulus),
+                _TinyAction(label: t.builderDuplicate, onTap: onDuplicate),
+                if (onRemove != null)
+                  _TinyAction(label: t.builderRemove, onTap: onRemove!),
+              ],
+            ),
           ),
           for (var j = 0; j < group.stimuli.length; j++) ...[
             const SizedBox(height: 10),
@@ -726,6 +819,64 @@ class _StimulusRow extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// The gap between two blocks, made tappable: this is where "before" and
+/// "between" come from.
+class _InsertHere extends StatelessWidget {
+  final VoidCallback onTap;
+  const _InsertHere({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = tr(context);
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(6),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            const Expanded(child: Divider(color: AppColors.line, height: 1)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text(t.builderInsertHere,
+                  style: AppTextStyles.label.copyWith(
+                      fontSize: 9,
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w700)),
+            ),
+            const Expanded(child: Divider(color: AppColors.line, height: 1)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MoveButton extends StatelessWidget {
+  final IconData icon;
+  final String tooltip;
+
+  /// Null disables it - at the top there is no up.
+  final VoidCallback? onTap;
+
+  const _MoveButton(
+      {required this.icon, required this.tooltip, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(icon, size: 16),
+      tooltip: tooltip,
+      onPressed: onTap,
+      visualDensity: VisualDensity.compact,
+      padding: const EdgeInsets.all(4),
+      constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+      color: AppColors.primary,
+      disabledColor: AppColors.line,
     );
   }
 }

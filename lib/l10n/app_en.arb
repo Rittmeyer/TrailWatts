@@ -454,5 +454,9 @@
   "backGeneric": "Back",
   "historyImportResult": "Import result",
   "manualSwitchToContinuous": "It was a continuous ride",
-  "manualSwitchToIntervals": "It was an interval workout"
+  "manualSwitchToIntervals": "It was an interval workout",
+  "builderBlockNameLabel": "Block name",
+  "builderMoveUp": "Move up",
+  "builderMoveDown": "Move down",
+  "builderInsertHere": "+ Insert block here"
 }

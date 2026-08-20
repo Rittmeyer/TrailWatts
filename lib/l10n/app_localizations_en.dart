@@ -917,4 +917,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get manualSwitchToIntervals => 'It was an interval workout';
+
+  @override
+  String get builderBlockNameLabel => 'Block name';
+
+  @override
+  String get builderMoveUp => 'Move up';
+
+  @override
+  String get builderMoveDown => 'Move down';
+
+  @override
+  String get builderInsertHere => '+ Insert block here';
 }

@@ -919,4 +919,16 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get manualSwitchToIntervals => 'Foi um treino intervalado';
+
+  @override
+  String get builderBlockNameLabel => 'Nome do bloco';
+
+  @override
+  String get builderMoveUp => 'Subir';
+
+  @override
+  String get builderMoveDown => 'Descer';
+
+  @override
+  String get builderInsertHere => '+ Inserir bloco aqui';
 }

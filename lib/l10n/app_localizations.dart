@@ -1717,6 +1717,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'It was an interval workout'**
   String get manualSwitchToIntervals;
+
+  /// No description provided for @builderBlockNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Block name'**
+  String get builderBlockNameLabel;
+
+  /// No description provided for @builderMoveUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Move up'**
+  String get builderMoveUp;
+
+  /// No description provided for @builderMoveDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Move down'**
+  String get builderMoveDown;
+
+  /// No description provided for @builderInsertHere.
+  ///
+  /// In en, this message translates to:
+  /// **'+ Insert block here'**
+  String get builderInsertHere;
 }
 
 class _AppLocalizationsDelegate
