@@ -414,11 +414,18 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      t.builderTableLabel(
-                          _metric.label(t).toLowerCase(), _scale.count),
-                      style: AppTextStyles.label.copyWith(fontSize: 9),
+                    // Both sized to their text in a row of fixed width, so
+                    // a long zone-table label overflowed on a narrow phone.
+                    // The label yields; the total never wraps.
+                    Flexible(
+                      child: Text(
+                        t.builderTableLabel(
+                            _metric.label(t).toLowerCase(), _scale.count),
+                        style: AppTextStyles.label.copyWith(fontSize: 9),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
+                    const SizedBox(width: 8),
                     Text(t.builderTotalDuration(_totalMinutes),
                         style: AppTextStyles.numeric.copyWith(fontSize: 10)),
                   ],
@@ -472,8 +479,14 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
                   t.builderFootnote,
                   style: AppTextStyles.label.copyWith(fontSize: 9, height: 1.5),
                 ),
-                // Room for the FAB not to cover the footnote.
-                const SizedBox(height: 64),
+                // Clearance for the floating import button, which is
+                // anchored to the window and not to this content. 64 was
+                // less than the 72 the button occupies - 56 of height plus
+                // 16 of margin - so at the bottom of the scroll it sat on
+                // the footnote's last line by those 8 pixels. Mid-scroll it
+                // still passes over content, which is what a floating
+                // button does.
+                const SizedBox(height: 96),
               ],
             ),
           ),
