@@ -34,10 +34,8 @@ class TrailwattBottomNav extends StatelessWidget {
             icon: Icon(Icons.bolt_outlined), label: 'Treino'),
         BottomNavigationBarItem(
             icon: Icon(Icons.calendar_today_outlined), label: 'Calendario'),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.history), label: 'Historico'),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.more_horiz), label: 'Mais'),
+        BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Historico'),
+        BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'Mais'),
       ],
     );
   }

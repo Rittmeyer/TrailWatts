@@ -74,7 +74,7 @@ class TreinoDoDiaScreen extends StatelessWidget {
                                   .copyWith(fontWeight: FontWeight.w700)),
                           const SizedBox(height: 2),
                           Text(
-                              '${suggestion.gradientAvgPct}% · ${suggestion.distanceM}m',
+                              '${suggestion.gradientAvgPct.toStringAsFixed(1)}% · ${suggestion.distanceM}m',
                               style: AppTextStyles.label),
                         ],
                       ),

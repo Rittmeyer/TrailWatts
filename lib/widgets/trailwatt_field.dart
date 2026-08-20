@@ -39,8 +39,7 @@ class TrailwattField extends StatelessWidget {
           ),
           if (helperText != null) ...[
             const SizedBox(height: 3),
-            Text(helperText!,
-                style: AppTextStyles.label.copyWith(fontSize: 8)),
+            Text(helperText!, style: AppTextStyles.label.copyWith(fontSize: 8)),
           ],
         ],
       ),

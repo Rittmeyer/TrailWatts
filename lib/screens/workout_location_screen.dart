@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import '../services/routing_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../widgets/map_layers.dart';
 import '../widgets/trailwatt_button.dart';
 
 /// Port of screen 02b(3/3) - "Onde treinar". One map for the whole
 /// workout, whatever the number of blocks above. Tap anywhere on the map
-/// to move the pin (stands in for the prototype's drag gesture); the
-/// radius is rider-editable, 8 km by default per DECISIONS_REQUIRED.md.
+/// to move the pin - it settles onto the nearest road, so the search is
+/// always centred somewhere rideable. The radius is rider-editable, 8 km
+/// by default per DECISIONS_REQUIRED.md.
 class WorkoutLocationScreen extends StatefulWidget {
   const WorkoutLocationScreen({super.key});
 
@@ -19,6 +22,24 @@ class WorkoutLocationScreen extends StatefulWidget {
 class _WorkoutLocationScreenState extends State<WorkoutLocationScreen> {
   LatLng _center = const LatLng(-23.5505, -46.6333);
   double _radiusKm = 8;
+
+  final _routing = OsrmRoutingService();
+  bool _snapping = false;
+
+  /// Drop the pin where the rider tapped, then settle it onto the nearest
+  /// road so the search starts from somewhere they can actually ride.
+  Future<void> _placePin(LatLng tapped) async {
+    setState(() {
+      _center = tapped;
+      _snapping = true;
+    });
+    final snapped = await _routing.snapToRoad(tapped);
+    if (!mounted) return;
+    setState(() {
+      _center = snapped.point;
+      _snapping = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +53,8 @@ class _WorkoutLocationScreenState extends State<WorkoutLocationScreen> {
               Text('Criar treino',
                   style: AppTextStyles.screenTitle.copyWith(fontSize: 24)),
               const SizedBox(height: 4),
-              Text('Continuacao - onde treinar', style: AppTextStyles.screenSubtitle),
+              Text('Continuacao - onde treinar',
+                  style: AppTextStyles.screenSubtitle),
               const SizedBox(height: 12),
               Text('ONDE TREINAR',
                   style: AppTextStyles.label.copyWith(
@@ -50,15 +72,10 @@ class _WorkoutLocationScreenState extends State<WorkoutLocationScreen> {
                         options: MapOptions(
                           initialCenter: _center,
                           initialZoom: 12,
-                          onTap: (tapPosition, point) =>
-                              setState(() => _center = point),
+                          onTap: (tapPosition, point) => _placePin(point),
                         ),
                         children: [
-                          TileLayer(
-                            urlTemplate:
-                                'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                            userAgentPackageName: 'app.trailwatt',
-                          ),
+                          trailwattTileLayer(),
                           CircleLayer(circles: [
                             CircleMarker(
                               point: _center,
@@ -78,8 +95,20 @@ class _WorkoutLocationScreenState extends State<WorkoutLocationScreen> {
                                   color: AppColors.primary, size: 32),
                             ),
                           ]),
+                          trailwattAttribution(),
                         ],
                       ),
+                      if (_snapping)
+                        const Positioned(
+                          top: 10,
+                          right: 10,
+                          child: SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: AppColors.primary),
+                          ),
+                        ),
                       Positioned(
                         left: 10,
                         right: 10,

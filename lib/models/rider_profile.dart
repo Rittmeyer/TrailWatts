@@ -11,11 +11,11 @@ class HeartRateZones {
     required this.z3MinBpm,
     required this.z4MinBpm,
     required this.z5MinBpm,
-  }) : assert(z1MinBpm >= 0),
-       assert(z1MinBpm <= z2MinBpm),
-       assert(z2MinBpm <= z3MinBpm),
-       assert(z3MinBpm <= z4MinBpm),
-       assert(z4MinBpm <= z5MinBpm);
+  })  : assert(z1MinBpm >= 0),
+        assert(z1MinBpm <= z2MinBpm),
+        assert(z2MinBpm <= z3MinBpm),
+        assert(z3MinBpm <= z4MinBpm),
+        assert(z4MinBpm <= z5MinBpm);
 }
 
 /// Physical/fitness profile. Authentication identity is stored separately.
@@ -40,12 +40,12 @@ class RiderProfile {
     this.crr = 0.004,
     this.drivetrainEfficiency = 0.975,
     this.powerCurveWatts,
-  }) : assert(weightKg > 0),
-       assert(ftpWatts > 0),
-       assert(bikeWeightKg >= 0),
-       assert(cda > 0),
-       assert(crr > 0),
-       assert(drivetrainEfficiency > 0 && drivetrainEfficiency <= 1);
+  })  : assert(weightKg > 0),
+        assert(ftpWatts > 0),
+        assert(bikeWeightKg >= 0),
+        assert(cda > 0),
+        assert(crr > 0),
+        assert(drivetrainEfficiency > 0 && drivetrainEfficiency <= 1);
 
   double get systemMassKg => weightKg + bikeWeightKg;
 
@@ -59,7 +59,8 @@ class RiderProfile {
     double? crr,
     double? drivetrainEfficiency,
     Map<int, int>? powerCurveWatts,
-  }) => RiderProfile(
+  }) =>
+      RiderProfile(
         weightKg: weightKg ?? this.weightKg,
         ftpWatts: ftpWatts ?? this.ftpWatts,
         hrMaxBpm: hrMaxBpm ?? this.hrMaxBpm,
@@ -67,8 +68,7 @@ class RiderProfile {
         bikeWeightKg: bikeWeightKg ?? this.bikeWeightKg,
         cda: cda ?? this.cda,
         crr: crr ?? this.crr,
-        drivetrainEfficiency:
-            drivetrainEfficiency ?? this.drivetrainEfficiency,
+        drivetrainEfficiency: drivetrainEfficiency ?? this.drivetrainEfficiency,
         powerCurveWatts: powerCurveWatts ?? this.powerCurveWatts,
       );
 }

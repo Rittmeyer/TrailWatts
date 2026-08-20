@@ -1,5 +1,3 @@
-import 'route_suggestion.dart';
-
 enum RoutePreference {
   balanced,
   safest,

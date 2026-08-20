@@ -20,13 +20,13 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       backgroundColor: AppColors.ink,
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
+            Text(
               'TRAILWATT',
               style: TextStyle(
                 color: Colors.white,
@@ -35,14 +35,14 @@ class _SplashScreenState extends State<SplashScreen> {
                 letterSpacing: 1.2,
               ),
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: 10),
             Text(
               'Sugerir. Exportar. Repetir.',
               style: TextStyle(
                   color: AppColors.accent, fontSize: 11, letterSpacing: 1.5),
             ),
-            const SizedBox(height: 32),
-            const SizedBox(
+            SizedBox(height: 32),
+            SizedBox(
               width: 16,
               height: 16,
               child: CircularProgressIndicator(

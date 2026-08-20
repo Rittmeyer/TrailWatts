@@ -29,8 +29,8 @@ class ImportResultScreen extends StatelessWidget {
                     style: AppTextStyles.screenSubtitle),
                 const SizedBox(height: 18),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: AppColors.greenBg,
                     borderRadius: BorderRadius.circular(6),

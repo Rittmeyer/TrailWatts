@@ -20,9 +20,13 @@ class ScreenSpec {
 }
 
 const screenInventory = <ScreenSpec>[
-  ScreenSpec(code: '01', route: '/splash', title: 'Abertura', implemented: true),
   ScreenSpec(
-      code: '01a', route: '/auth', title: 'Login / Criar conta', implemented: true),
+      code: '01', route: '/splash', title: 'Abertura', implemented: true),
+  ScreenSpec(
+      code: '01a',
+      route: '/auth',
+      title: 'Login / Criar conta',
+      implemented: true),
   ScreenSpec(code: '02', route: '/profile', title: 'Perfil', implemented: true),
   ScreenSpec(
       code: '02a',
@@ -34,11 +38,18 @@ const screenInventory = <ScreenSpec>[
       route: '/workout-builder/map',
       title: 'Criar treino (2/2) - mapa',
       implemented: true),
-  ScreenSpec(code: '03', route: '/home', title: 'Treino do dia', implemented: true),
   ScreenSpec(
-      code: '04', route: '/route-map', title: 'Rota no mapa', implemented: true),
+      code: '03', route: '/home', title: 'Treino do dia', implemented: true),
   ScreenSpec(
-      code: '05', route: '/route-edit', title: 'Editar rota', implemented: true),
+      code: '04',
+      route: '/route-map',
+      title: 'Rota no mapa',
+      implemented: true),
+  ScreenSpec(
+      code: '05',
+      route: '/route-edit',
+      title: 'Editar rota',
+      implemented: true),
   ScreenSpec(
       code: '06',
       route: '/import-result',
@@ -54,7 +65,8 @@ const screenInventory = <ScreenSpec>[
       route: '/import-result/manual-continuous',
       title: 'Manual - continuo',
       implemented: true),
-  ScreenSpec(code: '07', route: '/history', title: 'Historico', implemented: true),
+  ScreenSpec(
+      code: '07', route: '/history', title: 'Historico', implemented: true),
   ScreenSpec(
       code: '08a',
       route: '/calendar/week',
@@ -65,5 +77,6 @@ const screenInventory = <ScreenSpec>[
       route: '/calendar/month',
       title: 'Calendario - mes',
       implemented: true),
-  ScreenSpec(code: 'web', route: '/', title: 'Landing page (web)', implemented: true),
+  ScreenSpec(
+      code: 'web', route: '/', title: 'Landing page (web)', implemented: true),
 ];

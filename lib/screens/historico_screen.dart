@@ -18,19 +18,25 @@ class HistoricoScreen extends StatelessWidget {
           date: DateTime(2026, 7, 14),
           routeName: 'Subida da Serra',
           targetWatts: 180,
-          realWatts: 178,
+          realizedWatts: 178,
+          targetDurationMin: 32,
+          realizedDurationMin: 33,
           source: ResultSource.strava),
       HistoryEntry(
           date: DateTime(2026, 7, 12),
           routeName: 'Circuito do parque',
           targetWatts: 150,
-          realWatts: 142,
+          realizedWatts: 142,
+          targetDurationMin: 60,
+          realizedDurationMin: 58,
           source: ResultSource.garmin),
       HistoryEntry(
           date: DateTime(2026, 7, 10),
           routeName: 'Treino indoor',
           targetWatts: 240,
-          realWatts: 241,
+          realizedWatts: 241,
+          targetDurationMin: 20,
+          realizedDurationMin: 20,
           source: ResultSource.manual),
     ];
 
@@ -66,8 +72,8 @@ class HistoricoScreen extends StatelessWidget {
                     final e = entries[i];
                     final good = e.deltaWatts.abs() <= e.targetWatts * 0.05;
                     return Container(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10),
                       decoration: BoxDecoration(
                         border: Border.all(
                             color: good ? AppColors.accent : AppColors.line),
@@ -81,22 +87,27 @@ class HistoricoScreen extends StatelessWidget {
                             children: [
                               Text(e.routeName,
                                   style: AppTextStyles.body.copyWith(
-                                      fontWeight: FontWeight.w700, fontSize: 13)),
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 13)),
                               Text('alvo ${e.targetWatts}w',
-                                  style: AppTextStyles.label.copyWith(fontSize: 11)),
+                                  style: AppTextStyles.label
+                                      .copyWith(fontSize: 11)),
                             ],
                           ),
                           Container(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: good ? AppColors.greenBg : AppColors.warnBg,
+                              color:
+                                  good ? AppColors.greenBg : AppColors.warnBg,
                               borderRadius: BorderRadius.circular(5),
                             ),
-                            child: Text('${e.realWatts}w',
+                            child: Text('${e.realizedWatts}w',
                                 style: AppTextStyles.numeric.copyWith(
                                   fontSize: 12,
-                                  color: good ? AppColors.greenText : AppColors.warnText,
+                                  color: good
+                                      ? AppColors.greenText
+                                      : AppColors.warnText,
                                 )),
                           ),
                         ],

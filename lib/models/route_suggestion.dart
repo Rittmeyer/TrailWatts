@@ -58,8 +58,8 @@ class RouteSegment {
     this.junctionCount = 0,
     this.trafficLightCount = 0,
     this.sourceMetadata,
-  }) : assert(junctionCount >= 0),
-       assert(trafficLightCount >= 0);
+  })  : assert(junctionCount >= 0),
+        assert(trafficLightCount >= 0);
 }
 
 class RouteScoreWeights {
@@ -94,25 +94,24 @@ class RouteScoreBreakdown {
     required this.trafficScorePct,
     required this.surfaceScorePct,
     required this.practicalityScorePct,
-  }) : assert(intensityMatchPct >= 0 && intensityMatchPct <= 100),
-       assert(durationMatchPct >= 0 && durationMatchPct <= 100),
-       assert(sequenceMatchPct >= 0 && sequenceMatchPct <= 100),
-       assert(continuityScorePct >= 0 && continuityScorePct <= 100),
-       assert(safetyScorePct >= 0 && safetyScorePct <= 100),
-       assert(trafficScorePct >= 0 && trafficScorePct <= 100),
-       assert(surfaceScorePct >= 0 && surfaceScorePct <= 100),
-       assert(practicalityScorePct >= 0 && practicalityScorePct <= 100);
+  })  : assert(intensityMatchPct >= 0 && intensityMatchPct <= 100),
+        assert(durationMatchPct >= 0 && durationMatchPct <= 100),
+        assert(sequenceMatchPct >= 0 && sequenceMatchPct <= 100),
+        assert(continuityScorePct >= 0 && continuityScorePct <= 100),
+        assert(safetyScorePct >= 0 && safetyScorePct <= 100),
+        assert(trafficScorePct >= 0 && trafficScorePct <= 100),
+        assert(surfaceScorePct >= 0 && surfaceScorePct <= 100),
+        assert(practicalityScorePct >= 0 && practicalityScorePct <= 100);
 
-  int get weightedScorePct =>
-      (intensityMatchPct * RouteScoreWeights.intensity +
-              durationMatchPct * RouteScoreWeights.duration +
-              sequenceMatchPct * RouteScoreWeights.sequence +
-              continuityScorePct * RouteScoreWeights.continuity +
-              safetyScorePct * RouteScoreWeights.safety +
-              trafficScorePct * RouteScoreWeights.traffic +
-              surfaceScorePct * RouteScoreWeights.surface +
-              practicalityScorePct * RouteScoreWeights.practicality)
-          .round();
+  int get weightedScorePct => (intensityMatchPct * RouteScoreWeights.intensity +
+          durationMatchPct * RouteScoreWeights.duration +
+          sequenceMatchPct * RouteScoreWeights.sequence +
+          continuityScorePct * RouteScoreWeights.continuity +
+          safetyScorePct * RouteScoreWeights.safety +
+          trafficScorePct * RouteScoreWeights.traffic +
+          surfaceScorePct * RouteScoreWeights.surface +
+          practicalityScorePct * RouteScoreWeights.practicality)
+      .round();
 }
 
 class RouteSuggestion {
@@ -154,7 +153,8 @@ class RouteSuggestion {
       path.any((segment) => segment.safetyLevel == CyclingSafetyLevel.unknown);
 
   bool get hasSafetyWarning => path.any(
-        (segment) => segment.safetyLevel == CyclingSafetyLevel.moderate ||
+        (segment) =>
+            segment.safetyLevel == CyclingSafetyLevel.moderate ||
             segment.safetyLevel == CyclingSafetyLevel.highRisk,
       );
 }

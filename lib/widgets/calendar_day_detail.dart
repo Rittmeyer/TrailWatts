@@ -62,7 +62,8 @@ class CalendarDayDetail extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(c.routeName,
-                style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w700)),
+                style:
+                    AppTextStyles.body.copyWith(fontWeight: FontWeight.w700)),
             const SizedBox(height: 10),
             Row(
               children: [
@@ -72,10 +73,12 @@ class CalendarDayDetail extends StatelessWidget {
                         value: '${c.realizedWatts}w',
                         valueColor: AppColors.greenText)),
                 const SizedBox(width: 8),
-                Expanded(child: StatBox(label: 'ALVO', value: '${c.targetWatts}w')),
+                Expanded(
+                    child: StatBox(label: 'ALVO', value: '${c.targetWatts}w')),
                 const SizedBox(width: 8),
                 Expanded(
-                    child: StatBox(label: 'DURACAO', value: '${c.durationMin}m')),
+                    child:
+                        StatBox(label: 'DURACAO', value: '${c.durationMin}m')),
               ],
             ),
           ],

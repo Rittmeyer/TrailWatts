@@ -10,8 +10,18 @@ import '../widgets/zone_pill.dart';
 import 'calendar_demo_data.dart';
 
 const _monthNamesFull = [
-  'Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',
-  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
+  'Janeiro',
+  'Fevereiro',
+  'Marco',
+  'Abril',
+  'Maio',
+  'Junho',
+  'Julho',
+  'Agosto',
+  'Setembro',
+  'Outubro',
+  'Novembro',
+  'Dezembro',
 ];
 const _dowSingleLetters = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'];
 
@@ -42,7 +52,8 @@ class _CalendarMonthScreenState extends State<CalendarMonthScreen> {
                 Text('Calendario',
                     style: AppTextStyles.screenTitle.copyWith(fontSize: 24)),
                 const SizedBox(height: 4),
-                Text('${_monthNamesFull[_focusedDay.month - 1]} ${_focusedDay.year}',
+                Text(
+                    '${_monthNamesFull[_focusedDay.month - 1]} ${_focusedDay.year}',
                     style: AppTextStyles.screenSubtitle),
                 const SizedBox(height: 14),
                 SegmentedControl(
@@ -87,8 +98,8 @@ class _CalendarMonthScreenState extends State<CalendarMonthScreen> {
                     outsideDaysVisible: true,
                     todayDecoration: BoxDecoration(
                         color: AppColors.paper, shape: BoxShape.circle),
-                    todayTextStyle:
-                        TextStyle(color: AppColors.ink, fontWeight: FontWeight.w700),
+                    todayTextStyle: TextStyle(
+                        color: AppColors.ink, fontWeight: FontWeight.w700),
                     selectedDecoration: BoxDecoration(
                         color: AppColors.accent, shape: BoxShape.circle),
                     markerDecoration: BoxDecoration(

@@ -18,8 +18,7 @@ class _ManualResultScreen extends StatelessWidget {
   final String subtitle;
   final List<_Stimulus> stimuli;
 
-  const _ManualResultScreen(
-      {required this.subtitle, required this.stimuli});
+  const _ManualResultScreen({required this.subtitle, required this.stimuli});
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +58,8 @@ class _ManualResultScreen extends StatelessWidget {
                       Navigator.of(context).pushReplacementNamed('/history'),
                 ),
                 const SizedBox(height: 14),
-                Text('Shown in English - adapts to the rider\'s profile language.',
+                Text(
+                    'Shown in English - adapts to the rider\'s profile language.',
                     style: AppTextStyles.label.copyWith(fontSize: 9)),
               ],
             ),

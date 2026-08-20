@@ -12,8 +12,8 @@ class ZonePill extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-      decoration:
-          BoxDecoration(color: zone.color, borderRadius: BorderRadius.circular(6)),
+      decoration: BoxDecoration(
+          color: zone.color, borderRadius: BorderRadius.circular(6)),
       child: Text(
         '${zone.code} · ${zone.label.toUpperCase()}',
         style: const TextStyle(

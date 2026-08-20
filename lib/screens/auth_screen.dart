@@ -39,7 +39,9 @@ class _AuthScreenState extends State<AuthScreen> {
                     style: AppTextStyles.screenTitle.copyWith(fontSize: 24)),
                 const SizedBox(height: 4),
                 Text(
-                  _isLogin ? 'Acesse sua conta Trailwatt' : 'Leva menos de um minuto',
+                  _isLogin
+                      ? 'Acesse sua conta Trailwatt'
+                      : 'Leva menos de um minuto',
                   style: AppTextStyles.screenSubtitle,
                 ),
                 const SizedBox(height: 20),
@@ -53,8 +55,8 @@ class _AuthScreenState extends State<AuthScreen> {
                 const SizedBox(height: 4),
                 TrailwattButton(
                   label: _isLogin ? 'Entrar' : 'Criar conta',
-                  onPressed: () => Navigator.of(context).pushReplacementNamed(
-                      _isLogin ? '/home' : '/profile'),
+                  onPressed: () => Navigator.of(context)
+                      .pushReplacementNamed(_isLogin ? '/home' : '/profile'),
                 ),
                 // Social/import shortcuts are LOGIN-ONLY - Criar Conta stays
                 // fully manual per Constitution Article II.
@@ -98,8 +100,8 @@ class _AuthScreenState extends State<AuthScreen> {
         child: Padding(
           padding: const EdgeInsets.only(bottom: 14),
           child: Text('Esqueceu a senha?',
-              style: AppTextStyles.label
-                  .copyWith(color: AppColors.primary, fontWeight: FontWeight.w600)),
+              style: AppTextStyles.label.copyWith(
+                  color: AppColors.primary, fontWeight: FontWeight.w600)),
         ),
       ),
     ];
@@ -109,8 +111,7 @@ class _AuthScreenState extends State<AuthScreen> {
     return [
       const TrailwattField(label: 'Nome', hint: 'seu nome'),
       const TrailwattField(label: 'Email', hint: 'nome@email.com'),
-      const TrailwattField(
-          label: 'Data de nascimento', hint: 'DD/MM/AAAA'),
+      const TrailwattField(label: 'Data de nascimento', hint: 'DD/MM/AAAA'),
       const TrailwattField(
           label: 'Senha', hint: 'crie uma senha', obscureText: true),
       const TrailwattField(
@@ -152,7 +153,8 @@ class _Divider extends StatelessWidget {
         const Expanded(child: Divider(color: AppColors.line)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10),
-          child: Text(label, style: AppTextStyles.label.copyWith(fontSize: 9.5)),
+          child:
+              Text(label, style: AppTextStyles.label.copyWith(fontSize: 9.5)),
         ),
         const Expanded(child: Divider(color: AppColors.line)),
       ],

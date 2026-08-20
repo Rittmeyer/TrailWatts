@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
 import 'screens/splash_screen.dart';
@@ -26,7 +27,10 @@ class TrailwattApp extends StatelessWidget {
       title: 'Trailwatt',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      initialRoute: '/splash',
+      // On web the browser reports '/', which would otherwise be overridden
+      // by initialRoute and leave the landing page unreachable; a browser
+      // visitor gets the marketing page, the app gets the splash.
+      initialRoute: kIsWeb ? '/' : '/splash',
       routes: {
         '/': (_) => const LandingPage(),
         '/splash': (_) => const SplashScreen(),

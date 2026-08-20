@@ -39,11 +39,12 @@ class LandingPage extends StatelessWidget {
               child: Column(
                 children: [
                   Text('PARA CICLISTAS, DO INICIANTE AO PRO',
-                      style: AppTextStyles.label
-                          .copyWith(color: AppColors.primary, letterSpacing: 1.4)),
+                      style: AppTextStyles.label.copyWith(
+                          color: AppColors.primary, letterSpacing: 1.4)),
                   const SizedBox(height: 20),
                   Text('Seu treino ja diz o percurso ideal.',
-                      textAlign: TextAlign.center, style: AppTextStyles.heroTitle),
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.heroTitle),
                   const SizedBox(height: 18),
                   Text(
                     'Digite o alvo do treino de hoje e o Trailwatt sugere uma rota real que bate com ele.',
@@ -80,7 +81,8 @@ class LandingPage extends StatelessWidget {
                                 child: _FeatureCard(title: f.$1, body: f.$2),
                               ))
                           .toList();
-                      return Wrap(spacing: 36, runSpacing: 24, children: children);
+                      return Wrap(
+                          spacing: 36, runSpacing: 24, children: children);
                     },
                   ),
                 ],
@@ -108,7 +110,8 @@ class _FeatureCard extends StatelessWidget {
         Text(title, style: AppTextStyles.screenTitle.copyWith(fontSize: 17)),
         const SizedBox(height: 6),
         Text(body,
-            style: AppTextStyles.body.copyWith(color: AppColors.inkSoft, fontSize: 13)),
+            style: AppTextStyles.body
+                .copyWith(color: AppColors.inkSoft, fontSize: 13)),
       ],
     );
   }

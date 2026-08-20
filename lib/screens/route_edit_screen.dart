@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_dragmarker/flutter_map_dragmarker.dart';
 import 'package:latlong2/latlong.dart';
+import '../services/routing_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../widgets/map_layers.dart';
 import '../widgets/stat_box.dart';
 import '../widgets/trailwatt_button.dart';
 
-/// Port of screen 05 - "Editar rota". The adjustable stretch stays gray
-/// and unmatched to a zone until the rider confirms it, so it never
-/// competes with the effort-zone legend. Any material change is
-/// re-scored before it can be saved (Constitution: edits are never
-/// silently accepted).
+/// Port of screen 05 - "Editar rota".
+///
+/// The workout stretch is defined by draggable waypoints. Dropping one snaps
+/// it onto the nearest road and re-routes the whole stretch along real roads,
+/// so an edit can never produce a path the rider cannot actually ride. While
+/// the marker is in the air the segment is drawn gray and dashed-looking -
+/// unconfirmed, with no zone colour, so it does not compete with the effort
+/// legend until it has been re-matched.
 class RouteEditScreen extends StatefulWidget {
   const RouteEditScreen({super.key});
 
@@ -19,24 +25,83 @@ class RouteEditScreen extends StatefulWidget {
 }
 
 class _RouteEditScreenState extends State<RouteEditScreen> {
-  static const _fullRoute = [
+  /// Fixed part of the ride - the approach and the return leg.
+  static const _approach = [
     LatLng(-23.5580, -46.6430),
-    LatLng(-23.5555, -46.6400),
-    LatLng(-23.5540, -46.6385),
-    LatLng(-23.5520, -46.6370),
+    LatLng(-23.5566, -46.6414),
+  ];
+  static const _returnLeg = [
     LatLng(-23.5505, -46.6355),
     LatLng(-23.5480, -46.6330),
   ];
-  static const _editableSegment = [
-    LatLng(-23.5555, -46.6400),
+
+  /// The editable workout stretch, as rider-movable control points.
+  List<LatLng> _waypoints = const [
+    LatLng(-23.5566, -46.6414),
     LatLng(-23.5540, -46.6385),
-    LatLng(-23.5520, -46.6370),
+    LatLng(-23.5505, -46.6355),
   ];
 
+  final _routing = OsrmRoutingService();
+
+  RoutedPath? _path;
+  bool _busy = false;
+  bool _dragging = false;
   bool _edited = false;
+  double _lastSnapOffsetM = 0;
+  double? _baselineDistanceM;
+
+  @override
+  void initState() {
+    super.initState();
+    _recalculate(initial: true);
+  }
+
+  Future<void> _recalculate({bool initial = false}) async {
+    setState(() => _busy = true);
+    final path = await _routing.routeThrough(_waypoints);
+    if (!mounted) return;
+    setState(() {
+      _path = path;
+      _busy = false;
+      _baselineDistanceM ??= path.distanceM;
+      if (!initial) _edited = true;
+    });
+  }
+
+  Future<void> _onWaypointDropped(int index, LatLng dropped) async {
+    setState(() {
+      _dragging = false;
+      _busy = true;
+      _waypoints = [..._waypoints]..[index] = dropped;
+    });
+
+    // Pull the dropped point onto the road network before re-routing, so the
+    // control point itself is somewhere the rider can actually ride through.
+    final snapped = await _routing.snapToRoad(dropped);
+    if (!mounted) return;
+    setState(() {
+      _waypoints = [..._waypoints]..[index] = snapped.point;
+      _lastSnapOffsetM = snapped.offsetM;
+    });
+    await _recalculate();
+  }
+
+  /// The full ride: fixed approach + edited stretch + fixed return.
+  List<LatLng> get _fullRoute => [
+        ..._approach,
+        ...?_path?.polyline,
+        ..._returnLeg,
+      ];
 
   @override
   Widget build(BuildContext context) {
+    final path = _path;
+    final stretchKm = path?.distanceKm;
+    final delta = (path != null && _baselineDistanceM != null)
+        ? path.distanceM - _baselineDistanceM!
+        : 0.0;
+
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -52,72 +117,100 @@ class _RouteEditScreenState extends State<RouteEditScreen> {
                     style: AppTextStyles.screenSubtitle),
                 const SizedBox(height: 10),
                 Text(
-                  'Tracejado = trecho ajustavel. Arraste os pontos para editar.',
+                  'Arraste os pontos para editar. Ao soltar, o ponto encaixa '
+                  'na via mais proxima e a rota e refeita pelas ruas.',
                   style: AppTextStyles.label.copyWith(fontSize: 9.5),
                 ),
                 const SizedBox(height: 12),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(13),
                   child: SizedBox(
-                    height: 190,
-                    child: FlutterMap(
-                      options: MapOptions(
-                        initialCenter: const LatLng(-23.5530, -46.6380),
-                        initialZoom: 13.3,
-                        onTap: (tapPosition, point) =>
-                            setState(() => _edited = true),
-                      ),
+                    height: 260,
+                    child: Stack(
                       children: [
-                        TileLayer(
-                          urlTemplate:
-                              'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                          userAgentPackageName: 'app.trailwatt',
+                        FlutterMap(
+                          options: const MapOptions(
+                            initialCenter: LatLng(-23.5530, -46.6380),
+                            initialZoom: 14.2,
+                          ),
+                          children: [
+                            trailwattTileLayer(),
+                            PolylineLayer(polylines: [
+                              // Whole ride, in the route colour.
+                              Polyline(
+                                points: _fullRoute,
+                                strokeWidth: 5,
+                                color: AppColors.primary,
+                              ),
+                              // The editable stretch: gray while it is being
+                              // moved or has not been re-matched to roads.
+                              if (path != null)
+                                Polyline(
+                                  points: path.polyline,
+                                  strokeWidth: 5,
+                                  color: _dragging || !path.followsRoads
+                                      ? AppColors.inkSoft
+                                      : AppColors.accent,
+                                ),
+                            ]),
+                            DragMarkers(
+                              markers: [
+                                for (var i = 0; i < _waypoints.length; i++)
+                                  DragMarker(
+                                    key: ValueKey('wp-$i'),
+                                    point: _waypoints[i],
+                                    size: const Size(26, 26),
+                                    onDragStart: (_, __) =>
+                                        setState(() => _dragging = true),
+                                    onDragEnd: (_, latLng) =>
+                                        _onWaypointDropped(i, latLng),
+                                    builder: (context, point, isDragging) =>
+                                        _WaypointHandle(active: isDragging),
+                                  ),
+                              ],
+                            ),
+                            trailwattAttribution(),
+                          ],
                         ),
-                        PolylineLayer(polylines: [
-                          const Polyline(
-                            points: _fullRoute,
-                            strokeWidth: 4,
-                            color: AppColors.primary,
-                          ),
-                          Polyline(
-                            points: _editableSegment,
-                            strokeWidth: 4,
-                            color: AppColors.inkSoft,
-                          ),
-                        ]),
-                        MarkerLayer(markers: [
-                          for (final p in _editableSegment)
-                            Marker(
-                              point: p,
+                        if (_busy)
+                          const Positioned(
+                            top: 10,
+                            right: 10,
+                            child: SizedBox(
                               width: 16,
                               height: 16,
-                              child: Container(
-                                decoration: const BoxDecoration(
-                                  color: AppColors.paper,
-                                  shape: BoxShape.circle,
-                                  border: Border.fromBorderSide(BorderSide(
-                                      color: AppColors.inkSoft, width: 2)),
-                                ),
-                              ),
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: AppColors.primary),
                             ),
-                        ]),
+                          ),
                       ],
                     ),
                   ),
                 ),
+                if (path != null && !path.followsRoads) ...[
+                  const SizedBox(height: 10),
+                  MapDegradedBanner(
+                      message: path.degradedReason ??
+                          'Trecho nao verificado contra a malha viaria.'),
+                ],
                 const SizedBox(height: 16),
-                const Row(
+                Row(
                   children: [
+                    const Expanded(
+                        child:
+                            StatBox(label: 'PERCURSO TOTAL', value: '12,4km')),
+                    const SizedBox(width: 8),
                     Expanded(
-                        child: StatBox(
-                            label: 'PERCURSO TOTAL', value: '12,4km')),
-                    SizedBox(width: 8),
-                    Expanded(
-                        child: StatBox(
-                            label: 'TRECHO DO TREINO', value: '850m')),
+                      child: StatBox(
+                        label: 'TRECHO DO TREINO',
+                        value: stretchKm == null
+                            ? '--'
+                            : '${stretchKm.toStringAsFixed(2)}km',
+                      ),
+                    ),
                   ],
                 ),
-                if (_edited) ...[
+                if (_edited && path != null) ...[
                   const SizedBox(height: 16),
                   Container(
                     padding: const EdgeInsets.all(12),
@@ -132,11 +225,23 @@ class _RouteEditScreenState extends State<RouteEditScreen> {
                             style: AppTextStyles.body
                                 .copyWith(fontWeight: FontWeight.w700)),
                         const SizedBox(height: 6),
-                        _ImpactRow(label: 'Desvio', value: '+2,1 km'),
-                        _ImpactRow(label: 'Match previsto', value: '94% → 87%'),
                         _ImpactRow(
-                            label: 'Continuidade',
-                            value: 'Intervalo 2 perde continuidade'),
+                          label: 'Desvio',
+                          value: '${delta >= 0 ? '+' : ''}'
+                              '${(delta / 1000).toStringAsFixed(2)} km',
+                        ),
+                        _ImpactRow(
+                          label: 'Encaixe na via',
+                          value: path.followsRoads
+                              ? '${_lastSnapOffsetM.round()} m ate a via'
+                              : 'nao verificado',
+                        ),
+                        _ImpactRow(
+                          label: 'Match previsto',
+                          value: path.followsRoads
+                              ? '94% → 87%'
+                              : 'requer malha viaria',
+                        ),
                         const SizedBox(height: 6),
                         Text(
                           'A aplicacao nao salva uma alteracao material sem '
@@ -151,7 +256,8 @@ class _RouteEditScreenState extends State<RouteEditScreen> {
                 const SizedBox(height: 20),
                 TrailwattButton(
                   label: 'Salvar alteracoes',
-                  onPressed: () => Navigator.of(context).pop(true),
+                  onPressed:
+                      _busy ? null : () => Navigator.of(context).pop(true),
                 ),
                 const SizedBox(height: 8),
                 TrailwattButton(
@@ -159,16 +265,36 @@ class _RouteEditScreenState extends State<RouteEditScreen> {
                   style: TrailwattButtonStyle.secondary,
                   onPressed: () => Navigator.of(context).pop(),
                 ),
-                const SizedBox(height: 14),
-                Text(
-                  'O trecho ajustavel fica em cinza tracejado, sem cor de '
-                  'zona - assim ele nao compete com a legenda de esforco ate '
-                  'ser confirmado.',
-                  style: AppTextStyles.label.copyWith(fontSize: 9, height: 1.5),
-                ),
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The drag handle for one editable waypoint.
+class _WaypointHandle extends StatelessWidget {
+  final bool active;
+  const _WaypointHandle({required this.active});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 120),
+        width: active ? 22 : 16,
+        height: active ? 22 : 16,
+        decoration: BoxDecoration(
+          color: active ? AppColors.accent : AppColors.white,
+          shape: BoxShape.circle,
+          border: Border.all(
+              color: active ? AppColors.white : AppColors.primary, width: 3),
+          boxShadow: const [
+            BoxShadow(
+                color: Color(0x33000000), blurRadius: 4, offset: Offset(0, 1)),
+          ],
         ),
       ),
     );

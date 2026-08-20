@@ -30,8 +30,8 @@ class TrailwattButton extends StatelessWidget {
               backgroundColor: AppColors.accent,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 14),
-              shape:
-                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
               elevation: 0,
             ),
             child: Text(label, style: AppTextStyles.button),
@@ -46,8 +46,8 @@ class TrailwattButton extends StatelessWidget {
               foregroundColor: AppColors.ink,
               side: const BorderSide(color: AppColors.line),
               padding: const EdgeInsets.symmetric(vertical: 14),
-              shape:
-                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
             ),
             child: Text(label, style: AppTextStyles.button),
           ),
