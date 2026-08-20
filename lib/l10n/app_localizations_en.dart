@@ -803,4 +803,29 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get importWorkoutFailed =>
       'Could not read the planned workout from TrainingPeaks.';
+
+  @override
+  String get calendarAddWorkout => '+ Schedule a workout';
+
+  @override
+  String get calendarEditWorkout => 'Edit';
+
+  @override
+  String get calendarRemoveWorkout => 'Remove';
+
+  @override
+  String get calendarRemoveTitle => 'Remove this workout?';
+
+  @override
+  String get calendarRemoveBody =>
+      'The day goes back to being a rest day. Nothing else in the plan changes.';
+
+  @override
+  String get calendarWorkoutRemoved => 'Workout removed from the day';
+
+  @override
+  String get calendarWorkoutSaved => 'Workout saved to the day';
+
+  @override
+  String get builderSaveToDay => 'Save to this day';
 }

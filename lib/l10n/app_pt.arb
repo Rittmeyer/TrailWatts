@@ -237,5 +237,13 @@
   "routeHandoffCopied": "GPX copiado",
   "importWorkoutNothingPlanned": "Nenhum treino estruturado planejado no TrainingPeaks para a próxima semana.",
   "importWorkoutReconnect": "Sua sessão do TrainingPeaks terminou. Conecte de novo em Mais › Integrações.",
-  "importWorkoutFailed": "Não foi possível ler o treino planejado do TrainingPeaks."
+  "importWorkoutFailed": "Não foi possível ler o treino planejado do TrainingPeaks.",
+  "calendarAddWorkout": "+ Agendar um treino",
+  "calendarEditWorkout": "Editar",
+  "calendarRemoveWorkout": "Remover",
+  "calendarRemoveTitle": "Remover este treino?",
+  "calendarRemoveBody": "O dia volta a ser de descanso. Nada mais no plano muda.",
+  "calendarWorkoutRemoved": "Treino removido do dia",
+  "calendarWorkoutSaved": "Treino salvo no dia",
+  "builderSaveToDay": "Salvar neste dia"
 }

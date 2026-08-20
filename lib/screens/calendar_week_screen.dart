@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../l10n/domain_labels.dart';
-import '../services/rider_profile_store.dart';
+import '../services/workout_plan_store.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/bottom_nav.dart';
-import '../widgets/calendar_day_detail.dart';
+import '../widgets/calendar_day_actions.dart';
 import '../widgets/segmented_control.dart';
 import 'calendar_demo_data.dart';
 
@@ -40,13 +40,12 @@ class _CalendarWeekScreenState extends State<CalendarWeekScreen> {
 
     return Scaffold(
       body: SafeArea(
-        // Rebuilds when the rider saves a profile, so the zones on this
-        // screen follow the table they actually chose.
+        // Rebuilds when the plan changes - adding, editing or removing a
+        // day - and when the profile does, since that renames the zones.
         child: ListenableBuilder(
-          listenable: RiderProfileStore.instance,
+          listenable: WorkoutPlanStore.instance,
           builder: (context, _) {
-            final entries =
-                demoCalendarEntriesFor(RiderProfileStore.instance.profile);
+            final entries = WorkoutPlanStore.instance.entries;
             return Padding(
               padding: const EdgeInsets.all(24),
               child: SingleChildScrollView(
@@ -111,8 +110,7 @@ class _CalendarWeekScreenState extends State<CalendarWeekScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    CalendarDayDetail(
-                        entry: entries[normalizeDay(_selectedDay)]),
+                    CalendarDayActions(day: _selectedDay),
                   ],
                 ),
               ),

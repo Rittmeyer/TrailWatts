@@ -8,6 +8,7 @@ import '../models/zone.dart';
 import '../services/integrations_store.dart';
 import '../services/platform/platform_api_client.dart';
 import '../services/rider_profile_store.dart';
+import '../services/workout_plan_store.dart';
 import '../services/training_peaks_import.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -125,6 +126,12 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
   final _importService = TrainingPeaksImportService();
   bool _importing = false;
 
+  /// The calendar day this workout is being written for, when the rider got
+  /// here by selecting one. Null means they came to build a workout to ride
+  /// now, and the screen continues to the route search as before.
+  DateTime? _planDay;
+  bool _loadedPlanDay = false;
+
   /// Seeded as the worked example: one block holding two stimuli - a
   /// threshold stimulus and its own recovery stimulus - rather than two
   /// separate blocks.
@@ -140,6 +147,77 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
       ),
     ]),
   ];
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_loadedPlanDay) return;
+    _loadedPlanDay = true;
+
+    final day = ModalRoute.of(context)?.settings.arguments;
+    if (day is! DateTime) return;
+    _planDay = day;
+
+    // Editing a day opens on what is already planned there. The plan stores
+    // a flat block sequence, so each block comes back as its own block on
+    // screen - grouping is how the rider authored it, not something the
+    // plan preserves.
+    final planned = WorkoutPlanStore.instance.entryFor(day)?.planned;
+    if (planned == null || planned.isEmpty) return;
+
+    for (final g in _groups) {
+      g.dispose();
+    }
+    _groups
+      ..clear()
+      ..addAll(
+          planned.map((b) => _GroupForm(stimuli: [_BlockForm.fromModel(b)])));
+  }
+
+  /// The blocks as currently on screen, expanded into timeline order.
+  ///
+  /// The fields are free text, so every value is brought into the range the
+  /// model guarantees rather than being trusted: a duration of at least a
+  /// minute, a non-negative target, and a maximum no lower than its minimum.
+  List<WorkoutBlock> _toBlocks() {
+    WorkoutBlock blockFrom(_BlockForm form) {
+      final min = (int.tryParse(form.minTarget.text) ?? 0).clamp(0, 9999);
+      final max = (int.tryParse(form.maxTarget.text) ?? min).clamp(0, 9999);
+      return WorkoutBlock(
+        role: form.role,
+        zone: TrainingZone(
+          metric: _metric,
+          scale: _scale,
+          index: form.zoneIndex.clamp(1, _scale.count),
+        ),
+        durationMin: form.durationMin < 1 ? 1 : form.durationMin,
+        target: WorkoutTarget(
+          metric: _metric,
+          minValue: min,
+          maxValue: max < min ? min : max,
+        ),
+      );
+    }
+
+    return flattenBlockGroups([
+      for (final g in _groups)
+        WorkoutBlockGroup(
+          repeatCount: g.repeatCount,
+          stimuli: [for (final b in g.stimuli) blockFrom(b)],
+        ),
+    ]);
+  }
+
+  /// Writes the workout onto the day the rider selected and goes back to the
+  /// calendar they came from.
+  void _saveToPlan() {
+    final day = _planDay;
+    if (day == null) return;
+    WorkoutPlanStore.instance.savePlanned(day, _toBlocks());
+    // The calendar announces the save: a snackbar raised here would go with
+    // this screen as it pops.
+    Navigator.of(context).pop(true);
+  }
 
   ZoneScale get _scale => _metric == ZoneMetric.power
       ? _rider.powerZones.scale
@@ -333,10 +411,16 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
                     style:
                         AppTextStyles.label.copyWith(fontSize: 9, height: 1.5)),
                 const SizedBox(height: 16),
+                // Coming from a calendar day, the workout belongs on that
+                // day; coming from today's screen, the rider wants a route
+                // to go ride. Same builder, different thing being finished.
                 TrailwattButton(
-                  label: t.builderContinue,
-                  onPressed: () =>
-                      Navigator.of(context).pushNamed('/workout-builder/map'),
+                  label:
+                      _planDay == null ? t.builderContinue : t.builderSaveToDay,
+                  onPressed: _planDay == null
+                      ? () => Navigator.of(context)
+                          .pushNamed('/workout-builder/map')
+                      : _saveToPlan,
                 ),
                 const SizedBox(height: 14),
                 Text(

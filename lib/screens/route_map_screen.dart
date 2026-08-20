@@ -300,8 +300,8 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                 const SizedBox(height: 16),
                 GestureDetector(
                   onTap: () async {
-                    final saved = await Navigator.of(context)
-                        .pushNamed<bool>('/route-edit');
+                    final saved =
+                        await Navigator.of(context).pushNamed('/route-edit');
                     if (saved == true && context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text(t.routeSavedRescored)),

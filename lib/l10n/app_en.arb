@@ -400,5 +400,13 @@
   "routeHandoffCopied": "GPX copied",
   "importWorkoutNothingPlanned": "No structured workout planned in TrainingPeaks for the week ahead.",
   "importWorkoutReconnect": "Your TrainingPeaks session ended. Connect it again under More › Integrations.",
-  "importWorkoutFailed": "Could not read the planned workout from TrainingPeaks."
+  "importWorkoutFailed": "Could not read the planned workout from TrainingPeaks.",
+  "calendarAddWorkout": "+ Schedule a workout",
+  "calendarEditWorkout": "Edit",
+  "calendarRemoveWorkout": "Remove",
+  "calendarRemoveTitle": "Remove this workout?",
+  "calendarRemoveBody": "The day goes back to being a rest day. Nothing else in the plan changes.",
+  "calendarWorkoutRemoved": "Workout removed from the day",
+  "calendarWorkoutSaved": "Workout saved to the day",
+  "builderSaveToDay": "Save to this day"
 }

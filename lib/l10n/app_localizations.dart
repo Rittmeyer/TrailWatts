@@ -1525,6 +1525,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not read the planned workout from TrainingPeaks.'**
   String get importWorkoutFailed;
+
+  /// No description provided for @calendarAddWorkout.
+  ///
+  /// In en, this message translates to:
+  /// **'+ Schedule a workout'**
+  String get calendarAddWorkout;
+
+  /// No description provided for @calendarEditWorkout.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get calendarEditWorkout;
+
+  /// No description provided for @calendarRemoveWorkout.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get calendarRemoveWorkout;
+
+  /// No description provided for @calendarRemoveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this workout?'**
+  String get calendarRemoveTitle;
+
+  /// No description provided for @calendarRemoveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The day goes back to being a rest day. Nothing else in the plan changes.'**
+  String get calendarRemoveBody;
+
+  /// No description provided for @calendarWorkoutRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout removed from the day'**
+  String get calendarWorkoutRemoved;
+
+  /// No description provided for @calendarWorkoutSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout saved to the day'**
+  String get calendarWorkoutSaved;
+
+  /// No description provided for @builderSaveToDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Save to this day'**
+  String get builderSaveToDay;
 }
 
 class _AppLocalizationsDelegate
