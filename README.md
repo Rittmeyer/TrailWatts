@@ -50,15 +50,17 @@ does not touch `lib/`.
 ## Android APK
 
 ```bash
-flutter build apk --release
+deploy/deploy.sh android    # via Docker, sem instalar SDK nenhum
+flutter build apk --release # ou direto, com o SDK do Android local
 # build/app/outputs/flutter-apk/app-release.apk
 ```
 
 Needs the Android SDK (platform + build-tools) and a JDK 17+; `flutter doctor
 --android-licenses` once if this is a fresh SDK. The release build is signed
 with the debug key, which is enough to sideload for testing but not to
-publish - add a real signing config in `android/app/build.gradle` before any
-store release.
+publish. Passe `--keystore` e `--key-properties` para `deploy/deploy.sh
+android` e o release é assinado de verdade; `deploy/README.md` tem o
+formato do `key.properties`.
 
 Smaller download, one ABI at a time:
 
@@ -77,39 +79,35 @@ Two things about this Android config worth knowing:
   defaults (Gradle 8.7 / AGP 8.3.2 / Kotlin 1.9.22) so the build works on a
   current JDK; the shipped Gradle 8.3 rejects JDK 21.
 
-## Builds com Docker
+## Deploy
 
-Uma imagem por plataforma, sem instalar SDK nenhum na sua máquina:
-
-```bash
-docker/build.sh web       # -> build/docker/web/
-docker/build.sh android   # -> build/docker/android/app-release.apk
-docker/build.sh all       # web + android
-```
-
-O `docker/Dockerfile` monta o SDK do Flutter (fixado em 3.24.5), e para o
-Android também JDK 17 e o Android SDK. Cada alvo termina num estágio
-`scratch` exportado com `--output type=local`, então o que sai é o artefato,
-não uma imagem de 3 GB para você extrair depois.
-
-Configuração de build passa por `DART_DEFINES`:
+Uma entrada só, para as três plataformas:
 
 ```bash
-DART_DEFINES="--dart-define=TRAILWATT_STRAVA_CLIENT_ID=123 \
-              --dart-define=TRAILWATT_OSRM_URL=https://osrm.suainfra" \
-  docker/build.sh web
+deploy/deploy.sh web        # bundle estático + imagem nginx pronta para rodar
+deploy/deploy.sh android    # apk, ou --aab para o Play Console
+deploy/deploy.sh ios        # ipa - só no macOS, e o script explica por quê
+deploy/deploy.sh all
 ```
 
-Esses valores ficam no histórico da imagem. Aqui isso é aceitável e **só
-aqui**: os fluxos OAuth são clientes públicos com PKCE, então nenhum client
-secret passa por um build. Não adicione um.
+Web e Android são construídos dentro do Docker, sem instalar SDK nenhum na
+sua máquina; os artefatos saem em `build/deploy/<plataforma>/`. O alvo web
+também produz a imagem `trailwatt-web`, porque um bundle que ninguém
+consegue servir é meio deploy:
 
-`docker/build.sh ios` existe e não usa Docker - ele roda o build nativo e,
-fora do macOS, explica por quê em vez de falhar sem contexto. **Não existe
-imagem Docker capaz de compilar para iOS**: o Xcode só roda em macOS, e a
-licença da Apple não permite macOS em container fora de hardware Apple.
-Nenhuma configuração resolve isso; é a razão de o alvo iOS ser o único que
-sai do Docker.
+```bash
+deploy/deploy.sh web --run 8080
+deploy/deploy.sh web --push registry.exemplo.com/trailwatt:2026-08-20
+```
+
+**Não existe imagem Docker capaz de compilar para iOS**: o Xcode só roda em
+macOS, e a licença da Apple não permite macOS em container fora de hardware
+Apple. Nenhuma configuração resolve isso — é a razão de o iOS ser o único
+alvo que sai do Docker.
+
+`deploy/README.md` cobre o resto: assinatura do Android por secret do
+BuildKit (a keystore nunca entra numa camada), o que o nginx não pode
+cachear, e como passar client ids por `DART_DEFINES`.
 
 ## iOS
 
@@ -136,7 +134,8 @@ redirect ao app; quem ainda falta é o handler que chama
 ## Web
 
 ```bash
-flutter build web --release --web-renderer html
+deploy/deploy.sh web        # via Docker: bundle + runnable nginx image
+flutter build web --release --web-renderer html   # ou direto, sem Docker
 # build/web/  (main.dart.js ~2.9 MB)
 ```
 

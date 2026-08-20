@@ -1,13 +1,16 @@
-# Trailwatt builds, one stage per platform target.
+# syntax=docker/dockerfile:1.7
 #
-# Android and web are built here. iOS is not, and cannot be: Xcode runs only
-# on macOS and Apple's licence does not allow macOS inside a container on
-# other hardware, so no Docker image can produce an .ipa. `docker/build.sh
-# ios` runs that build natively on a Mac rather than pretend otherwise.
+# Trailwatt deploy targets, one stage each. Drive it with deploy/deploy.sh;
+# see deploy/README.md for what each target produces.
 #
-# Build a target with docker/build.sh, or directly:
-#   docker build -f docker/Dockerfile --target web \
-#     --output type=local,dest=build/docker/web .
+#   web         static bundle, exported to the host
+#   web-server  the same bundle inside nginx - the image you actually deploy
+#   android     app-release.apk / app-release.aab, exported to the host
+#
+# iOS is absent, and cannot be here: Xcode runs only on macOS and Apple's
+# licence does not allow macOS inside a container on other hardware, so no
+# Docker image can produce an .ipa. deploy/deploy.sh ios runs that build
+# natively on a Mac instead of pretending otherwise.
 
 # 3.24.5 is pinned, not merely current: newer Flutter ships a
 # flutter_localizations that requires intl ^0.20, and this app pins ^0.19.
@@ -28,7 +31,8 @@ RUN curl -fsSL "https://storage.googleapis.com/flutter_infra_release/releases/st
       | tar -xJ -C /opt
 # The Flutter tool writes to its own cache, so it needs to own the SDK; it
 # also refuses to be run as root without complaining at every invocation.
-RUN useradd --create-home --shell /bin/bash builder \
+# The uid is pinned because the secret mounts in the android stage name it.
+RUN useradd --uid 1000 --create-home --shell /bin/bash builder \
  && chown -R builder:builder /opt/flutter
 USER builder
 ENV PATH="/opt/flutter/bin:/opt/flutter/bin/cache/dart-sdk/bin:${PATH}"
@@ -51,8 +55,21 @@ COPY --chown=builder:builder . .
 RUN flutter pub get \
  && flutter build web --release --web-renderer html ${DART_DEFINES}
 
+# The bundle on its own, for a host that serves static files itself.
 FROM scratch AS web
 COPY --from=web-build /app/build/web/ /
+
+# The bundle ready to run: this is what gets pushed to a registry.
+#
+# The unprivileged nginx image, not the stock one: it already runs as a
+# non-root user and listens above 1024, which is what a platform like Cloud
+# Run or a hardened Kubernetes cluster requires. Rolling that by hand on the
+# stock image means chowning the cache, pid and log paths, and getting one
+# of them wrong fails at runtime rather than at build.
+FROM nginxinc/nginx-unprivileged:1.27-alpine AS web-server
+COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=web-build /app/build/web/ /usr/share/nginx/html/
+EXPOSE 8080
 
 # ------------------------------------------------------------- android + sdk
 FROM flutter AS android-sdk
@@ -83,9 +100,29 @@ RUN flutter config --android-sdk "${ANDROID_SDK_ROOT}" > /dev/null
 
 FROM android-sdk AS android-build
 ARG DART_DEFINES=""
+# apk sideloads and installs; aab is what the Play Console accepts.
+ARG ANDROID_FORMAT=apk
 COPY --chown=builder:builder . .
-RUN flutter pub get \
- && flutter build apk --release ${DART_DEFINES}
+# The keystore and its passwords are mounted, never copied: a secret mount
+# exists only while this instruction runs, so nothing signing-related ends
+# up in a layer. Without them the build falls back to the debug key, which
+# installs fine and cannot be published - deploy.sh says so out loud.
+RUN --mount=type=secret,id=keystore,uid=1000 \
+    --mount=type=secret,id=key_properties,uid=1000 \
+    set -eu; \
+    if [ -f /run/secrets/key_properties ]; then \
+      cp /run/secrets/key_properties android/key.properties; \
+    fi; \
+    flutter pub get; \
+    if [ "${ANDROID_FORMAT}" = "aab" ]; then \
+      flutter build appbundle --release ${DART_DEFINES}; \
+    else \
+      flutter build apk --release ${DART_DEFINES}; \
+    fi; \
+    rm -f android/key.properties; \
+    mkdir -p /app/out; \
+    cp build/app/outputs/flutter-apk/app-release.apk /app/out/ 2>/dev/null || true; \
+    cp build/app/outputs/bundle/release/app-release.aab /app/out/ 2>/dev/null || true
 
 FROM scratch AS android
-COPY --from=android-build /app/build/app/outputs/flutter-apk/app-release.apk /
+COPY --from=android-build /app/out/ /
