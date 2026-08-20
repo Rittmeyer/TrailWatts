@@ -5,6 +5,7 @@ import '../theme/app_text_styles.dart';
 import '../models/route_suggestion.dart';
 import '../widgets/bottom_nav.dart';
 import '../widgets/stat_box.dart';
+import '../widgets/trailwatt_button.dart';
 
 /// Port of screen 03. Shows today's target already translated into
 /// terrain, and a teaser of the best-matched route (full detail lives on
@@ -96,6 +97,16 @@ class TreinoDoDiaScreen extends StatelessWidget {
                     ],
                   ),
                 ),
+              ),
+              const SizedBox(height: 16),
+              // The workout builder's way in. It used to be reached by saving
+              // the profile, which stopped being true once saving returns
+              // here - and the builder is the screen the whole app is for.
+              TrailwattButton(
+                label: t.builderTitle,
+                style: TrailwattButtonStyle.secondary,
+                onPressed: () =>
+                    Navigator.of(context).pushNamed('/workout-builder'),
               ),
             ],
           ),
