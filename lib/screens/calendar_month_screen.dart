@@ -4,12 +4,10 @@ import 'package:table_calendar/table_calendar.dart';
 import '../l10n/domain_labels.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
-import '../models/zone.dart';
 import '../services/rider_profile_store.dart';
 import '../widgets/bottom_nav.dart';
 import '../widgets/calendar_day_detail.dart';
 import '../widgets/segmented_control.dart';
-import '../widgets/zone_legend.dart';
 import 'calendar_demo_data.dart';
 
 /// Port of screen 08c - "Calendario, mes". Same day-detail panel as the
@@ -32,8 +30,8 @@ class _CalendarMonthScreenState extends State<CalendarMonthScreen> {
     final locale = Localizations.localeOf(context).toString();
     return Scaffold(
       body: SafeArea(
-        // Rebuilds when the rider saves a profile, so the legend and the day
-        // panel follow the zone table they actually chose.
+        // Rebuilds when the rider saves a profile, so the day panel names
+        // the zone on the table they actually chose.
         child: ListenableBuilder(
           listenable: RiderProfileStore.instance,
           builder: (context, _) {
@@ -106,9 +104,9 @@ class _CalendarMonthScreenState extends State<CalendarMonthScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    ZoneLegend(
-                        metric: ZoneMetric.power, scale: store.powerScale),
-                    const SizedBox(height: 12),
+                    // No zone legend here on purpose: the calendar is a
+                    // month of days, not one effort. The zone belongs to the
+                    // individual workout, and the day panel below names it.
                     CalendarDayDetail(
                         entry: entries[normalizeDay(_selectedDay)]),
                   ],

@@ -61,6 +61,11 @@ class CalendarDayDetail extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
+            // The zone this ride actually landed in. It was carried on the
+            // summary all along and never shown, so a completed day said what
+            // the rider held in watts but not what that meant on their table.
+            ZonePill(zone: c.zone),
+            const SizedBox(height: 8),
             Text(c.routeName,
                 style:
                     AppTextStyles.body.copyWith(fontWeight: FontWeight.w700)),

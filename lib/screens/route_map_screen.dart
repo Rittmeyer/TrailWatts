@@ -16,7 +16,7 @@ import '../models/zone.dart';
 import '../services/rider_profile_store.dart';
 import '../widgets/map_layers.dart';
 import '../widgets/stat_box.dart';
-import '../widgets/zone_legend.dart';
+import '../widgets/zone_pill.dart';
 import '../widgets/trailwatt_button.dart';
 
 /// Port of screen 04 - "Rota no mapa". The stretch is drawn along the real
@@ -63,11 +63,10 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
     ),
   );
 
-  /// This demo workout is prescribed in watts, and the stretch is matched to
-  /// its threshold interval. The table comes from the rider's profile rather
-  /// than a fixed seven zones: the legend below the map has to name the same
-  /// zones the rider configured, and the zone a given effort falls into
-  /// genuinely differs between the five- and seven-zone tables.
+  /// This demo workout is prescribed in watts. The zone comes from the
+  /// rider's own table rather than a fixed seven: the same effort sits at a
+  /// different zone number on the five- and seven-zone tables, so naming it
+  /// against anything but their profile would mislabel their own ride.
   static const _workoutMetric = ZoneMetric.power;
 
   RiderProfile get _rider => RiderProfileStore.instance.profile;
@@ -276,7 +275,10 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                           path.degradedReason?.label(t) ?? t.routeDegraded),
                 ],
                 const SizedBox(height: 10),
-                ZoneLegend(metric: _workoutMetric, scale: _workoutScale),
+                // The zone of this stretch, not a table of every zone: one
+                // chip says what the drawn line's colour means, and it is the
+                // zone on the rider's own table.
+                ZonePill(zone: _matchedZone),
                 const SizedBox(height: 16),
                 Row(
                   children: [
