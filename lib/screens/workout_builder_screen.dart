@@ -13,6 +13,7 @@ import '../services/training_peaks_import.dart';
 import '../theme/app_colors.dart';
 import '../theme/layout.dart';
 import '../theme/app_text_styles.dart';
+import '../widgets/page_header.dart';
 import '../widgets/segmented_control.dart';
 import '../widgets/trailwatt_field.dart';
 import '../widgets/trailwatt_button.dart';
@@ -354,10 +355,10 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(t.builderTitle,
-                    style: AppTextStyles.screenTitle.copyWith(fontSize: 24)),
-                const SizedBox(height: 4),
-                Text(t.builderSubtitle, style: AppTextStyles.screenSubtitle),
+                PageHeader(
+                  title: t.builderTitle,
+                  subtitle: t.builderSubtitle,
+                ),
                 const SizedBox(height: 16),
                 SegmentedControl(
                   options: [t.builderWatts, t.builderHr],

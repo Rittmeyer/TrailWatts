@@ -177,6 +177,27 @@ mapa realmente melhora com espaço.
 de no canto da janela, a algumas centenas de pixels do formulário em que ele
 age.
 
+## Navegação
+
+Duas regras, e um teste para cada uma.
+
+**Toda tela tem saída.** Uma tela empurrada sobre outra começa com
+`PageHeader` (`lib/widgets/page_header.dart`): o link de volta, o título e o
+subtítulo que essas telas já escreviam à mão. Antes disso o mapa da rota e o
+construtor de treino não tinham saída nenhuma - só o gesto do aparelho ou o
+botão do navegador, nenhum dos dois na tela. O link nunca leva a lugar
+nenhum: normalmente faz `pop`; quando não há para onde voltar (link direto
+na web, ou pilha limpa) vai para a aba de treino.
+
+Telas que ficam dentro do shell de navegação (`TrailwattShell`) não levam
+header - a barra inferior ou o trilho **é** a saída delas.
+
+**Toda tela é alcançável.** `test/navigation_exits_test.dart` percorre
+`lib/routes/screen_inventory.dart` e falha se uma tela implementada não tem
+saída, ou se nada no app aponta para ela. As duas coisas já estavam
+quebradas: o fluxo de importar resultado inteiro existia e nenhuma tela
+chegava nele.
+
 ## Mapas e rotas
 
 As telas 02a2, 04 e 05 usam mapa real (tiles OSM via `flutter_map`) e resolvem
@@ -309,7 +330,7 @@ Datas e nomes de mês/dia vêm do `intl`, seguindo as convenções de cada idiom
 ```bash
 dart format --output=none --set-exit-if-changed lib test
 flutter analyze   # sem problemas
-flutter test      # 197 testes
+flutter test      # 213 testes
 ```
 
 Capturas de todas as telas em `docs/screenshots/` (veja o README de lá para o

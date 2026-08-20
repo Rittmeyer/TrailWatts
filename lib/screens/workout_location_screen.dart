@@ -6,6 +6,7 @@ import '../l10n/domain_labels.dart';
 import '../theme/app_colors.dart';
 import '../theme/layout.dart';
 import '../theme/app_text_styles.dart';
+import '../widgets/page_header.dart';
 import '../widgets/map_layers.dart';
 import '../widgets/trailwatt_button.dart';
 
@@ -55,10 +56,11 @@ class _WorkoutLocationScreenState extends State<WorkoutLocationScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(t.locationTitle,
-                      style: AppTextStyles.screenTitle.copyWith(fontSize: 24)),
-                  const SizedBox(height: 4),
-                  Text(t.locationSubtitle, style: AppTextStyles.screenSubtitle),
+                  PageHeader(
+                    title: t.locationTitle,
+                    subtitle: t.locationSubtitle,
+                    backTo: t.builderTitle,
+                  ),
                   const SizedBox(height: 12),
                   Text(t.locationWhere,
                       style: AppTextStyles.label.copyWith(

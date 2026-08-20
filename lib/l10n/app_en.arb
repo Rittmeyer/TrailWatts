@@ -450,5 +450,9 @@
         "type": "String"
       }
     }
-  }
+  },
+  "backGeneric": "Back",
+  "historyImportResult": "Import result",
+  "manualSwitchToContinuous": "It was a continuous ride",
+  "manualSwitchToIntervals": "It was an interval workout"
 }

@@ -907,4 +907,16 @@ class AppLocalizationsPt extends AppLocalizations {
   String backTo(String destination) {
     return '‹ $destination';
   }
+
+  @override
+  String get backGeneric => 'Voltar';
+
+  @override
+  String get historyImportResult => 'Importar resultado';
+
+  @override
+  String get manualSwitchToContinuous => 'Foi um treino contínuo';
+
+  @override
+  String get manualSwitchToIntervals => 'Foi um treino intervalado';
 }

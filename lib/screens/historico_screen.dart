@@ -9,6 +9,7 @@ import '../services/rider_profile_store.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/app_shell.dart';
+import '../widgets/trailwatt_button.dart';
 import '../widgets/stat_box.dart';
 import '../widgets/zone_pill.dart';
 
@@ -58,6 +59,15 @@ class HistoricoScreen extends StatelessWidget {
                             value: '94%',
                             valueColor: AppColors.greenText)),
                   ],
+                ),
+                const SizedBox(height: 12),
+                // The import flow was implemented and unreachable: no screen
+                // pushed it, so it existed only for whoever typed the URL.
+                TrailwattButton(
+                  label: t.historyImportResult,
+                  style: TrailwattButtonStyle.secondary,
+                  onPressed: () =>
+                      Navigator.of(context).pushNamed('/import-result'),
                 ),
                 const SizedBox(height: 16),
                 Text(t.historyRecent, style: AppTextStyles.label),

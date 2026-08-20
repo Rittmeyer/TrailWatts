@@ -7,7 +7,7 @@ import '../services/rider_profile_store.dart';
 import '../theme/app_colors.dart';
 import '../theme/layout.dart';
 import '../theme/app_text_styles.dart';
-import '../widgets/back_link.dart';
+import '../widgets/page_header.dart';
 import '../widgets/segmented_control.dart';
 import '../widgets/trailwatt_field.dart';
 import '../widgets/trailwatt_button.dart';
@@ -107,12 +107,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                BackLink(destination: t.moreTitle),
-                const SizedBox(height: 8),
-                Text(t.profileTitle,
-                    style: AppTextStyles.screenTitle.copyWith(fontSize: 24)),
-                const SizedBox(height: 4),
-                Text(t.profileSubtitle, style: AppTextStyles.screenSubtitle),
+                PageHeader(
+                  title: t.profileTitle,
+                  subtitle: t.profileSubtitle,
+                  backTo: t.moreTitle,
+                ),
                 const SizedBox(height: 18),
 
                 // Four cards instead of one long ribbon of controls: each

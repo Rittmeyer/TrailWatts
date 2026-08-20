@@ -1693,6 +1693,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'‹ {destination}'**
   String backTo(String destination);
+
+  /// No description provided for @backGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get backGeneric;
+
+  /// No description provided for @historyImportResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Import result'**
+  String get historyImportResult;
+
+  /// No description provided for @manualSwitchToContinuous.
+  ///
+  /// In en, this message translates to:
+  /// **'It was a continuous ride'**
+  String get manualSwitchToContinuous;
+
+  /// No description provided for @manualSwitchToIntervals.
+  ///
+  /// In en, this message translates to:
+  /// **'It was an interval workout'**
+  String get manualSwitchToIntervals;
 }
 
 class _AppLocalizationsDelegate

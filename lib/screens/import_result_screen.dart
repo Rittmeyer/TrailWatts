@@ -3,6 +3,7 @@ import '../l10n/domain_labels.dart';
 import '../theme/app_colors.dart';
 import '../theme/layout.dart';
 import '../theme/app_text_styles.dart';
+import '../widgets/page_header.dart';
 import '../widgets/stat_box.dart';
 import '../widgets/trailwatt_field.dart';
 import '../widgets/trailwatt_button.dart';
@@ -26,10 +27,11 @@ class ImportResultScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(t.importTitle,
-                    style: AppTextStyles.screenTitle.copyWith(fontSize: 24)),
-                const SizedBox(height: 4),
-                Text(t.importSubtitle, style: AppTextStyles.screenSubtitle),
+                PageHeader(
+                  title: t.importTitle,
+                  subtitle: t.importSubtitle,
+                  backTo: t.navHistory,
+                ),
                 const SizedBox(height: 18),
                 Container(
                   padding:

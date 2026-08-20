@@ -905,4 +905,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String backTo(String destination) {
     return '‹ $destination';
   }
+
+  @override
+  String get backGeneric => 'Back';
+
+  @override
+  String get historyImportResult => 'Import result';
+
+  @override
+  String get manualSwitchToContinuous => 'It was a continuous ride';
+
+  @override
+  String get manualSwitchToIntervals => 'It was an interval workout';
 }

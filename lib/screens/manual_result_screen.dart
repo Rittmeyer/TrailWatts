@@ -4,6 +4,7 @@ import '../l10n/domain_labels.dart';
 import '../theme/app_colors.dart';
 import '../theme/layout.dart';
 import '../theme/app_text_styles.dart';
+import '../widgets/page_header.dart';
 import '../widgets/trailwatt_field.dart';
 import '../widgets/trailwatt_button.dart';
 
@@ -23,7 +24,18 @@ class _ManualResultScreen extends StatelessWidget {
   final String Function(AppLocalizations) subtitle;
   final List<_Stimulus> stimuli;
 
-  const _ManualResultScreen({required this.subtitle, required this.stimuli});
+  /// The other shape of this screen, and what to call it. Picking the wrong
+  /// one is easy and used to be unrecoverable: 06b had no route in and no
+  /// route out.
+  final String Function(AppLocalizations) alternateLabel;
+  final String alternateRoute;
+
+  const _ManualResultScreen({
+    required this.subtitle,
+    required this.stimuli,
+    required this.alternateLabel,
+    required this.alternateRoute,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -37,10 +49,10 @@ class _ManualResultScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(t.importTitle,
-                    style: AppTextStyles.screenTitle.copyWith(fontSize: 24)),
-                const SizedBox(height: 4),
-                Text(subtitle(t), style: AppTextStyles.screenSubtitle),
+                PageHeader(
+                  title: t.importTitle,
+                  subtitle: subtitle(t),
+                ),
                 const SizedBox(height: 18),
                 for (final s in stimuli) ...[
                   Text(s.label(t).toUpperCase(),
@@ -64,6 +76,24 @@ class _ManualResultScreen extends StatelessWidget {
                   onPressed: () =>
                       Navigator.of(context).pushReplacementNamed('/history'),
                 ),
+                const SizedBox(height: 10),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
+                    // Replaces rather than pushes: switching back and forth
+                    // should not pile up screens to pop through afterwards.
+                    onPressed: () => Navigator.of(context)
+                        .pushReplacementNamed(alternateRoute),
+                    style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: const Size(0, 0),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                    child: Text(alternateLabel(t),
+                        style: AppTextStyles.label.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600)),
+                  ),
+                ),
               ],
             ),
           ),
@@ -81,6 +111,8 @@ class ManualResultIntervalsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return _ManualResultScreen(
       subtitle: (t) => t.manualIntervalsSubtitle,
+      alternateLabel: (t) => t.manualSwitchToContinuous,
+      alternateRoute: '/import-result/manual-continuous',
       stimuli: [
         _Stimulus((t) => t.manualStimulus(1, '10 min'), 160),
         _Stimulus((t) => t.manualStimulus(2, '4×3 min'), 200),
@@ -98,6 +130,8 @@ class ManualResultContinuousScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return _ManualResultScreen(
       subtitle: (t) => t.manualContinuousSubtitle,
+      alternateLabel: (t) => t.manualSwitchToIntervals,
+      alternateRoute: '/import-result/manual-intervals',
       stimuli: [
         _Stimulus((t) => t.manualEnduranceRide, 150),
       ],

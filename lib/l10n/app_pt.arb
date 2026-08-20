@@ -273,5 +273,9 @@
         "type": "String"
       }
     }
-  }
+  },
+  "backGeneric": "Voltar",
+  "historyImportResult": "Importar resultado",
+  "manualSwitchToContinuous": "Foi um treino contínuo",
+  "manualSwitchToIntervals": "Foi um treino intervalado"
 }

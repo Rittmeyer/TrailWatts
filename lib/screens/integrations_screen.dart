@@ -10,7 +10,7 @@ import '../services/platform/platform_oauth_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/layout.dart';
 import '../theme/app_text_styles.dart';
-import '../widgets/back_link.dart';
+import '../widgets/page_header.dart';
 import '../widgets/trailwatt_button.dart';
 import '../widgets/trailwatt_field.dart';
 
@@ -41,13 +41,11 @@ class IntegrationsScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  BackLink(destination: t.moreTitle),
-                  const SizedBox(height: 10),
-                  Text(t.integrationsTitle,
-                      style: AppTextStyles.screenTitle.copyWith(fontSize: 24)),
-                  const SizedBox(height: 4),
-                  Text(t.integrationsSubtitle,
-                      style: AppTextStyles.screenSubtitle),
+                  PageHeader(
+                    title: t.integrationsTitle,
+                    subtitle: t.integrationsSubtitle,
+                    backTo: t.moreTitle,
+                  ),
                   const SizedBox(height: 20),
                   for (final platform in store.platforms) ...[
                     _PlatformTile(platform: platform, store: store),

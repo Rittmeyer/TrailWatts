@@ -15,6 +15,7 @@ import '../models/rider_profile.dart';
 import '../models/route_suggestion.dart';
 import '../models/zone.dart';
 import '../services/rider_profile_store.dart';
+import '../widgets/page_header.dart';
 import '../widgets/map_layers.dart';
 import '../widgets/stat_box.dart';
 import '../widgets/zone_pill.dart';
@@ -226,11 +227,10 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(suggestion.name,
-                        style:
-                            AppTextStyles.screenTitle.copyWith(fontSize: 24)),
-                    const SizedBox(height: 4),
-                    Text(t.routeSubtitle, style: AppTextStyles.screenSubtitle),
+                    PageHeader(
+                      title: suggestion.name,
+                      subtitle: t.routeSubtitle,
+                    ),
                     const SizedBox(height: 14),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(13),
