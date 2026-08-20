@@ -5,6 +5,7 @@ import '../l10n/domain_labels.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../models/zone.dart';
+import '../services/rider_profile_store.dart';
 import '../widgets/bottom_nav.dart';
 import '../widgets/calendar_day_detail.dart';
 import '../widgets/segmented_control.dart';
@@ -31,80 +32,90 @@ class _CalendarMonthScreenState extends State<CalendarMonthScreen> {
     final locale = Localizations.localeOf(context).toString();
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(t.calendarTitle,
-                    style: AppTextStyles.screenTitle.copyWith(fontSize: 24)),
-                const SizedBox(height: 4),
-                Text(DateFormat.yMMMM(locale).format(_focusedDay),
-                    style: AppTextStyles.screenSubtitle),
-                const SizedBox(height: 14),
-                SegmentedControl(
-                  options: [t.calendarWeek, t.calendarMonth],
-                  selectedIndex: 1,
-                  onChanged: (i) {
-                    if (i == 0) {
-                      Navigator.of(context)
-                          .pushReplacementNamed('/calendar/week');
-                    }
-                  },
-                ),
-                const SizedBox(height: 10),
-                TableCalendar<bool>(
-                  firstDay: DateTime(2020),
-                  lastDay: DateTime(2030),
-                  focusedDay: _focusedDay,
-                  currentDay: DateTime(2026, 7, 20),
-                  calendarFormat: CalendarFormat.month,
-                  startingDayOfWeek: StartingDayOfWeek.monday,
-                  locale: locale,
-                  headerVisible: false,
-                  daysOfWeekHeight: 20,
-                  rowHeight: 42,
-                  selectedDayPredicate: (d) => isSameDay(d, _selectedDay),
-                  onDaySelected: (selected, focused) => setState(() {
-                    _selectedDay = selected;
-                    _focusedDay = focused;
-                  }),
-                  onPageChanged: (focused) =>
-                      setState(() => _focusedDay = focused),
-                  eventLoader: (day) =>
-                      demoCalendarEntries.containsKey(normalizeDay(day))
-                          ? const [true]
-                          : const [],
-                  calendarBuilders: CalendarBuilders(
-                    dowBuilder: (context, day) => Center(
-                      child: Text(
-                          DateFormat.E(locale).format(day)[0].toUpperCase(),
-                          style: AppTextStyles.label.copyWith(fontSize: 9)),
+        // Rebuilds when the rider saves a profile, so the legend and the day
+        // panel follow the zone table they actually chose.
+        child: ListenableBuilder(
+          listenable: RiderProfileStore.instance,
+          builder: (context, _) {
+            final store = RiderProfileStore.instance;
+            final entries = demoCalendarEntriesFor(store.profile);
+            return Padding(
+              padding: const EdgeInsets.all(24),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(t.calendarTitle,
+                        style:
+                            AppTextStyles.screenTitle.copyWith(fontSize: 24)),
+                    const SizedBox(height: 4),
+                    Text(DateFormat.yMMMM(locale).format(_focusedDay),
+                        style: AppTextStyles.screenSubtitle),
+                    const SizedBox(height: 14),
+                    SegmentedControl(
+                      options: [t.calendarWeek, t.calendarMonth],
+                      selectedIndex: 1,
+                      onChanged: (i) {
+                        if (i == 0) {
+                          Navigator.of(context)
+                              .pushReplacementNamed('/calendar/week');
+                        }
+                      },
                     ),
-                  ),
-                  calendarStyle: const CalendarStyle(
-                    outsideDaysVisible: true,
-                    todayDecoration: BoxDecoration(
-                        color: AppColors.paper, shape: BoxShape.circle),
-                    todayTextStyle: TextStyle(
-                        color: AppColors.ink, fontWeight: FontWeight.w700),
-                    selectedDecoration: BoxDecoration(
-                        color: AppColors.accent, shape: BoxShape.circle),
-                    markerDecoration: BoxDecoration(
-                        color: AppColors.primary, shape: BoxShape.circle),
-                    markersAlignment: Alignment.bottomCenter,
-                  ),
+                    const SizedBox(height: 10),
+                    TableCalendar<bool>(
+                      firstDay: DateTime(2020),
+                      lastDay: DateTime(2030),
+                      focusedDay: _focusedDay,
+                      currentDay: DateTime(2026, 7, 20),
+                      calendarFormat: CalendarFormat.month,
+                      startingDayOfWeek: StartingDayOfWeek.monday,
+                      locale: locale,
+                      headerVisible: false,
+                      daysOfWeekHeight: 20,
+                      rowHeight: 42,
+                      selectedDayPredicate: (d) => isSameDay(d, _selectedDay),
+                      onDaySelected: (selected, focused) => setState(() {
+                        _selectedDay = selected;
+                        _focusedDay = focused;
+                      }),
+                      onPageChanged: (focused) =>
+                          setState(() => _focusedDay = focused),
+                      eventLoader: (day) =>
+                          entries.containsKey(normalizeDay(day))
+                              ? const [true]
+                              : const [],
+                      calendarBuilders: CalendarBuilders(
+                        dowBuilder: (context, day) => Center(
+                          child: Text(
+                              DateFormat.E(locale).format(day)[0].toUpperCase(),
+                              style: AppTextStyles.label.copyWith(fontSize: 9)),
+                        ),
+                      ),
+                      calendarStyle: const CalendarStyle(
+                        outsideDaysVisible: true,
+                        todayDecoration: BoxDecoration(
+                            color: AppColors.paper, shape: BoxShape.circle),
+                        todayTextStyle: TextStyle(
+                            color: AppColors.ink, fontWeight: FontWeight.w700),
+                        selectedDecoration: BoxDecoration(
+                            color: AppColors.accent, shape: BoxShape.circle),
+                        markerDecoration: BoxDecoration(
+                            color: AppColors.primary, shape: BoxShape.circle),
+                        markersAlignment: Alignment.bottomCenter,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ZoneLegend(
+                        metric: ZoneMetric.power, scale: store.powerScale),
+                    const SizedBox(height: 12),
+                    CalendarDayDetail(
+                        entry: entries[normalizeDay(_selectedDay)]),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                const ZoneLegend(
-                    metric: ZoneMetric.power, scale: ZoneScale.seven),
-                const SizedBox(height: 12),
-                CalendarDayDetail(
-                    entry: demoCalendarEntries[normalizeDay(_selectedDay)]),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
       bottomNavigationBar: const TrailwattBottomNav(currentIndex: 1),

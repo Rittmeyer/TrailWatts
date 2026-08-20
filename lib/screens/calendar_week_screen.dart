@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../l10n/domain_labels.dart';
+import '../services/rider_profile_store.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/bottom_nav.dart';
@@ -39,74 +40,84 @@ class _CalendarWeekScreenState extends State<CalendarWeekScreen> {
 
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(t.calendarTitle,
-                    style: AppTextStyles.screenTitle.copyWith(fontSize: 24)),
-                const SizedBox(height: 4),
-                Text(rangeLabel, style: AppTextStyles.screenSubtitle),
-                const SizedBox(height: 14),
-                SegmentedControl(
-                  options: [t.calendarWeek, t.calendarMonth],
-                  selectedIndex: 0,
-                  onChanged: (i) {
-                    if (i == 1) {
-                      Navigator.of(context)
-                          .pushReplacementNamed('/calendar/month');
-                    }
-                  },
-                ),
-                const SizedBox(height: 10),
-                TableCalendar<bool>(
-                  firstDay: DateTime(2020),
-                  lastDay: DateTime(2030),
-                  focusedDay: _focusedDay,
-                  currentDay: DateTime(2026, 7, 20),
-                  calendarFormat: CalendarFormat.week,
-                  startingDayOfWeek: StartingDayOfWeek.monday,
-                  locale: locale,
-                  headerVisible: false,
-                  daysOfWeekHeight: 22,
-                  rowHeight: 58,
-                  selectedDayPredicate: (d) => isSameDay(d, _selectedDay),
-                  onDaySelected: (selected, focused) => setState(() {
-                    _selectedDay = selected;
-                    _focusedDay = focused;
-                  }),
-                  eventLoader: (day) =>
-                      demoCalendarEntries.containsKey(normalizeDay(day))
-                          ? const [true]
-                          : const [],
-                  calendarBuilders: CalendarBuilders(
-                    dowBuilder: (context, day) => Center(
-                      child: Text(
-                          DateFormat.E(locale).format(day).toUpperCase(),
-                          style: AppTextStyles.label.copyWith(fontSize: 9)),
+        // Rebuilds when the rider saves a profile, so the zones on this
+        // screen follow the table they actually chose.
+        child: ListenableBuilder(
+          listenable: RiderProfileStore.instance,
+          builder: (context, _) {
+            final entries =
+                demoCalendarEntriesFor(RiderProfileStore.instance.profile);
+            return Padding(
+              padding: const EdgeInsets.all(24),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(t.calendarTitle,
+                        style:
+                            AppTextStyles.screenTitle.copyWith(fontSize: 24)),
+                    const SizedBox(height: 4),
+                    Text(rangeLabel, style: AppTextStyles.screenSubtitle),
+                    const SizedBox(height: 14),
+                    SegmentedControl(
+                      options: [t.calendarWeek, t.calendarMonth],
+                      selectedIndex: 0,
+                      onChanged: (i) {
+                        if (i == 1) {
+                          Navigator.of(context)
+                              .pushReplacementNamed('/calendar/month');
+                        }
+                      },
                     ),
-                  ),
-                  calendarStyle: const CalendarStyle(
-                    outsideDaysVisible: false,
-                    todayDecoration: BoxDecoration(
-                        color: AppColors.paper, shape: BoxShape.circle),
-                    todayTextStyle: TextStyle(
-                        color: AppColors.ink, fontWeight: FontWeight.w700),
-                    selectedDecoration: BoxDecoration(
-                        color: AppColors.accent, shape: BoxShape.circle),
-                    markerDecoration: BoxDecoration(
-                        color: AppColors.primary, shape: BoxShape.circle),
-                    markersAlignment: Alignment.bottomCenter,
-                  ),
+                    const SizedBox(height: 10),
+                    TableCalendar<bool>(
+                      firstDay: DateTime(2020),
+                      lastDay: DateTime(2030),
+                      focusedDay: _focusedDay,
+                      currentDay: DateTime(2026, 7, 20),
+                      calendarFormat: CalendarFormat.week,
+                      startingDayOfWeek: StartingDayOfWeek.monday,
+                      locale: locale,
+                      headerVisible: false,
+                      daysOfWeekHeight: 22,
+                      rowHeight: 58,
+                      selectedDayPredicate: (d) => isSameDay(d, _selectedDay),
+                      onDaySelected: (selected, focused) => setState(() {
+                        _selectedDay = selected;
+                        _focusedDay = focused;
+                      }),
+                      eventLoader: (day) =>
+                          entries.containsKey(normalizeDay(day))
+                              ? const [true]
+                              : const [],
+                      calendarBuilders: CalendarBuilders(
+                        dowBuilder: (context, day) => Center(
+                          child: Text(
+                              DateFormat.E(locale).format(day).toUpperCase(),
+                              style: AppTextStyles.label.copyWith(fontSize: 9)),
+                        ),
+                      ),
+                      calendarStyle: const CalendarStyle(
+                        outsideDaysVisible: false,
+                        todayDecoration: BoxDecoration(
+                            color: AppColors.paper, shape: BoxShape.circle),
+                        todayTextStyle: TextStyle(
+                            color: AppColors.ink, fontWeight: FontWeight.w700),
+                        selectedDecoration: BoxDecoration(
+                            color: AppColors.accent, shape: BoxShape.circle),
+                        markerDecoration: BoxDecoration(
+                            color: AppColors.primary, shape: BoxShape.circle),
+                        markersAlignment: Alignment.bottomCenter,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    CalendarDayDetail(
+                        entry: entries[normalizeDay(_selectedDay)]),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                CalendarDayDetail(
-                    entry: demoCalendarEntries[normalizeDay(_selectedDay)]),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
       bottomNavigationBar: const TrailwattBottomNav(currentIndex: 1),

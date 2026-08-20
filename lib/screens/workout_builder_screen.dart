@@ -7,6 +7,7 @@ import '../models/workout_block.dart';
 import '../models/zone.dart';
 import '../services/integrations_store.dart';
 import '../services/platform/platform_api_client.dart';
+import '../services/rider_profile_store.dart';
 import '../services/training_peaks_import.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -116,19 +117,10 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
   /// switches the zone list too.
   ZoneMetric _metric = ZoneMetric.power;
 
-  /// The demo rider's profile: 7 power zones, 5 heart-rate zones anchored on
-  /// threshold HR. In the real app this comes from the saved RiderProfile.
-  static const _rider = RiderProfile(
-    weightKg: 74,
-    ftpWatts: 210,
-    powerZones: PowerZoneSettings(scale: ZoneScale.seven),
-    heartRateZones: HeartRateZoneSettings(
-      scale: ZoneScale.five,
-      anchor: HeartRateAnchor.lactateThreshold,
-      lthrBpm: 168,
-      hrMaxBpm: 184,
-    ),
-  );
+  /// The rider's saved profile. Read, never assumed: the zone table this
+  /// screen offers has to be the one the rider configured, or a rider on
+  /// Z1-Z5 would be prescribing against zones they never chose.
+  RiderProfile get _rider => RiderProfileStore.instance.profile;
 
   final _importService = TrainingPeaksImportService();
   bool _importing = false;
@@ -151,10 +143,11 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
 
   ZoneScale get _scale => _metric == ZoneMetric.power
       ? _rider.powerZones.scale
-      : _rider.heartRateZones!.scale;
+      : _rider.heartRateZones?.scale ?? ZoneScale.five;
 
-  ZoneTable get _table =>
-      ZoneTables.of(_metric, _scale, anchor: _rider.heartRateZones!.anchor);
+  ZoneTable get _table => ZoneTables.of(_metric, _scale,
+      anchor:
+          _rider.heartRateZones?.anchor ?? HeartRateAnchor.lactateThreshold);
 
   int get _totalMinutes => _groups.fold(0, (sum, g) => sum + g.durationMin);
 
@@ -165,7 +158,8 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
       final max = _rider.powerZones.upperBoundWatts(index, _rider.ftpWatts);
       return max == null ? '≥ $min w' : '$min-$max w';
     }
-    final hr = _rider.heartRateZones!;
+    final hr = _rider.heartRateZones;
+    if (hr == null) return '';
     final min = hr.lowerBoundBpm(index);
     final max = hr.upperBoundBpm(index);
     if (min == null) return '';
@@ -500,7 +494,10 @@ class _StimulusRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = tr(context);
-    final zone = table.byIndex(form.zoneIndex);
+    // A five-zone table has no Z6: clamp rather than index past the end, so
+    // a block carried over from a wider table cannot crash the dropdown.
+    final zoneIndex = form.zoneIndex.clamp(1, table.zones.length);
+    final zone = table.byIndex(zoneIndex);
 
     return Container(
       margin: EdgeInsets.only(left: label == null ? 0 : 4),
@@ -583,7 +580,7 @@ class _StimulusRow extends StatelessWidget {
                     Text(t.builderZone, style: AppTextStyles.label),
                     const SizedBox(height: 4),
                     DropdownButtonFormField<int>(
-                      value: form.zoneIndex,
+                      value: zoneIndex,
                       isExpanded: true,
                       style: AppTextStyles.body,
                       decoration: const InputDecoration(),
@@ -608,7 +605,7 @@ class _StimulusRow extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 3),
-          Text(rangeLabel(form.zoneIndex),
+          Text(rangeLabel(zoneIndex),
               style: AppTextStyles.label.copyWith(fontSize: 9)),
           const SizedBox(height: 11),
           Row(

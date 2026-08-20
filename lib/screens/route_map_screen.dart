@@ -10,8 +10,10 @@ import '../services/routing_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../models/result_source.dart';
+import '../models/rider_profile.dart';
 import '../models/route_suggestion.dart';
 import '../models/zone.dart';
+import '../services/rider_profile_store.dart';
 import '../widgets/map_layers.dart';
 import '../widgets/stat_box.dart';
 import '../widgets/zone_legend.dart';
@@ -61,12 +63,20 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
     ),
   );
 
-  /// This demo workout is prescribed in watts on a seven-zone power table;
-  /// the stretch is matched to its Z4 (threshold) interval.
+  /// This demo workout is prescribed in watts, and the stretch is matched to
+  /// its threshold interval. The table comes from the rider's profile rather
+  /// than a fixed seven zones: the legend below the map has to name the same
+  /// zones the rider configured, and the zone a given effort falls into
+  /// genuinely differs between the five- and seven-zone tables.
   static const _workoutMetric = ZoneMetric.power;
-  static const _workoutScale = ZoneScale.seven;
-  static const _matchedZone =
-      TrainingZone(metric: _workoutMetric, scale: _workoutScale, index: 4);
+
+  RiderProfile get _rider => RiderProfileStore.instance.profile;
+  ZoneScale get _workoutScale => _rider.powerZones.scale;
+
+  /// ~180 w for this demo stretch, resolved on the rider's own power table.
+  TrainingZone get _matchedZone =>
+      _rider.zoneFor(180, _workoutMetric) ??
+      TrainingZone(metric: _workoutMetric, scale: _workoutScale, index: 1);
 
   /// Control points of the suggested stretch; the drawn line between them is
   /// resolved against the road network.
@@ -266,7 +276,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                           path.degradedReason?.label(t) ?? t.routeDegraded),
                 ],
                 const SizedBox(height: 10),
-                const ZoneLegend(metric: _workoutMetric, scale: _workoutScale),
+                ZoneLegend(metric: _workoutMetric, scale: _workoutScale),
                 const SizedBox(height: 16),
                 Row(
                   children: [

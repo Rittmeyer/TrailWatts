@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/rider_profile.dart';
 import '../l10n/domain_labels.dart';
 import '../models/zone.dart';
+import '../services/rider_profile_store.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/segmented_control.dart';
@@ -25,17 +26,26 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final _weightController = TextEditingController(text: '74');
-  final _ftpController = TextEditingController(text: '210');
-  final _hrAnchorController = TextEditingController(text: '168');
+  /// The form opens on whatever is saved, so reopening it shows the rider
+  /// their own settings rather than the defaults again.
+  final _store = RiderProfileStore.instance;
 
-  ZoneScale _powerScale = ZoneScale.seven;
-  ZoneScale _hrScale = ZoneScale.five;
-  HeartRateAnchor _hrAnchor = HeartRateAnchor.lactateThreshold;
+  late final _weightController =
+      TextEditingController(text: _saved.weightKg.toStringAsFixed(0));
+  late final _ftpController = TextEditingController(text: '${_saved.ftpWatts}');
+  late final _hrAnchorController =
+      TextEditingController(text: '${_saved.heartRateZones?.anchorBpm ?? ''}');
+
+  RiderProfile get _saved => _store.profile;
+
+  late ZoneScale _powerScale = _saved.powerZones.scale;
+  late ZoneScale _hrScale = _saved.heartRateZones?.scale ?? ZoneScale.five;
+  late HeartRateAnchor _hrAnchor =
+      _saved.heartRateZones?.anchor ?? HeartRateAnchor.lactateThreshold;
 
   /// Null while the generic percentage table is in use.
-  List<int>? _powerBounds;
-  List<int>? _hrBounds;
+  late List<int>? _powerBounds = _saved.powerZones.customLowerBoundsWatts;
+  late List<int>? _hrBounds = _saved.heartRateZones?.customLowerBoundsBpm;
 
   bool _powerBoundsValid = true;
   bool _hrBoundsValid = true;
@@ -66,6 +76,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   int get _ftp => int.tryParse(_ftpController.text) ?? 0;
   int? get _hrAnchorBpm => int.tryParse(_hrAnchorController.text);
+
+  /// Writes the profile everything else reads, then returns to the main
+  /// screen. Before this existed the zone scale never left this widget, so
+  /// picking Z1-Z5 changed nothing on the calendar or the route map.
+  void _save() {
+    _store.save(RiderProfile(
+      weightKg: double.tryParse(_weightController.text.replaceAll(',', '.')) ??
+          _saved.weightKg,
+      // FTP anchors the whole power table, so an unreadable field keeps the
+      // saved value rather than collapsing the table to zero.
+      ftpWatts: _ftp > 0 ? _ftp : _saved.ftpWatts,
+      powerZones: _powerSettings,
+      heartRateZones: _hrSettings,
+    ));
+    Navigator.of(context).pushNamedAndRemoveUntil('/home', (r) => false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -187,10 +213,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 20),
                 TrailwattButton(
                   label: t.profileSave,
-                  onPressed: _canSave
-                      ? () => Navigator.of(context)
-                          .pushNamedAndRemoveUntil('/home', (r) => false)
-                      : null,
+                  onPressed: _canSave ? _save : null,
                 ),
                 const SizedBox(height: 14),
                 Text(
