@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import '../models/rider_profile.dart';
 import '../models/zone.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/segmented_control.dart';
 import '../widgets/trailwatt_field.dart';
 import '../widgets/trailwatt_button.dart';
+import '../widgets/zone_table_editor.dart';
 
 /// Port of the "Criar perfil" screen. Weight and FTP are the only
 /// required inputs the physics engine needs (Constitution Article I);
@@ -32,6 +34,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
   ZoneScale _powerScale = ZoneScale.seven;
   ZoneScale _hrScale = ZoneScale.five;
   HeartRateAnchor _hrAnchor = HeartRateAnchor.lactateThreshold;
+
+  /// Null while the generic percentage table is in use.
+  List<int>? _powerBounds;
+  List<int>? _hrBounds;
+
+  bool _powerBoundsValid = true;
+  bool _hrBoundsValid = true;
+
+  PowerZoneSettings get _powerSettings => PowerZoneSettings(
+        scale: _powerScale,
+        customLowerBoundsWatts: _powerBounds,
+      );
+
+  HeartRateZoneSettings get _hrSettings => HeartRateZoneSettings(
+        scale: _hrScale,
+        anchor: _hrAnchor,
+        lthrBpm:
+            _hrAnchor == HeartRateAnchor.lactateThreshold ? _hrAnchorBpm : null,
+        hrMaxBpm: _hrAnchor == HeartRateAnchor.maximum ? _hrAnchorBpm : null,
+        customLowerBoundsBpm: _hrBounds,
+      );
+
+  bool get _canSave => _powerBoundsValid && _hrBoundsValid;
 
   @override
   void dispose() {
@@ -84,14 +109,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 SegmentedControl(
                   options: const ['Z1-Z5', 'Z1-Z7'],
                   selectedIndex: _powerScale == ZoneScale.five ? 0 : 1,
-                  onChanged: (i) => setState(() =>
-                      _powerScale = i == 0 ? ZoneScale.five : ZoneScale.seven),
+                  onChanged: (i) => setState(() {
+                    _powerScale = i == 0 ? ZoneScale.five : ZoneScale.seven;
+                    // Custom bounds are per-scale; a 7-zone table cannot be
+                    // reused as a 5-zone one, so fall back to generic.
+                    _powerBounds = null;
+                    _powerBoundsValid = true;
+                  }),
                 ),
                 const SizedBox(height: 10),
-                _ZonePreview(
+                ZoneTableEditor(
                   table: ZoneTables.of(ZoneMetric.power, _powerScale),
-                  anchor: _ftp,
+                  bounds: _powerBounds,
+                  derivedBounds: _powerSettings.derivedBounds(_ftp),
                   unit: 'w',
+                  onChanged: (b) => setState(() => _powerBounds = b),
+                  onValidityChanged: (v) =>
+                      setState(() => _powerBoundsValid = v),
                 ),
 
                 // --- Heart-rate zones ------------------------------------
@@ -105,8 +139,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 SegmentedControl(
                   options: const ['Z1-Z5', 'Z1-Z7'],
                   selectedIndex: _hrScale == ZoneScale.five ? 0 : 1,
-                  onChanged: (i) => setState(() =>
-                      _hrScale = i == 0 ? ZoneScale.five : ZoneScale.seven),
+                  onChanged: (i) => setState(() {
+                    _hrScale = i == 0 ? ZoneScale.five : ZoneScale.seven;
+                    _hrBounds = null;
+                    _hrBoundsValid = true;
+                  }),
                 ),
                 const SizedBox(height: 10),
                 Text('Ancorar em', style: AppTextStyles.label),
@@ -115,9 +152,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   options: const ['Limiar (LTHR)', 'FC maxima'],
                   selectedIndex:
                       _hrAnchor == HeartRateAnchor.lactateThreshold ? 0 : 1,
-                  onChanged: (i) => setState(() => _hrAnchor = i == 0
-                      ? HeartRateAnchor.lactateThreshold
-                      : HeartRateAnchor.maximum),
+                  onChanged: (i) => setState(() {
+                    _hrAnchor = i == 0
+                        ? HeartRateAnchor.lactateThreshold
+                        : HeartRateAnchor.maximum;
+                    // A different anchor means a different generic table.
+                    _hrBounds = null;
+                    _hrBoundsValid = true;
+                  }),
                 ),
                 const SizedBox(height: 10),
                 TrailwattField(
@@ -137,12 +179,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         .copyWith(fontSize: 9, color: AppColors.warnText),
                   )
                 else
-                  _ZonePreview(
+                  ZoneTableEditor(
                     table: ZoneTables.of(ZoneMetric.heartRate, _hrScale,
                         anchor: _hrAnchor),
-                    anchor: _hrAnchorBpm!,
+                    bounds: _hrBounds,
+                    derivedBounds: _hrSettings.derivedBounds(),
                     unit: 'bpm',
                     provisional: true,
+                    onChanged: (b) => setState(() => _hrBounds = b),
+                    onValidityChanged: (v) =>
+                        setState(() => _hrBoundsValid = v),
                   ),
 
                 // --- Power curve -----------------------------------------
@@ -181,8 +227,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 20),
                 TrailwattButton(
                   label: 'Salvar perfil',
-                  onPressed: () =>
-                      Navigator.of(context).pushNamed('/workout-builder'),
+                  onPressed: _canSave
+                      ? () =>
+                          Navigator.of(context).pushNamed('/workout-builder')
+                      : null,
                 ),
                 const SizedBox(height: 14),
                 Text(
@@ -214,71 +262,6 @@ class _SectionLabel extends StatelessWidget {
               letterSpacing: 1.0,
               color: AppColors.primary,
               fontWeight: FontWeight.w700)),
-    );
-  }
-}
-
-/// The resulting table, so the rider sees the actual watts/bpm each zone
-/// covers instead of trusting an abstract percentage.
-class _ZonePreview extends StatelessWidget {
-  final ZoneTable table;
-  final num anchor;
-  final String unit;
-  final bool provisional;
-
-  const _ZonePreview({
-    required this.table,
-    required this.anchor,
-    required this.unit,
-    this.provisional = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.paper,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        children: [
-          for (final z in table.zones)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2.5),
-              child: Row(
-                children: [
-                  Container(
-                    width: 9,
-                    height: 9,
-                    margin: const EdgeInsets.only(right: 8),
-                    decoration:
-                        BoxDecoration(color: z.color, shape: BoxShape.circle),
-                  ),
-                  SizedBox(
-                    width: 22,
-                    child: Text(z.code,
-                        style: AppTextStyles.numeric.copyWith(fontSize: 10)),
-                  ),
-                  Expanded(
-                    child: Text(z.label,
-                        style: AppTextStyles.label.copyWith(fontSize: 10)),
-                  ),
-                  Text(z.rangeLabel(anchor, unit),
-                      style: AppTextStyles.numeric.copyWith(fontSize: 10)),
-                ],
-              ),
-            ),
-          if (provisional) ...[
-            const SizedBox(height: 4),
-            Text(
-              'Faixas genericas, pendentes de revisao fisiologica. Podem ser '
-              'editadas manualmente.',
-              style: AppTextStyles.label.copyWith(fontSize: 8, height: 1.4),
-            ),
-          ],
-        ],
-      ),
     );
   }
 }

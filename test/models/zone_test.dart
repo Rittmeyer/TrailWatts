@@ -170,4 +170,85 @@ void main() {
       expect(lthr.lowerBoundBpm(4), isNot(hrMax.lowerBoundBpm(4)));
     });
   });
+
+  group('rider-edited bounds', () {
+    test('accepts a table that starts at zero and strictly increases', () {
+      expect(
+          isValidZoneBounds([0, 120, 160, 190, 230], ZoneScale.five), isTrue);
+    });
+
+    test('rejects a wrong number of bounds for the scale', () {
+      expect(isValidZoneBounds([0, 120, 160], ZoneScale.five), isFalse);
+      expect(isValidZoneBounds([0, 1, 2, 3, 4, 5, 6], ZoneScale.five), isFalse);
+    });
+
+    test('rejects a table that does not start at zero', () {
+      expect(
+          isValidZoneBounds([50, 120, 160, 190, 230], ZoneScale.five), isFalse);
+    });
+
+    test('rejects overlapping or repeated bounds', () {
+      // Z3 would start below Z2 - a value could land in two zones.
+      expect(
+          isValidZoneBounds([0, 160, 120, 190, 230], ZoneScale.five), isFalse);
+      // Equal bounds leave Z3 empty.
+      expect(
+          isValidZoneBounds([0, 120, 120, 190, 230], ZoneScale.five), isFalse);
+    });
+
+    test('null means the generic table, which is always valid', () {
+      expect(isValidZoneBounds(null, ZoneScale.seven), isTrue);
+      expect(const PowerZoneSettings().hasValidCustomBounds, isTrue);
+    });
+
+    test('settings report their own validity', () {
+      const good = PowerZoneSettings(
+          scale: ZoneScale.five,
+          customLowerBoundsWatts: [0, 120, 160, 190, 230]);
+      const bad = PowerZoneSettings(
+          scale: ZoneScale.five,
+          customLowerBoundsWatts: [0, 200, 160, 190, 230]);
+      expect(good.hasValidCustomBounds, isTrue);
+      expect(bad.hasValidCustomBounds, isFalse);
+
+      const hrGood = HeartRateZoneSettings(
+          scale: ZoneScale.five,
+          lthrBpm: 170,
+          customLowerBoundsBpm: [0, 140, 150, 160, 168]);
+      expect(hrGood.hasValidCustomBounds, isTrue);
+    });
+
+    test('derived bounds seed the editor from the generic table', () {
+      const zones = PowerZoneSettings(scale: ZoneScale.seven);
+      final seed = zones.derivedBounds(200);
+      expect(seed, hasLength(7));
+      expect(seed.first, 0);
+      expect(isValidZoneBounds(seed, ZoneScale.seven), isTrue);
+      // Z4 of a 200 W FTP starts at 91%.
+      expect(seed[3], 182);
+    });
+
+    test('heart-rate derived bounds need an anchor', () {
+      expect(const HeartRateZoneSettings(scale: ZoneScale.five).derivedBounds(),
+          isNull);
+      expect(
+          const HeartRateZoneSettings(scale: ZoneScale.five, lthrBpm: 170)
+              .derivedBounds(),
+          hasLength(5));
+    });
+
+    test('edited bounds override the percentage table end to end', () {
+      const rider = RiderProfile(
+        weightKg: 74,
+        ftpWatts: 200,
+        powerZones: PowerZoneSettings(
+            scale: ZoneScale.five,
+            customLowerBoundsWatts: [0, 120, 160, 190, 230]),
+      );
+      // 195 W is Z4 under the rider's own table (190-229), not the generic
+      // one, where 195 W = 97.5% FTP would also be Z4 but with other edges.
+      expect(rider.powerZones.lowerBoundWatts(4, 200), 190);
+      expect(rider.powerZones.upperBoundWatts(4, 200), 229);
+    });
+  });
 }

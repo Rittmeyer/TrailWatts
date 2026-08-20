@@ -1,5 +1,18 @@
 import 'zone.dart';
 
+/// Shared rule for a rider-entered zone table: one lower bound per zone,
+/// starting at zero and strictly increasing. Anything else would leave a gap
+/// or an overlap, so a value could land in two zones or in none.
+bool isValidZoneBounds(List<int>? bounds, ZoneScale scale) {
+  if (bounds == null) return true;
+  if (bounds.length != scale.count) return false;
+  if (bounds.first != 0) return false;
+  for (var i = 1; i < bounds.length; i++) {
+    if (bounds[i] <= bounds[i - 1]) return false;
+  }
+  return true;
+}
+
 /// The rider's power zone table. Always anchored on FTP; only the number of
 /// zones is configurable.
 class PowerZoneSettings {
@@ -15,12 +28,17 @@ class PowerZoneSettings {
     this.customLowerBoundsWatts,
   });
 
-  /// Custom bounds, when present, must carry one lower bound per zone.
-  /// Checked here rather than in the constructor because a const constructor
-  /// cannot evaluate the list's length.
-  bool get hasConsistentCustomBounds =>
-      customLowerBoundsWatts == null ||
-      customLowerBoundsWatts!.length == scale.count;
+  /// Whether rider-entered bounds are usable. Checked here rather than in
+  /// the constructor because a const constructor cannot evaluate a list.
+  bool get hasValidCustomBounds =>
+      isValidZoneBounds(customLowerBoundsWatts, scale);
+
+  /// The bounds as they would be stored if the rider switched this table to
+  /// manual editing now - i.e. the generic table made concrete.
+  List<int> derivedBounds(int ftpWatts) => [
+        for (var i = 1; i <= scale.count; i++)
+          table.byIndex(i).minFor(ftpWatts),
+      ];
 
   ZoneTable get table => ZoneTables.of(ZoneMetric.power, scale);
 
@@ -73,6 +91,19 @@ class HeartRateZoneSettings {
       ZoneTables.of(ZoneMetric.heartRate, scale, anchor: anchor);
 
   bool get isCustom => customLowerBoundsBpm != null;
+
+  bool get hasValidCustomBounds =>
+      isValidZoneBounds(customLowerBoundsBpm, scale);
+
+  /// The generic table made concrete, or null when no anchor is known.
+  List<int>? derivedBounds() {
+    final anchorValue = anchorBpm;
+    if (anchorValue == null) return null;
+    return [
+      for (var i = 1; i <= scale.count; i++)
+        table.byIndex(i).minFor(anchorValue),
+    ];
+  }
 
   /// The bpm value the percentage table is measured against, or null when
   /// the rider has not supplied the value this anchor needs.

@@ -35,6 +35,17 @@ feito para mostrar. Sem malha viária o traçado vira linha reta, e a tela avisa
 um número com cara de preciso. Rodando localmente, com rede normal, as telas
 04, 05 e 02a2 carregam o mapa e a rota segue as ruas.
 
+## Edição das tabelas de zona
+
+`edicao-de-zonas/` mostra o editor da tela de perfil em uso:
+
+- `1-tabela-personalizada.png` — tabela de potência trocada para
+  PERSONALIZADA: cada zona ganha um campo de limite inferior editável, e o
+  limite superior é derivado da zona seguinte.
+- `2-limite-invalido-bloqueia-salvar.png` — com Z4 abaixo de Z3 a tabela é
+  marcada como inválida e "Salvar perfil" fica desabilitado, em vez de gravar
+  uma tabela com sobreposição.
+
 ## Verificação do roteamento
 
 `verificacao-roteamento/` prova que o caminho de código de rota/edição
