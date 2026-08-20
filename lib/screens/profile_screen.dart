@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import '../models/zone.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../widgets/segmented_control.dart';
 import '../widgets/trailwatt_field.dart';
 import '../widgets/trailwatt_button.dart';
 
@@ -8,6 +10,10 @@ import '../widgets/trailwatt_button.dart';
 /// required inputs the physics engine needs (Constitution Article I);
 /// the power curve is optional and refines short/intense stimuli.
 /// Import stays read-scoped and optional (Constitution Article II).
+///
+/// Power and heart-rate zones are configured separately: they are different
+/// tables, each with its own zone count, and heart rate additionally needs
+/// its own anchor.
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -21,6 +27,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _power5sController = TextEditingController();
   final _power1minController = TextEditingController();
   final _power5minController = TextEditingController();
+  final _hrAnchorController = TextEditingController(text: '168');
+
+  ZoneScale _powerScale = ZoneScale.seven;
+  ZoneScale _hrScale = ZoneScale.five;
+  HeartRateAnchor _hrAnchor = HeartRateAnchor.lactateThreshold;
 
   @override
   void dispose() {
@@ -29,8 +40,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _power5sController.dispose();
     _power1minController.dispose();
     _power5minController.dispose();
+    _hrAnchorController.dispose();
     super.dispose();
   }
+
+  int get _ftp => int.tryParse(_ftpController.text) ?? 0;
+  int? get _hrAnchorBpm => int.tryParse(_hrAnchorController.text);
 
   @override
   Widget build(BuildContext context) {
@@ -59,15 +74,79 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   hint: '210',
                   controller: _ftpController,
                   keyboardType: TextInputType.number,
+                  onChanged: (_) => setState(() {}),
+                ),
+
+                // --- Power zones -----------------------------------------
+                const _SectionLabel('ZONAS DE POTENCIA'),
+                Text('Ancoradas no FTP', style: AppTextStyles.label),
+                const SizedBox(height: 6),
+                SegmentedControl(
+                  options: const ['Z1-Z5', 'Z1-Z7'],
+                  selectedIndex: _powerScale == ZoneScale.five ? 0 : 1,
+                  onChanged: (i) => setState(() =>
+                      _powerScale = i == 0 ? ZoneScale.five : ZoneScale.seven),
+                ),
+                const SizedBox(height: 10),
+                _ZonePreview(
+                  table: ZoneTables.of(ZoneMetric.power, _powerScale),
+                  anchor: _ftp,
+                  unit: 'w',
+                ),
+
+                // --- Heart-rate zones ------------------------------------
+                const _SectionLabel('ZONAS DE FREQUENCIA CARDIACA'),
+                Text(
+                  'Tabela separada da de potencia - o mesmo esforco cai em '
+                  'zonas diferentes nas duas.',
+                  style: AppTextStyles.label.copyWith(fontSize: 9, height: 1.4),
                 ),
                 const SizedBox(height: 8),
-                Text('CURVA DE POTENCIA',
-                    style: AppTextStyles.label.copyWith(
-                        fontSize: 9,
-                        letterSpacing: 1.0,
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w700)),
+                SegmentedControl(
+                  options: const ['Z1-Z5', 'Z1-Z7'],
+                  selectedIndex: _hrScale == ZoneScale.five ? 0 : 1,
+                  onChanged: (i) => setState(() =>
+                      _hrScale = i == 0 ? ZoneScale.five : ZoneScale.seven),
+                ),
                 const SizedBox(height: 10),
+                Text('Ancorar em', style: AppTextStyles.label),
+                const SizedBox(height: 4),
+                SegmentedControl(
+                  options: const ['Limiar (LTHR)', 'FC maxima'],
+                  selectedIndex:
+                      _hrAnchor == HeartRateAnchor.lactateThreshold ? 0 : 1,
+                  onChanged: (i) => setState(() => _hrAnchor = i == 0
+                      ? HeartRateAnchor.lactateThreshold
+                      : HeartRateAnchor.maximum),
+                ),
+                const SizedBox(height: 10),
+                TrailwattField(
+                  label: _hrAnchor == HeartRateAnchor.lactateThreshold
+                      ? 'FC de limiar (bpm)'
+                      : 'FC maxima (bpm)',
+                  hint: 'opcional',
+                  controller: _hrAnchorController,
+                  keyboardType: TextInputType.number,
+                  onChanged: (_) => setState(() {}),
+                ),
+                if (_hrAnchorBpm == null)
+                  Text(
+                    'Sem esta medida o app nao calcula zonas de FC - e nao '
+                    'inventa: o treino em watts continua funcionando.',
+                    style: AppTextStyles.label
+                        .copyWith(fontSize: 9, color: AppColors.warnText),
+                  )
+                else
+                  _ZonePreview(
+                    table: ZoneTables.of(ZoneMetric.heartRate, _hrScale,
+                        anchor: _hrAnchor),
+                    anchor: _hrAnchorBpm!,
+                    unit: 'bpm',
+                    provisional: true,
+                  ),
+
+                // --- Power curve -----------------------------------------
+                const _SectionLabel('CURVA DE POTENCIA'),
                 TrailwattField(
                   label: 'Potencia 5s (w)',
                   hint: 'opcional · ex: 850',
@@ -116,6 +195,89 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _SectionLabel extends StatelessWidget {
+  final String text;
+  const _SectionLabel(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 22, bottom: 6),
+      child: Text(text,
+          style: AppTextStyles.label.copyWith(
+              fontSize: 9,
+              letterSpacing: 1.0,
+              color: AppColors.primary,
+              fontWeight: FontWeight.w700)),
+    );
+  }
+}
+
+/// The resulting table, so the rider sees the actual watts/bpm each zone
+/// covers instead of trusting an abstract percentage.
+class _ZonePreview extends StatelessWidget {
+  final ZoneTable table;
+  final num anchor;
+  final String unit;
+  final bool provisional;
+
+  const _ZonePreview({
+    required this.table,
+    required this.anchor,
+    required this.unit,
+    this.provisional = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.paper,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        children: [
+          for (final z in table.zones)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2.5),
+              child: Row(
+                children: [
+                  Container(
+                    width: 9,
+                    height: 9,
+                    margin: const EdgeInsets.only(right: 8),
+                    decoration:
+                        BoxDecoration(color: z.color, shape: BoxShape.circle),
+                  ),
+                  SizedBox(
+                    width: 22,
+                    child: Text(z.code,
+                        style: AppTextStyles.numeric.copyWith(fontSize: 10)),
+                  ),
+                  Expanded(
+                    child: Text(z.label,
+                        style: AppTextStyles.label.copyWith(fontSize: 10)),
+                  ),
+                  Text(z.rangeLabel(anchor, unit),
+                      style: AppTextStyles.numeric.copyWith(fontSize: 10)),
+                ],
+              ),
+            ),
+          if (provisional) ...[
+            const SizedBox(height: 4),
+            Text(
+              'Faixas genericas, pendentes de revisao fisiologica. Podem ser '
+              'editadas manualmente.',
+              style: AppTextStyles.label.copyWith(fontSize: 8, height: 1.4),
+            ),
+          ],
+        ],
       ),
     );
   }

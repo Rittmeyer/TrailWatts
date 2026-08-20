@@ -4,7 +4,7 @@ import '../models/zone.dart';
 /// Maps to .day-detail-zone - a filled pill in the zone's own color,
 /// e.g. "Z4 · LIMIAR".
 class ZonePill extends StatelessWidget {
-  final Zone zone;
+  final TrainingZone zone;
 
   const ZonePill({super.key, required this.zone});
 

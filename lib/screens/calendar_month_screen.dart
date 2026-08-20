@@ -6,7 +6,7 @@ import '../models/zone.dart';
 import '../widgets/bottom_nav.dart';
 import '../widgets/calendar_day_detail.dart';
 import '../widgets/segmented_control.dart';
-import '../widgets/zone_pill.dart';
+import '../widgets/zone_legend.dart';
 import 'calendar_demo_data.dart';
 
 const _monthNamesFull = [
@@ -108,10 +108,8 @@ class _CalendarMonthScreenState extends State<CalendarMonthScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                Wrap(
-                  spacing: 6,
-                  children: Zone.values.map((z) => ZonePill(zone: z)).toList(),
-                ),
+                const ZoneLegend(
+                    metric: ZoneMetric.power, scale: ZoneScale.seven),
                 const SizedBox(height: 12),
                 CalendarDayDetail(
                     entry: demoCalendarEntries[normalizeDay(_selectedDay)]),

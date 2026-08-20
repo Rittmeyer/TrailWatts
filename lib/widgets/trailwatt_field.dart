@@ -10,6 +10,7 @@ class TrailwattField extends StatelessWidget {
   final bool obscureText;
   final TextInputType keyboardType;
   final String? helperText;
+  final ValueChanged<String>? onChanged;
 
   const TrailwattField({
     super.key,
@@ -19,6 +20,7 @@ class TrailwattField extends StatelessWidget {
     this.obscureText = false,
     this.keyboardType = TextInputType.text,
     this.helperText,
+    this.onChanged,
   });
 
   @override
@@ -34,6 +36,7 @@ class TrailwattField extends StatelessWidget {
             controller: controller,
             obscureText: obscureText,
             keyboardType: keyboardType,
+            onChanged: onChanged,
             style: AppTextStyles.body,
             decoration: InputDecoration(hintText: hint),
           ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../models/rider_profile.dart';
 import '../models/zone.dart';
 import '../widgets/segmented_control.dart';
 import '../widgets/trailwatt_field.dart';
@@ -19,7 +20,8 @@ class WorkoutBuilderScreen extends StatefulWidget {
 }
 
 class _BlockForm {
-  Zone zone;
+  /// Zone index within whichever table the selected metric uses.
+  int zoneIndex;
   final TextEditingController duration;
   final TextEditingController repetitions;
   final TextEditingController minTarget;
@@ -27,7 +29,7 @@ class _BlockForm {
   final TextEditingController rest;
 
   _BlockForm({
-    this.zone = Zone.limiar,
+    this.zoneIndex = 4,
     String duration = '8',
     String repetitions = '4',
     String minTarget = '170',
@@ -49,8 +51,47 @@ class _BlockForm {
 }
 
 class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
-  int _metric = 0; // 0 = Watts, 1 = FC
+  /// Which table the whole workout is prescribed against. Power and heart
+  /// rate are separate tables with their own zone counts, so switching this
+  /// switches the zone list too.
+  ZoneMetric _metric = ZoneMetric.power;
+
+  /// The demo rider's profile: 7 power zones, 5 heart-rate zones anchored on
+  /// threshold HR. In the real app this comes from the saved RiderProfile.
+  static const _rider = RiderProfile(
+    weightKg: 74,
+    ftpWatts: 210,
+    powerZones: PowerZoneSettings(scale: ZoneScale.seven),
+    heartRateZones: HeartRateZoneSettings(
+      scale: ZoneScale.five,
+      anchor: HeartRateAnchor.lactateThreshold,
+      lthrBpm: 168,
+      hrMaxBpm: 184,
+    ),
+  );
+
   final List<_BlockForm> _blocks = [_BlockForm()];
+
+  ZoneScale get _scale => _metric == ZoneMetric.power
+      ? _rider.powerZones.scale
+      : _rider.heartRateZones!.scale;
+
+  ZoneTable get _table =>
+      ZoneTables.of(_metric, _scale, anchor: _rider.heartRateZones!.anchor);
+
+  /// Absolute range for a zone on the active table, e.g. "191-222 w".
+  String _rangeLabel(int index) {
+    if (_metric == ZoneMetric.power) {
+      final min = _rider.powerZones.lowerBoundWatts(index, _rider.ftpWatts);
+      final max = _rider.powerZones.upperBoundWatts(index, _rider.ftpWatts);
+      return max == null ? '≥ $min w' : '$min-$max w';
+    }
+    final hr = _rider.heartRateZones!;
+    final min = hr.lowerBoundBpm(index);
+    final max = hr.upperBoundBpm(index);
+    if (min == null) return 'sem âncora de FC';
+    return max == null ? '≥ $min bpm' : '$min-$max bpm';
+  }
 
   @override
   void dispose() {
@@ -62,7 +103,7 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
 
   void _addBlock() {
     setState(() => _blocks.add(_BlockForm(
-          zone: Zone.resistencia,
+          zoneIndex: 2,
           duration: '10',
           repetitions: '1',
           minTarget: '140',
@@ -73,7 +114,8 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final unit = _metric == 0 ? 'w' : 'bpm';
+    final unit = _metric.unit;
+    final table = _table;
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -90,16 +132,33 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
                 const SizedBox(height: 16),
                 SegmentedControl(
                   options: const ['Watts', 'FC'],
-                  selectedIndex: _metric,
-                  onChanged: (i) => setState(() => _metric = i),
+                  selectedIndex: _metric == ZoneMetric.power ? 0 : 1,
+                  onChanged: (i) => setState(() {
+                    _metric = i == 0 ? ZoneMetric.power : ZoneMetric.heartRate;
+                    // Zone counts differ between the tables, so clamp any
+                    // selection that no longer exists on the new one.
+                    final max = _scale.count;
+                    for (final b in _blocks) {
+                      if (b.zoneIndex > max) b.zoneIndex = max;
+                    }
+                  }),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 6),
+                Text(
+                  'Tabela de ${_metric.label.toLowerCase()} · '
+                  'Z1-Z${_scale.count}',
+                  style: AppTextStyles.label.copyWith(fontSize: 9),
+                ),
+                const SizedBox(height: 12),
                 for (var i = 0; i < _blocks.length; i++) ...[
                   _BlockCard(
                     index: i,
                     form: _blocks[i],
                     unit: unit,
-                    onZoneChanged: (z) => setState(() => _blocks[i].zone = z),
+                    table: table,
+                    rangeLabel: _rangeLabel,
+                    onZoneChanged: (z) =>
+                        setState(() => _blocks[i].zoneIndex = z),
                   ),
                   const SizedBox(height: 12),
                 ],
@@ -134,12 +193,16 @@ class _BlockCard extends StatelessWidget {
   final int index;
   final _BlockForm form;
   final String unit;
-  final ValueChanged<Zone> onZoneChanged;
+  final ZoneTable table;
+  final String Function(int zoneIndex) rangeLabel;
+  final ValueChanged<int> onZoneChanged;
 
   const _BlockCard({
     required this.index,
     required this.form,
     required this.unit,
+    required this.table,
+    required this.rangeLabel,
     required this.onZoneChanged,
   });
 
@@ -163,19 +226,35 @@ class _BlockCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text('Zona', style: AppTextStyles.label),
           const SizedBox(height: 4),
-          DropdownButtonFormField<Zone>(
-            value: form.zone,
+          DropdownButtonFormField<int>(
+            value: form.zoneIndex,
             isExpanded: true,
             style: AppTextStyles.body,
             decoration: const InputDecoration(),
-            items: Zone.values
-                .map((z) =>
-                    DropdownMenuItem(value: z, child: Text(z.pickerLabel)))
+            items: table.zones
+                .map((z) => DropdownMenuItem(
+                      value: z.index,
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 9,
+                            height: 9,
+                            margin: const EdgeInsets.only(right: 7),
+                            decoration: BoxDecoration(
+                                color: z.color, shape: BoxShape.circle),
+                          ),
+                          Expanded(child: Text(z.pickerLabel)),
+                        ],
+                      ),
+                    ))
                 .toList(),
             onChanged: (z) {
               if (z != null) onZoneChanged(z);
             },
           ),
+          const SizedBox(height: 3),
+          Text(rangeLabel(form.zoneIndex),
+              style: AppTextStyles.label.copyWith(fontSize: 9)),
           const SizedBox(height: 11),
           Row(
             children: [

@@ -11,7 +11,10 @@ without being forced through an advanced configuration screen.
 ## Optional
 - bike weight;
 - HR max;
-- personal HR zone boundaries Z1–Z5;
+- heart-rate zone scale (Z1–Z5 or Z1–Z7) and its anchor
+  (threshold HR, or maximum HR when threshold is unknown);
+- personal HR zone boundaries, overriding the generic table;
+- power zone scale (Z1–Z5 or Z1–Z7), anchored on FTP;
 - 5s/1min/5min power curve;
 - CdA;
 - Crr.
@@ -31,11 +34,18 @@ blocks onboarding.
 - Required onboarding fields should be completable quickly.
 - Advanced physics constants should be hidden behind an advanced section.
 - Generic defaults MUST be visibly labeled as estimates.
-- HR zone configuration MUST use the shared five-zone taxonomy.
+- Power and HR zones are configured separately: they are different
+  tables, each with its own zone count, and HR additionally needs its
+  own anchor (Constitution Article VII).
+- The resulting table MUST be shown in absolute watts/bpm, not only as
+  percentages, so the rider can check it against what they know.
+- Without an HR anchor the app MUST NOT display HR zones at all rather
+  than deriving them from an assumed value.
 - The user must be able to continue without HR data if the workout uses watts.
 
 ## Open decisions
 - Whether user may edit CdA/Crr manually (recommended: advanced setting only).
 - Generic CdA/Crr defaults.
-- Generic HR zone table.
+- Generic HR zone boundaries (both anchors) pending physiology review.
+- Default zone scale per metric (currently 7 power / 5 HR).
 - Whether changing FTP should invalidate learned calibration.

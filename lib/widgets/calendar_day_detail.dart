@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/calendar_entry.dart';
 import '../models/result_source.dart';
-import '../models/workout_block.dart';
+import '../models/zone.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import 'stat_box.dart';
@@ -104,9 +104,8 @@ class CalendarDayDetail extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             () {
-              final unit = first.target.metric == WorkoutTargetMetric.watts
-                  ? 'w'
-                  : 'bpm';
+              final unit =
+                  first.target.metric == ZoneMetric.power ? 'w' : 'bpm';
               final reps = first.isRepeated ? '${first.repetitions}x' : '';
               return '$reps${first.durationMin}min a '
                   '${first.target.minValue}-${first.target.maxValue}$unit';

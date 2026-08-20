@@ -13,7 +13,8 @@ known model contradictions. They are intentionally not invented as facts.
 | Generic CdA | Strong effect on flat-road predictions | 0.32 provisional, labeled generic |
 | Generic Crr by surface | Strong effect on rolling resistance | Document empirical defaults before release |
 | Drivetrain efficiency | Affects predicted power | 0.975 provisional, configurable |
-| Generic HR→%FTP mapping | HR is not an exact watt equivalent | Coach/physiology review required |
+| Generic HR zone boundaries | HR is not an exact watt equivalent, and %LTHR bands differ from %HRmax bands | Provisional tables shipped for both anchors, labeled as generic; coach/physiology review required |
+| Default zone scale per metric | Riders differ on 5 vs 7 zones | 7 power (Coggan) / 5 HR, both rider-editable |
 | Minimum acceptable match | Defines when to say "no suitable route" | 75% warning / 85% preferred, provisional |
 | Score weights | Determines what "best" means | Current 25/15/15/15/10/5/5/10, validate with athletes |
 | Search radius | Controls candidate availability and performance | 8 km prototype default, rider-editable |
@@ -46,6 +47,8 @@ known model contradictions. They are intentionally not invented as facts.
 
 ## Already decided in the current spec
 
+- Power and heart rate are separate zone tables; each can run Z1–Z5 or
+  Z1–Z7, and a stored zone always carries its metric and scale.
 - `matchPct` is derived from the documented weighted score.
 - Terrain result does not own a single distance; distance belongs to each
   `TerrainOption`.

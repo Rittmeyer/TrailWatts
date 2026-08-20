@@ -1,11 +1,24 @@
 <!--
 Sync Impact Report:
-- Version change: 1.1.0 -> 1.2.0 (MINOR: clarified route matching as a first-class
-  capability and aligned the engine boundary with the user-facing route flow)
+- Version change: 1.2.0 -> 2.0.0 (MAJOR: Article VII no longer mandates a
+  single five-zone taxonomy; power and heart rate are now separate zone
+  tables, each selectable as Z1-Z5 or Z1-Z7)
+- Rationale: power and heart rate are not interchangeable scales. Power zones
+  conventionally use the seven-zone Coggan model anchored on FTP; heart-rate
+  zones conventionally use five zones anchored on threshold or maximum HR.
+  Forcing both through one five-zone list mislabeled real training intensity.
+- Breaking for: any spec, plan or code that assumed exactly five zones, a
+  single shared zone list, or a zone reference without a metric.
+- Templates/specs updated: specs/004-rider-profile (HR zone taxonomy and
+  anchor), specs/008-calendar-history (zone taxonomy reference),
+  DECISIONS_REQUIRED.md (HR boundary review, zone-scale default).
+- Follow-up: the heart-rate percentage bands ship as generic defaults and
+  still need coach/physiology review before release; /speckit.analyze should
+  check that no surface renders a hardcoded zone list.
+
+Previous entry (1.1.0 -> 1.2.0):
 - Clarified: route matching is a first-class engine capability and not an
   undefined dependency
-- Templates requiring updates: none - no existing spec assumed the absence
-  of this rule, so nothing conflicts with adding it
 - Follow-up: /speckit.analyze and code review should check modularity,
   readability, and avoidance of known vulnerability classes on every
   future plan, alongside the existing Articles
@@ -84,11 +97,33 @@ accrues, and never requires a rewrite to "add personalization" later.
 
 ### Article VII — Shared Zone Nomenclature
 
-Training intensity is always expressed through the same five zones — Z1
-Recuperação, Z2 Resistência, Z3 Tempo, Z4 Limiar, Z5 VO2max — with a fixed
-color mapping. Every surface that displays intensity (route map, calendar,
-workout builder, history) MUST reference this single taxonomy rather than
-inventing its own labels or colors.
+Training intensity is expressed through **zone tables**. There is one table
+per metric — power and heart rate — and they are independent: the same effort
+does not sit at the same zone number in both, so a zone reference is
+meaningless without the metric it belongs to.
+
+Each table MUST declare its own:
+
+- **metric** — power (anchored on FTP) or heart rate (anchored on the rider's
+  threshold HR, or on maximum HR when threshold is unknown);
+- **scale** — five zones (Z1–Z5) or seven zones (Z1–Z7), chosen per table.
+  A rider may run seven power zones alongside five heart-rate zones; this is
+  the default pairing.
+
+Colors follow a single fixed progression by zone number (Z1 recovery → Z7
+neuromuscular), so a color means the same relative intensity on either scale.
+Every surface that displays intensity (route map, calendar, workout builder,
+history) MUST render whichever table the workout is prescribed against,
+rather than a hardcoded zone list or its own labels and colors.
+
+A stored zone MUST carry its metric and scale. A workout block prescribed in
+watts MUST reference a power zone; one prescribed in heart rate MUST
+reference a heart-rate zone.
+
+Percentage boundaries are configuration, not physics: the power bands follow
+the established Coggan model, the heart-rate bands ship as clearly-labeled
+generic defaults pending physiological review, and riders MAY override
+boundaries manually (Article II).
 
 ### Article VIII — The Engine Is the Product
 

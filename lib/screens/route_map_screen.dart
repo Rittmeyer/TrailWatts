@@ -9,7 +9,7 @@ import '../models/route_suggestion.dart';
 import '../models/zone.dart';
 import '../widgets/map_layers.dart';
 import '../widgets/stat_box.dart';
-import '../widgets/zone_pill.dart';
+import '../widgets/zone_legend.dart';
 import '../widgets/trailwatt_button.dart';
 
 /// Port of screen 04 - "Rota no mapa". The stretch is drawn along the real
@@ -50,6 +50,13 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
       practicalityScorePct: 96,
     ),
   );
+
+  /// This demo workout is prescribed in watts on a seven-zone power table;
+  /// the stretch is matched to its Z4 (threshold) interval.
+  static const _workoutMetric = ZoneMetric.power;
+  static const _workoutScale = ZoneScale.seven;
+  static const _matchedZone =
+      TrainingZone(metric: _workoutMetric, scale: _workoutScale, index: 4);
 
   /// Control points of the suggested stretch; the drawn line between them is
   /// resolved against the road network.
@@ -112,7 +119,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                             points: path?.polyline ?? _waypoints,
                             strokeWidth: 5,
                             // Z4 - the zone this stretch is matched to.
-                            color: Zone.limiar.color,
+                            color: _matchedZone.color,
                           ),
                         ]),
                         MarkerLayer(markers: [
@@ -141,11 +148,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                           'Trecho nao verificado contra a malha viaria.'),
                 ],
                 const SizedBox(height: 10),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: Zone.values.map((z) => ZonePill(zone: z)).toList(),
-                ),
+                const ZoneLegend(metric: _workoutMetric, scale: _workoutScale),
                 const SizedBox(height: 16),
                 Row(
                   children: [

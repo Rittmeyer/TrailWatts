@@ -12,7 +12,9 @@ later calibration.
 5. "Precision" MUST be renamed in the domain to `predictionAccuracy` and
    its formula is owned by Feature 009. The UI may show a simple percentage.
 6. Week/month views share the same day-detail component.
-7. Zone taxonomy is always Feature 007's shared taxonomy.
+7. Zone display MUST follow the table the workout was prescribed
+   against - power or heart rate, at that table's scale - never a
+   hardcoded five-zone list (Constitution Article VII).
 
 ## Open decisions
 - Exact predictionAccuracy formula belongs to Feature 009.

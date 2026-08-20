@@ -1,9 +1,11 @@
 import 'zone.dart';
 
-enum WorkoutTargetMetric { watts, heartRate }
+/// The target metric IS the zone metric - one concept, one enum, so a
+/// watts target can never be paired with a heart-rate zone by accident.
+typedef WorkoutTargetMetric = ZoneMetric;
 
 class WorkoutTarget {
-  final WorkoutTargetMetric metric;
+  final ZoneMetric metric;
   final int minValue;
   final int maxValue;
 
@@ -17,15 +19,17 @@ class WorkoutTarget {
 
 /// A single prescribed training stimulus. Recovery is modeled explicitly.
 class WorkoutBlock {
-  final Zone zone;
+  final TrainingZone zone;
   final int durationMin;
   final int repetitions;
   final WorkoutTarget target;
   final int? recoveryDurationMin;
-  final Zone? recoveryZone;
+  final TrainingZone? recoveryZone;
   final WorkoutTarget? recoveryTarget;
 
-  const WorkoutBlock({
+  // Not const: the metric-agreement invariants below read fields off the
+  // zone and target objects, which a const constructor cannot evaluate.
+  WorkoutBlock({
     required this.zone,
     required this.durationMin,
     this.repetitions = 1,
@@ -46,6 +50,19 @@ class WorkoutBlock {
         assert(
           repetitions == 1 || recoveryTarget != null,
           'Repeated blocks require an explicit recovery target.',
+        ),
+        // A block prescribed in watts must reference a power zone, and one
+        // prescribed in heart rate a heart-rate zone: the two tables are
+        // independent and their zone numbers are not interchangeable.
+        assert(
+          zone.metric == target.metric,
+          'Block zone metric must match its target metric.',
+        ),
+        assert(
+          recoveryZone == null ||
+              recoveryTarget == null ||
+              recoveryZone.metric == recoveryTarget.metric,
+          'Recovery zone metric must match its recovery target metric.',
         );
 
   bool get isRepeated => repetitions > 1;
@@ -89,7 +106,7 @@ class WorkoutTimelineStep {
   final int sequenceIndex;
   final bool isRecovery;
   final int durationMin;
-  final Zone zone;
+  final TrainingZone zone;
   final WorkoutTarget target;
   final String? intervalId;
 

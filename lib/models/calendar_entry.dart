@@ -26,7 +26,7 @@ class CompletedSummary {
   final int realizedWatts;
   final int durationMin;
   final ResultSource source;
-  final Zone zone;
+  final TrainingZone zone;
 
   const CompletedSummary({
     required this.routeName,

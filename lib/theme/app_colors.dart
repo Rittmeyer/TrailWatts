@@ -21,12 +21,16 @@ class AppColors {
   static const warnBg = Color(0xFFFBEBD6);
   static const warnText = Color(0xFF9C5B12);
 
-  /// Zone Z1-Z5 palette, shared everywhere training intensity is shown -
-  /// map, calendar, workout builder, history. See models/zone.dart.
-  /// (Constitution Article VII - shared nomenclature.)
+  /// Zone palette, shared everywhere training intensity is shown - map,
+  /// calendar, workout builder, history. Z1-Z5 are the original five; Z6-Z7
+  /// extend the same progression for seven-zone tables, so a zone colour
+  /// means the same relative intensity on either scale.
+  /// See models/zone.dart (Constitution Article VII).
   static const zone1 = Color(0xFF8FA3AB); // Recuperacao
   static const zone2 = Color(0xFF028090); // Resistencia
   static const zone3 = Color(0xFF02C39A); // Tempo
   static const zone4 = Color(0xFFC77C21); // Limiar
   static const zone5 = Color(0xFFB23A3A); // VO2max
+  static const zone6 = Color(0xFF8E2F6E); // Anaerobico
+  static const zone7 = Color(0xFF4A2545); // Neuromuscular
 }

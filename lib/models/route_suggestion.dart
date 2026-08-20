@@ -30,7 +30,7 @@ class RouteSegment {
   final double? achievableSpeedKmh;
   final TrafficLevel trafficLevel;
   final CyclingSafetyLevel safetyLevel;
-  final Zone? matchedZone;
+  final TrainingZone? matchedZone;
   final String? matchedIntervalId;
   final RouteSegmentRole role;
   final bool isEditable;
