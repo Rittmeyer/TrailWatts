@@ -869,14 +869,22 @@ class _MoveButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      icon: Icon(icon, size: 16),
+      icon: Icon(icon, size: 18),
       tooltip: tooltip,
       onPressed: onTap,
-      visualDensity: VisualDensity.compact,
-      padding: const EdgeInsets.all(4),
-      constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+      // Not compact: compact quietly subtracts from the constraints below,
+      // which is how a button asked to be 44 came out 40.
+      visualDensity: VisualDensity.standard,
+      padding: const EdgeInsets.all(6),
+      // 44 is the smallest target a finger hits reliably. The 28 this
+      // started at was small enough that the arrows read as broken rather
+      // than as missed.
+      constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
       color: AppColors.primary,
-      disabledColor: AppColors.line,
+      // Not AppColors.line: at 1.2:1 against the card the disabled arrow
+      // was invisible, and the first block has both arrows disabled, so
+      // the control looked absent rather than inactive.
+      disabledColor: AppColors.inkDisabled,
     );
   }
 }

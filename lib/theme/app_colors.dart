@@ -14,6 +14,11 @@ class AppColors {
   static const paper = Color(0xFFF5F7F6);
   static const inkSoft = Color(0xFF5B6B69);
   static const line = Color(0xFFE2E8E6);
+
+  /// A control that is present but cannot act right now. Distinct from
+  /// [line] on purpose: a hairline is meant to disappear into the surface,
+  /// and borrowing it for a disabled icon made the icon disappear too.
+  static const inkDisabled = Color(0xFF9AA5A3);
   static const white = Colors.white;
 
   static const greenBg = Color(0xFFDCF3EA);
