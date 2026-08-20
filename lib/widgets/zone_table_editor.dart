@@ -172,12 +172,14 @@ class _ZoneTableEditorState extends State<ZoneTableEditor> {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
       decoration: BoxDecoration(
         color: AppColors.paper,
         borderRadius: BorderRadius.circular(8),
+        // The table used to be paper on paper, which drew no edge at all: a
+        // list of loose numbers rather than a table.
         border: Border.all(
-            color: valid ? Colors.transparent : AppColors.warnText, width: 1),
+            color: valid ? AppColors.line : AppColors.warnText, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -185,7 +187,7 @@ class _ZoneTableEditorState extends State<ZoneTableEditor> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                 decoration: BoxDecoration(
                   color: _isCustom ? AppColors.greenBg : AppColors.warnBg,
                   borderRadius: BorderRadius.circular(5),
@@ -193,7 +195,7 @@ class _ZoneTableEditorState extends State<ZoneTableEditor> {
                 child: Text(
                   _isCustom ? t.zoneTableCustom : t.zoneTableGeneric,
                   style: AppTextStyles.label.copyWith(
-                    fontSize: 8,
+                    fontSize: 9,
                     fontWeight: FontWeight.w800,
                     color: _isCustom ? AppColors.greenText : AppColors.warnText,
                   ),
@@ -216,30 +218,59 @@ class _ZoneTableEditorState extends State<ZoneTableEditor> {
                 ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
+
+          // Column headings. Without them the two numbers on each row were
+          // unexplained, and the unit was repeated on every line instead of
+          // being said once.
+          Row(
+            children: [
+              const SizedBox(width: _dotColumn + _codeColumn),
+              Expanded(child: _ColumnHead(t.zoneTableColumnZone)),
+              SizedBox(
+                width: _valueColumn,
+                child: _ColumnHead('${t.zoneTableColumnFrom} (${widget.unit})',
+                    alignRight: true),
+              ),
+              const SizedBox(width: _gap),
+              SizedBox(
+                width: _valueColumn,
+                child: _ColumnHead('${t.zoneTableColumnTo} (${widget.unit})',
+                    alignRight: true),
+              ),
+            ],
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 6),
+            child: Divider(height: 1, thickness: 1, color: AppColors.line),
+          ),
+
           for (var i = 0; i < zones.length; i++)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2),
+              padding: const EdgeInsets.symmetric(vertical: 3),
               child: Row(
                 children: [
                   Container(
                     width: 9,
                     height: 9,
-                    margin: const EdgeInsets.only(right: 8),
+                    margin: const EdgeInsets.only(right: _dotColumn - 9),
                     decoration: BoxDecoration(
                         color: zones[i].color, shape: BoxShape.circle),
                   ),
                   SizedBox(
-                    width: 22,
+                    width: _codeColumn,
                     child: Text(zones[i].code,
-                        style: AppTextStyles.numeric.copyWith(fontSize: 10)),
+                        style: AppTextStyles.numeric.copyWith(fontSize: 11)),
                   ),
                   Expanded(
                     child: Text(zones[i].label(t),
-                        style: AppTextStyles.label.copyWith(fontSize: 10)),
+                        style: AppTextStyles.label
+                            .copyWith(fontSize: 11.5, color: AppColors.ink)),
                   ),
                   SizedBox(
-                    width: 52,
+                    width: _valueColumn,
+                    // Z1 always starts at zero, so its lower bound is not a
+                    // choice anyone gets to make.
                     child: _isCustom && i > 0
                         ? TextField(
                             controller: _controllers[i],
@@ -248,43 +279,52 @@ class _ZoneTableEditorState extends State<ZoneTableEditor> {
                               FilteringTextInputFormatter.digitsOnly
                             ],
                             textAlign: TextAlign.right,
-                            style: AppTextStyles.numeric.copyWith(fontSize: 10),
+                            style: AppTextStyles.numeric.copyWith(fontSize: 11),
                             decoration: const InputDecoration(
                               isDense: true,
+                              fillColor: AppColors.white,
                               contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 6, vertical: 6),
+                                  horizontal: 7, vertical: 6),
                             ),
                             onChanged: (_) => _commit(),
                           )
-                        : Text(_controllers[i].text,
-                            textAlign: TextAlign.right,
-                            style:
-                                AppTextStyles.numeric.copyWith(fontSize: 10)),
+                        : Padding(
+                            padding: const EdgeInsets.only(right: 7),
+                            child: Text(_controllers[i].text,
+                                textAlign: TextAlign.right,
+                                style: AppTextStyles.numeric
+                                    .copyWith(fontSize: 11)),
+                          ),
                   ),
+                  const SizedBox(width: _gap),
                   SizedBox(
-                    width: 62,
-                    child: Text(
-                      i == zones.length - 1
-                          ? ' +  ${widget.unit}'
-                          : ' - ${_upperLabel(i)} ${widget.unit}',
-                      style: AppTextStyles.numeric.copyWith(fontSize: 10),
+                    width: _valueColumn,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 7),
+                      child: Text(
+                        // The top zone has no ceiling; "+" says that in the
+                        // same column instead of breaking the alignment.
+                        i == zones.length - 1 ? '+' : _upperLabel(i),
+                        textAlign: TextAlign.right,
+                        style: AppTextStyles.numeric.copyWith(fontSize: 11),
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
           if (_anchorMovedSinceEdit && widget.derivedBounds != null) ...[
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
                   child: Text(
                     t.zoneTableAnchorMoved,
                     style: AppTextStyles.label
-                        .copyWith(fontSize: 8.5, color: AppColors.warnText),
+                        .copyWith(fontSize: 10, color: AppColors.warnText),
                   ),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 _TinyButton(
                   label: t.zoneTableRecalculate,
                   onTap: () {
@@ -296,21 +336,49 @@ class _ZoneTableEditorState extends State<ZoneTableEditor> {
             ),
           ],
           if (!valid) ...[
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
             Text(
               t.zoneTableInvalid,
               style: AppTextStyles.label
-                  .copyWith(fontSize: 8.5, color: AppColors.warnText),
+                  .copyWith(fontSize: 10, color: AppColors.warnText),
             ),
           ],
           if (!_isCustom && widget.provisional) ...[
-            const SizedBox(height: 5),
+            const SizedBox(height: 8),
             Text(
               t.zoneTableProvisional,
-              style: AppTextStyles.label.copyWith(fontSize: 8, height: 1.4),
+              style: AppTextStyles.label.copyWith(fontSize: 10, height: 1.4),
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+/// One numeric column width, shared by the heading and every row, so the
+/// figures line up in a column instead of drifting with their own text.
+const _dotColumn = 17.0;
+const _codeColumn = 24.0;
+const _valueColumn = 62.0;
+const _gap = 8.0;
+
+class _ColumnHead extends StatelessWidget {
+  final String text;
+  final bool alignRight;
+
+  const _ColumnHead(this.text, {this.alignRight = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      textAlign: alignRight ? TextAlign.right : TextAlign.left,
+      style: AppTextStyles.label.copyWith(
+        fontSize: 8.5,
+        letterSpacing: 0.7,
+        fontWeight: FontWeight.w700,
+        color: AppColors.inkSoft,
       ),
     );
   }

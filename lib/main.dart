@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'l10n/app_localizations.dart';
+import 'services/locale_store.dart';
 import 'theme/app_theme.dart';
 import 'screens/splash_screen.dart';
 import 'screens/auth_screen.dart';
@@ -32,39 +33,45 @@ class TrailwattApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      // Follows the device locale, falling back to English for anything we
-      // do not translate yet.
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      // On web the browser reports '/', which would otherwise be overridden
-      // by initialRoute and leave the landing page unreachable; a browser
-      // visitor gets the marketing page, the app gets the splash.
-      initialRoute: kIsWeb ? '/' : '/splash',
-      routes: {
-        '/': (_) => const LandingPage(),
-        '/splash': (_) => const SplashScreen(),
-        '/auth': (_) => const AuthScreen(),
-        '/profile': (_) => const ProfileScreen(),
-        '/workout-builder': (_) => const WorkoutBuilderScreen(),
-        '/workout-builder/map': (_) => const WorkoutLocationScreen(),
-        '/home': (_) => const TreinoDoDiaScreen(),
-        '/route-map': (_) => const RouteMapScreen(),
-        '/route-edit': (_) => const RouteEditScreen(),
-        '/import-result': (_) => const ImportResultScreen(),
-        '/import-result/manual-intervals': (_) =>
-            const ManualResultIntervalsScreen(),
-        '/import-result/manual-continuous': (_) =>
-            const ManualResultContinuousScreen(),
-        '/history': (_) => const HistoricoScreen(),
-        '/calendar/week': (_) => const CalendarWeekScreen(),
-        '/calendar/month': (_) => const CalendarMonthScreen(),
-        '/more': (_) => const MoreScreen(),
-        '/integrations': (_) => const IntegrationsScreen(),
-      },
+    // Rebuilds when the rider picks a language in the profile; with no
+    // choice made, locale stays null and the device decides as before.
+    return ListenableBuilder(
+      listenable: LocaleStore.instance,
+      builder: (context, _) => MaterialApp(
+        locale: LocaleStore.instance.locale,
+        onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light,
+        // Follows the device locale, falling back to English for anything we
+        // do not translate yet.
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        // On web the browser reports '/', which would otherwise be overridden
+        // by initialRoute and leave the landing page unreachable; a browser
+        // visitor gets the marketing page, the app gets the splash.
+        initialRoute: kIsWeb ? '/' : '/splash',
+        routes: {
+          '/': (_) => const LandingPage(),
+          '/splash': (_) => const SplashScreen(),
+          '/auth': (_) => const AuthScreen(),
+          '/profile': (_) => const ProfileScreen(),
+          '/workout-builder': (_) => const WorkoutBuilderScreen(),
+          '/workout-builder/map': (_) => const WorkoutLocationScreen(),
+          '/home': (_) => const TreinoDoDiaScreen(),
+          '/route-map': (_) => const RouteMapScreen(),
+          '/route-edit': (_) => const RouteEditScreen(),
+          '/import-result': (_) => const ImportResultScreen(),
+          '/import-result/manual-intervals': (_) =>
+              const ManualResultIntervalsScreen(),
+          '/import-result/manual-continuous': (_) =>
+              const ManualResultContinuousScreen(),
+          '/history': (_) => const HistoricoScreen(),
+          '/calendar/week': (_) => const CalendarWeekScreen(),
+          '/calendar/month': (_) => const CalendarMonthScreen(),
+          '/more': (_) => const MoreScreen(),
+          '/integrations': (_) => const IntegrationsScreen(),
+        },
+      ),
     );
   }
 }

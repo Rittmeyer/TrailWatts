@@ -24,8 +24,8 @@
   "authConsentTerms": "Terms of Use",
   "authConsentMiddle": " and the ",
   "authConsentPrivacy": "Privacy Policy",
-  "profileTitle": "Create profile",
-  "profileSubtitle": "Weight and FTP are required. The rest is optional.",
+  "profileTitle": "Profile",
+  "profileSubtitle": "Weight and FTP are enough. The rest sharpens the suggestions.",
   "profileWeight": "Weight (kg)",
   "profileFtp": "FTP (watts)",
   "profileSave": "Save profile",
@@ -430,6 +430,23 @@
   "@historyLinkedTo": {
     "placeholders": {
       "day": {
+        "type": "String"
+      }
+    }
+  },
+  "profileRiderSection": "YOU",
+  "profileScaleLabel": "Scale",
+  "profileLanguage": "LANGUAGE",
+  "profileLanguageNote": "Applies to this session. \"System\" follows your device or browser.",
+  "languageSystem": "System",
+  "zoneTableColumnZone": "ZONE",
+  "zoneTableColumnFrom": "FROM",
+  "zoneTableColumnTo": "TO",
+  "backTo": "‹ {destination}",
+  "@backTo": {
+    "description": "Back link to the screen that opened this one.",
+    "placeholders": {
+      "destination": {
         "type": "String"
       }
     }

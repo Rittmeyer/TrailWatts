@@ -245,13 +245,13 @@ abstract class AppLocalizations {
   /// No description provided for @profileTitle.
   ///
   /// In en, this message translates to:
-  /// **'Create profile'**
+  /// **'Profile'**
   String get profileTitle;
 
   /// No description provided for @profileSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Weight and FTP are required. The rest is optional.'**
+  /// **'Weight and FTP are enough. The rest sharpens the suggestions.'**
   String get profileSubtitle;
 
   /// No description provided for @profileWeight.
@@ -1639,6 +1639,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'not linked to a workout'**
   String get historyNotLinked;
+
+  /// No description provided for @profileRiderSection.
+  ///
+  /// In en, this message translates to:
+  /// **'YOU'**
+  String get profileRiderSection;
+
+  /// No description provided for @profileScaleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Scale'**
+  String get profileScaleLabel;
+
+  /// No description provided for @profileLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'LANGUAGE'**
+  String get profileLanguage;
+
+  /// No description provided for @profileLanguageNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Applies to this session. \"System\" follows your device or browser.'**
+  String get profileLanguageNote;
+
+  /// No description provided for @languageSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get languageSystem;
+
+  /// No description provided for @zoneTableColumnZone.
+  ///
+  /// In en, this message translates to:
+  /// **'ZONE'**
+  String get zoneTableColumnZone;
+
+  /// No description provided for @zoneTableColumnFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'FROM'**
+  String get zoneTableColumnFrom;
+
+  /// No description provided for @zoneTableColumnTo.
+  ///
+  /// In en, this message translates to:
+  /// **'TO'**
+  String get zoneTableColumnTo;
+
+  /// Back link to the screen that opened this one.
+  ///
+  /// In en, this message translates to:
+  /// **'‹ {destination}'**
+  String backTo(String destination);
 }
 
 class _AppLocalizationsDelegate

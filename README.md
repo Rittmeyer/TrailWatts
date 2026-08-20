@@ -274,8 +274,15 @@ Duas coisas, ambas de propósito fora daqui em vez de meio-feitas:
 
 ## Idiomas
 
-A interface segue o idioma do aparelho (ou do navegador, na web). Português e
-inglês estão traduzidos; qualquer outro idioma cai no inglês.
+A interface segue o idioma do aparelho (ou do navegador, na web) **até você
+discordar**: **Perfil › Idioma** oferece Sistema, Português e English. Os
+nomes das línguas aparecem sempre na própria língua - quem abriu o app num
+idioma que não lê precisa conseguir achar o seu.
+
+A escolha vive em memória, como todo o resto do estado deste app
+(`lib/services/locale_store.dart`): vale para a sessão e volta a seguir o
+aparelho num início limpo. Português e inglês estão traduzidos; qualquer
+outro idioma cai no inglês.
 
 As strings ficam em `lib/l10n/app_pt.arb` e `app_en.arb`. Depois de editar um
 ARB, regenere as classes:
@@ -302,7 +309,7 @@ Datas e nomes de mês/dia vêm do `intl`, seguindo as convenções de cada idiom
 ```bash
 dart format --output=none --set-exit-if-changed lib test
 flutter analyze   # sem problemas
-flutter test      # 192 testes
+flutter test      # 197 testes
 ```
 
 Capturas de todas as telas em `docs/screenshots/` (veja o README de lá para o

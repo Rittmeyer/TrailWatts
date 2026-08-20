@@ -24,8 +24,8 @@
   "authConsentTerms": "Termos de Uso",
   "authConsentMiddle": " e a ",
   "authConsentPrivacy": "Política de Privacidade",
-  "profileTitle": "Criar perfil",
-  "profileSubtitle": "Peso e FTP obrigatórios. O resto é opcional.",
+  "profileTitle": "Perfil",
+  "profileSubtitle": "Peso e FTP bastam. O resto refina as sugestões.",
   "profileWeight": "Peso (kg)",
   "profileFtp": "FTP (watts)",
   "profileSave": "Salvar perfil",
@@ -256,5 +256,22 @@
   "calendarUnlinkBody": "O pedal continua no seu histórico - só deixa de ser o resultado deste dia, e o dia volta a ser planejado.",
   "calendarActivityUnlinked": "Pedal desassociado do dia",
   "historyLinkedTo": "resultado de {day}",
-  "historyNotLinked": "não associado a um treino"
+  "historyNotLinked": "não associado a um treino",
+  "profileRiderSection": "VOCÊ",
+  "profileScaleLabel": "Escala",
+  "profileLanguage": "IDIOMA",
+  "profileLanguageNote": "Vale para esta sessão. \"Sistema\" segue o idioma do aparelho ou do navegador.",
+  "languageSystem": "Sistema",
+  "zoneTableColumnZone": "ZONA",
+  "zoneTableColumnFrom": "DE",
+  "zoneTableColumnTo": "ATÉ",
+  "backTo": "‹ {destination}",
+  "@backTo": {
+    "description": "Back link to the screen that opened this one.",
+    "placeholders": {
+      "destination": {
+        "type": "String"
+      }
+    }
+  }
 }

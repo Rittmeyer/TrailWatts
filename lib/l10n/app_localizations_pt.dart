@@ -81,10 +81,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get authConsentPrivacy => 'Política de Privacidade';
 
   @override
-  String get profileTitle => 'Criar perfil';
+  String get profileTitle => 'Perfil';
 
   @override
-  String get profileSubtitle => 'Peso e FTP obrigatórios. O resto é opcional.';
+  String get profileSubtitle =>
+      'Peso e FTP bastam. O resto refina as sugestões.';
 
   @override
   String get profileWeight => 'Peso (kg)';
@@ -876,4 +877,34 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get historyNotLinked => 'não associado a um treino';
+
+  @override
+  String get profileRiderSection => 'VOCÊ';
+
+  @override
+  String get profileScaleLabel => 'Escala';
+
+  @override
+  String get profileLanguage => 'IDIOMA';
+
+  @override
+  String get profileLanguageNote =>
+      'Vale para esta sessão. \"Sistema\" segue o idioma do aparelho ou do navegador.';
+
+  @override
+  String get languageSystem => 'Sistema';
+
+  @override
+  String get zoneTableColumnZone => 'ZONA';
+
+  @override
+  String get zoneTableColumnFrom => 'DE';
+
+  @override
+  String get zoneTableColumnTo => 'ATÉ';
+
+  @override
+  String backTo(String destination) {
+    return '‹ $destination';
+  }
 }
