@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -578,7 +580,13 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String calendarWorkoutSummary(int blocks, int minutes) {
-    return '$blocks blocos · $minutes min';
+    String _temp0 = intl.Intl.pluralLogic(
+      blocks,
+      locale: localeName,
+      other: '$blocks blocos',
+      one: '1 bloco',
+    );
+    return '$_temp0 · $minutes min';
   }
 
   @override
@@ -829,4 +837,43 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get builderSaveToDay => 'Salvar neste dia';
+
+  @override
+  String get calendarPlannedWorkout => 'PLANEJADO';
+
+  @override
+  String get calendarLinkActivity => 'Associar pedal';
+
+  @override
+  String get calendarUnlinkActivity => 'Desassociar';
+
+  @override
+  String get calendarLinkTitle => 'Qual pedal foi este treino?';
+
+  @override
+  String get calendarLinkBody =>
+      'Só aparecem pedais que ainda não são resultado de outro dia. Nada é associado até você escolher.';
+
+  @override
+  String calendarActivityLinked(String activity) {
+    return '$activity registrado como resultado do dia';
+  }
+
+  @override
+  String get calendarUnlinkTitle => 'Desassociar este pedal?';
+
+  @override
+  String get calendarUnlinkBody =>
+      'O pedal continua no seu histórico - só deixa de ser o resultado deste dia, e o dia volta a ser planejado.';
+
+  @override
+  String get calendarActivityUnlinked => 'Pedal desassociado do dia';
+
+  @override
+  String historyLinkedTo(String day) {
+    return 'resultado de $day';
+  }
+
+  @override
+  String get historyNotLinked => 'não associado a um treino';
 }

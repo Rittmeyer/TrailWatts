@@ -1151,7 +1151,7 @@ abstract class AppLocalizations {
   /// No description provided for @calendarWorkoutSummary.
   ///
   /// In en, this message translates to:
-  /// **'{blocks} blocks · {minutes} min'**
+  /// **'{blocks, plural, =1{1 block} other{{blocks} blocks}} · {minutes} min'**
   String calendarWorkoutSummary(int blocks, int minutes);
 
   /// No description provided for @builderRoleWarmUp.
@@ -1573,6 +1573,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save to this day'**
   String get builderSaveToDay;
+
+  /// No description provided for @calendarPlannedWorkout.
+  ///
+  /// In en, this message translates to:
+  /// **'PLANNED'**
+  String get calendarPlannedWorkout;
+
+  /// No description provided for @calendarLinkActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Link a ride'**
+  String get calendarLinkActivity;
+
+  /// No description provided for @calendarUnlinkActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink'**
+  String get calendarUnlinkActivity;
+
+  /// No description provided for @calendarLinkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Which ride was this workout?'**
+  String get calendarLinkTitle;
+
+  /// No description provided for @calendarLinkBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Only rides not already recorded as another day\'s result are listed. Nothing is linked until you pick one.'**
+  String get calendarLinkBody;
+
+  /// No description provided for @calendarActivityLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'{activity} recorded as this day\'s result'**
+  String calendarActivityLinked(String activity);
+
+  /// No description provided for @calendarUnlinkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink this ride?'**
+  String get calendarUnlinkTitle;
+
+  /// No description provided for @calendarUnlinkBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The ride stays in your history - it just stops being this day\'s result, and the day goes back to being planned.'**
+  String get calendarUnlinkBody;
+
+  /// No description provided for @calendarActivityUnlinked.
+  ///
+  /// In en, this message translates to:
+  /// **'Ride unlinked from the day'**
+  String get calendarActivityUnlinked;
+
+  /// No description provided for @historyLinkedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'result of {day}'**
+  String historyLinkedTo(String day);
+
+  /// No description provided for @historyNotLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'not linked to a workout'**
+  String get historyNotLinked;
 }
 
 class _AppLocalizationsDelegate

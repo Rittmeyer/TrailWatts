@@ -101,12 +101,13 @@ void main() {
       await tester.pumpWidget(localized(const CalendarWeekScreen()));
       await tester.pump();
 
-      // 21 July is the completed ride in the demo data. Its zone rode along
-      // on the summary for a long time without ever being shown.
+      // 21 July is the ride already linked to its planned day. Both are
+      // named: the zone the rider actually held, and the one the plan asked
+      // for - which is the comparison the calibration loop runs on.
       await tester.tap(find.text('21'));
       await tester.pumpAndSettle();
 
-      expect(find.byType(ZonePill), findsOneWidget);
+      expect(find.byType(ZonePill), findsNWidgets(2));
     });
 
     testWidgets('the route names the zone of that one stretch', (tester) async {

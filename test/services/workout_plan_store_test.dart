@@ -2,10 +2,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:trailwatt/models/rider_profile.dart';
 import 'package:trailwatt/models/workout_block.dart';
 import 'package:trailwatt/models/zone.dart';
+import 'package:trailwatt/services/activity_store.dart';
 import 'package:trailwatt/services/rider_profile_store.dart';
 import 'package:trailwatt/services/workout_plan_store.dart';
 
-/// The demo plan has a planned day and a completed one.
+/// The demo plan has a plain planned day and one whose result is already
+/// recorded by a linked activity.
 final _plannedDay = DateTime(2026, 7, 20);
 final _completedDay = DateTime(2026, 7, 21);
 final _emptyDay = DateTime(2026, 7, 22);
@@ -20,10 +22,15 @@ WorkoutBlock _block(
           WorkoutTarget(metric: ZoneMetric.power, minValue: min, maxValue: max),
     );
 
+WorkoutPlanStore _freshStore({RiderProfileStore? profiles}) => WorkoutPlanStore(
+      profiles: profiles ?? RiderProfileStore(),
+      activities: ActivityStore(),
+    );
+
 void main() {
   late WorkoutPlanStore store;
 
-  setUp(() => store = WorkoutPlanStore(profiles: RiderProfileStore()));
+  setUp(() => store = _freshStore());
 
   group('what a day allows', () {
     test('a planned day can be changed', () {
@@ -36,7 +43,7 @@ void main() {
       expect(store.isEditable(_emptyDay), isTrue);
     });
 
-    test('a completed day is a record, not a plan', () {
+    test('a day whose result is recorded is not the rider\'s to re-plan', () {
       expect(store.hasWorkout(_completedDay), isTrue);
       expect(store.isEditable(_completedDay), isFalse);
     });
@@ -62,7 +69,7 @@ void main() {
     test('replaces what was planned rather than appending to it', () {
       store.savePlanned(_plannedDay, [_block(minutes: 42)]);
 
-      final planned = store.entryFor(_plannedDay)!.planned!;
+      final planned = store.entryFor(_plannedDay)!.planned;
       expect(planned, hasLength(1));
       expect(planned.single.durationMin, 42);
     });
@@ -74,10 +81,11 @@ void main() {
       expect(store.entryFor(_plannedDay), isNull);
     });
 
-    test('a completed day refuses to be re-planned', () {
+    test('a day with a recorded result refuses to be re-planned', () {
       expect(() => store.savePlanned(_completedDay, [_block()]),
           throwsA(isA<StateError>()));
-      expect(store.entryFor(_completedDay)!.isDone, isTrue);
+      // The plan the ride was measured against is untouched.
+      expect(store.entryFor(_completedDay)!.planned, hasLength(1));
     });
   });
 
@@ -101,22 +109,35 @@ void main() {
       expect(notifications, 0, reason: 'nothing changed, so nothing to report');
     });
 
-    test('a completed day refuses to be removed', () {
+    test('a day with a recorded result refuses to be removed', () {
       expect(
           () => store.removePlanned(_completedDay), throwsA(isA<StateError>()));
       expect(store.hasWorkout(_completedDay), isTrue);
+    });
+
+    test('unlinking the ride hands the day back', () {
+      final activities = ActivityStore();
+      final store = WorkoutPlanStore(
+          profiles: RiderProfileStore(), activities: activities);
+      expect(store.isEditable(_completedDay), isFalse);
+
+      activities.unlink(activities.linkedTo(_completedDay)!.id);
+
+      expect(store.isEditable(_completedDay), isTrue);
+      store.removePlanned(_completedDay);
+      expect(store.hasWorkout(_completedDay), isFalse);
     });
   });
 
   group('the plan follows the rider\'s zone table', () {
     test('switching to five zones relabels the plan, keeping the watts', () {
       final profiles = RiderProfileStore();
-      final store = WorkoutPlanStore(profiles: profiles);
+      final store = _freshStore(profiles: profiles);
       // An anaerobic block, which only the seven-zone table has a number
       // for: the five-zone table collapses Coggan's Z5/Z6/Z7 into its top
       // zone, so Z6 has to land on Z5 there.
       store.savePlanned(_emptyDay, [_block(min: 270, max: 290, zone: 6)]);
-      expect(store.entryFor(_emptyDay)!.planned!.single.zone.index, 6);
+      expect(store.entryFor(_emptyDay)!.planned.single.zone.index, 6);
 
       profiles.save(const RiderProfile(
         weightKg: 74,
@@ -124,7 +145,7 @@ void main() {
         powerZones: PowerZoneSettings(scale: ZoneScale.five),
       ));
 
-      final block = store.entryFor(_emptyDay)!.planned!.single;
+      final block = store.entryFor(_emptyDay)!.planned.single;
       expect(block.zone.index, 5);
       expect(block.zone.scale, ZoneScale.five);
       expect(block.target.minValue, 270,
@@ -133,7 +154,7 @@ void main() {
 
     test('a zone the new table still has keeps its number', () {
       final profiles = RiderProfileStore();
-      final store = WorkoutPlanStore(profiles: profiles);
+      final store = _freshStore(profiles: profiles);
       store.savePlanned(_emptyDay, [_block(zone: 3)]);
 
       profiles.save(const RiderProfile(
@@ -143,13 +164,14 @@ void main() {
       ));
 
       // Both tables have a Z3, so the rider's choice survives untouched.
-      expect(store.entryFor(_emptyDay)!.planned!.single.zone.index, 3);
+      expect(store.entryFor(_emptyDay)!.planned.single.zone.index, 3);
     });
 
-    test('a completed day keeps the scale it was recorded against', () {
+    test('a recorded activity is not touched by a table change', () {
       final profiles = RiderProfileStore();
-      final store = WorkoutPlanStore(profiles: profiles);
-      final before = store.entryFor(_completedDay)!.completed!.zone;
+      final activities = ActivityStore();
+      WorkoutPlanStore(profiles: profiles, activities: activities);
+      final before = activities.linkedTo(_completedDay)!;
 
       profiles.save(const RiderProfile(
         weightKg: 74,
@@ -157,8 +179,10 @@ void main() {
         powerZones: PowerZoneSettings(scale: ZoneScale.five),
       ));
 
-      // Re-labelling a finished ride would rewrite what happened.
-      expect(store.entryFor(_completedDay)!.completed!.zone, before);
+      // A ride that happened is a record; only the plan follows the table.
+      final after = activities.linkedTo(_completedDay)!;
+      expect(after.realizedWatts, before.realizedWatts);
+      expect(after.zone, before.zone);
     });
   });
 }

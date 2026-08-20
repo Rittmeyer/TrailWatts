@@ -1,39 +1,20 @@
 import 'workout_block.dart';
-import 'zone.dart';
-import 'result_source.dart';
 
+/// What is planned for one day.
+///
+/// Only the plan: whether the day is done is not stored here but read from
+/// the activity linked to it. Keeping the result out of the entry is what
+/// makes associating and disassociating possible at all - a day that used to
+/// hold its own completed summary had nowhere to put the plan back when the
+/// rider unlinked the ride.
 class CalendarEntry {
   final DateTime date;
-  final List<WorkoutBlock>? planned;
-  final CompletedSummary? completed;
+  final List<WorkoutBlock> planned;
 
-  const CalendarEntry({
+  CalendarEntry({
     required this.date,
-    this.planned,
-    this.completed,
-  }) : assert(
-          (planned != null) != (completed != null),
-          'Exactly one of planned or completed must be set.',
-        );
+    required this.planned,
+  }) : assert(planned.isNotEmpty, 'A planned day needs at least one block.');
 
-  bool get isDone => completed != null;
-  bool get hasWorkout => planned != null || completed != null;
-}
-
-class CompletedSummary {
-  final String routeName;
-  final int targetWatts;
-  final int realizedWatts;
-  final int durationMin;
-  final ResultSource source;
-  final TrainingZone zone;
-
-  const CompletedSummary({
-    required this.routeName,
-    required this.targetWatts,
-    required this.realizedWatts,
-    required this.durationMin,
-    required this.source,
-    required this.zone,
-  });
+  bool get hasWorkout => planned.isNotEmpty;
 }

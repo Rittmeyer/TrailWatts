@@ -4,6 +4,7 @@ import 'package:table_calendar/table_calendar.dart';
 import '../l10n/domain_labels.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../services/activity_store.dart';
 import '../services/workout_plan_store.dart';
 import '../widgets/bottom_nav.dart';
 import '../widgets/calendar_day_actions.dart';
@@ -31,9 +32,11 @@ class _CalendarMonthScreenState extends State<CalendarMonthScreen> {
     return Scaffold(
       body: SafeArea(
         // Rebuilds when the plan changes - adding, editing or removing a
-        // day - and when the profile does, since that renames the zones.
+        // day - and when the activities do, since linking a ride is what
+        // makes a day read as done.
         child: ListenableBuilder(
-          listenable: WorkoutPlanStore.instance,
+          listenable: Listenable.merge(
+              [WorkoutPlanStore.instance, ActivityStore.instance]),
           builder: (context, _) {
             final entries = WorkoutPlanStore.instance.entries;
             return Padding(

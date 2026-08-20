@@ -258,7 +258,7 @@
   "routingNeedsTwoPoints": "Mark at least two points to trace the route.",
   "importPowerCurveSnack": "Optional connection - fills the curve via API",
   "builderAddBlock": "+ Add block",
-  "calendarWorkoutSummary": "{blocks} blocks · {minutes} min",
+  "calendarWorkoutSummary": "{blocks, plural, =1{1 block} other{{blocks} blocks}} · {minutes} min",
   "@calendarWorkoutSummary": {
     "placeholders": {
       "blocks": {
@@ -408,5 +408,30 @@
   "calendarRemoveBody": "The day goes back to being a rest day. Nothing else in the plan changes.",
   "calendarWorkoutRemoved": "Workout removed from the day",
   "calendarWorkoutSaved": "Workout saved to the day",
-  "builderSaveToDay": "Save to this day"
+  "builderSaveToDay": "Save to this day",
+  "calendarPlannedWorkout": "PLANNED",
+  "calendarLinkActivity": "Link a ride",
+  "calendarUnlinkActivity": "Unlink",
+  "calendarLinkTitle": "Which ride was this workout?",
+  "calendarLinkBody": "Only rides not already recorded as another day's result are listed. Nothing is linked until you pick one.",
+  "calendarActivityLinked": "{activity} recorded as this day's result",
+  "calendarUnlinkTitle": "Unlink this ride?",
+  "calendarUnlinkBody": "The ride stays in your history - it just stops being this day's result, and the day goes back to being planned.",
+  "calendarActivityUnlinked": "Ride unlinked from the day",
+  "historyLinkedTo": "result of {day}",
+  "historyNotLinked": "not linked to a workout",
+  "@calendarActivityLinked": {
+    "placeholders": {
+      "activity": {
+        "type": "String"
+      }
+    }
+  },
+  "@historyLinkedTo": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  }
 }

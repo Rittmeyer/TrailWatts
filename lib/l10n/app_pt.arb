@@ -175,7 +175,7 @@
   "routingNeedsTwoPoints": "Marque pelo menos dois pontos para traçar a rota.",
   "importPowerCurveSnack": "Conexão opcional - preenche a curva via API",
   "builderAddBlock": "+ Adicionar bloco",
-  "calendarWorkoutSummary": "{blocks} blocos · {minutes} min",
+  "calendarWorkoutSummary": "{blocks, plural, =1{1 bloco} other{{blocks} blocos}} · {minutes} min",
   "builderRoleWarmUp": "Aquecimento",
   "builderRoleWork": "Trabalho",
   "builderRoleRecovery": "Recuperação",
@@ -245,5 +245,16 @@
   "calendarRemoveBody": "O dia volta a ser de descanso. Nada mais no plano muda.",
   "calendarWorkoutRemoved": "Treino removido do dia",
   "calendarWorkoutSaved": "Treino salvo no dia",
-  "builderSaveToDay": "Salvar neste dia"
+  "builderSaveToDay": "Salvar neste dia",
+  "calendarPlannedWorkout": "PLANEJADO",
+  "calendarLinkActivity": "Associar pedal",
+  "calendarUnlinkActivity": "Desassociar",
+  "calendarLinkTitle": "Qual pedal foi este treino?",
+  "calendarLinkBody": "Só aparecem pedais que ainda não são resultado de outro dia. Nada é associado até você escolher.",
+  "calendarActivityLinked": "{activity} registrado como resultado do dia",
+  "calendarUnlinkTitle": "Desassociar este pedal?",
+  "calendarUnlinkBody": "O pedal continua no seu histórico - só deixa de ser o resultado deste dia, e o dia volta a ser planejado.",
+  "calendarActivityUnlinked": "Pedal desassociado do dia",
+  "historyLinkedTo": "resultado de {day}",
+  "historyNotLinked": "não associado a um treino"
 }

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../models/history_entry.dart';
-import '../models/result_source.dart';
 import '../models/rider_profile.dart';
 import '../models/zone.dart';
 import '../l10n/domain_labels.dart';
+import '../services/activity_store.dart';
 import '../services/rider_profile_store.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -25,33 +26,6 @@ class HistoricoScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final entries = [
-      HistoryEntry(
-          date: DateTime(2026, 7, 14),
-          routeName: 'Subida da Serra',
-          targetWatts: 180,
-          realizedWatts: 178,
-          targetDurationMin: 32,
-          realizedDurationMin: 33,
-          source: ResultSource.strava),
-      HistoryEntry(
-          date: DateTime(2026, 7, 12),
-          routeName: 'Circuito do parque',
-          targetWatts: 150,
-          realizedWatts: 142,
-          targetDurationMin: 60,
-          realizedDurationMin: 58,
-          source: ResultSource.garmin),
-      HistoryEntry(
-          date: DateTime(2026, 7, 10),
-          routeName: 'Treino indoor',
-          targetWatts: 240,
-          realizedWatts: 241,
-          targetDurationMin: 20,
-          realizedDurationMin: 20,
-          source: ResultSource.manual),
-    ];
-
     final t = tr(context);
     return Scaffold(
       body: SafeArea(
@@ -59,9 +33,11 @@ class HistoricoScreen extends StatelessWidget {
         // named on the table they chose, so switching to Z1-Z5 relabels the
         // list rather than leaving it on a table they no longer use.
         child: ListenableBuilder(
-          listenable: RiderProfileStore.instance,
+          listenable: Listenable.merge(
+              [RiderProfileStore.instance, ActivityStore.instance]),
           builder: (context, _) {
             final rider = RiderProfileStore.instance.profile;
+            final entries = ActivityStore.instance.activities;
             return Padding(
               padding: const EdgeInsets.all(24),
               child: Column(
@@ -115,9 +91,16 @@ class HistoricoScreen extends StatelessWidget {
                                   const SizedBox(height: 3),
                                   ZonePill(zone: _zoneFor(e, rider)),
                                   const SizedBox(height: 3),
-                                  Text(t.historyTargetWatts(e.targetWatts),
-                                      style: AppTextStyles.label
-                                          .copyWith(fontSize: 11)),
+                                  Text(
+                                    e.isLinked
+                                        ? t.historyLinkedTo(DateFormat.MMMMd(
+                                                Localizations.localeOf(context)
+                                                    .toString())
+                                            .format(e.linkedDay!))
+                                        : t.historyNotLinked,
+                                    style: AppTextStyles.label
+                                        .copyWith(fontSize: 11),
+                                  ),
                                 ],
                               ),
                               Container(

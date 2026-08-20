@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -578,7 +580,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String calendarWorkoutSummary(int blocks, int minutes) {
-    return '$blocks blocks · $minutes min';
+    String _temp0 = intl.Intl.pluralLogic(
+      blocks,
+      locale: localeName,
+      other: '$blocks blocks',
+      one: '1 block',
+    );
+    return '$_temp0 · $minutes min';
   }
 
   @override
@@ -828,4 +836,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get builderSaveToDay => 'Save to this day';
+
+  @override
+  String get calendarPlannedWorkout => 'PLANNED';
+
+  @override
+  String get calendarLinkActivity => 'Link a ride';
+
+  @override
+  String get calendarUnlinkActivity => 'Unlink';
+
+  @override
+  String get calendarLinkTitle => 'Which ride was this workout?';
+
+  @override
+  String get calendarLinkBody =>
+      'Only rides not already recorded as another day\'s result are listed. Nothing is linked until you pick one.';
+
+  @override
+  String calendarActivityLinked(String activity) {
+    return '$activity recorded as this day\'s result';
+  }
+
+  @override
+  String get calendarUnlinkTitle => 'Unlink this ride?';
+
+  @override
+  String get calendarUnlinkBody =>
+      'The ride stays in your history - it just stops being this day\'s result, and the day goes back to being planned.';
+
+  @override
+  String get calendarActivityUnlinked => 'Ride unlinked from the day';
+
+  @override
+  String historyLinkedTo(String day) {
+    return 'result of $day';
+  }
+
+  @override
+  String get historyNotLinked => 'not linked to a workout';
 }
