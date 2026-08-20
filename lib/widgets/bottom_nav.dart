@@ -10,7 +10,7 @@ class TrailwattBottomNav extends StatelessWidget {
 
   const TrailwattBottomNav({super.key, required this.currentIndex});
 
-  static const _routes = ['/home', '/calendar/week', '/history', null];
+  static const _routes = ['/home', '/calendar/week', '/history', '/more'];
 
   @override
   Widget build(BuildContext context) {
@@ -21,14 +21,8 @@ class TrailwattBottomNav extends StatelessWidget {
       showUnselectedLabels: true,
       type: BottomNavigationBarType.fixed,
       onTap: (i) {
-        final route = _routes[i];
-        if (route == null) {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text(tr(context).navComingSoon)));
-          return;
-        }
         if (i == currentIndex) return;
-        Navigator.of(context).pushNamedAndRemoveUntil(route, (r) => false);
+        Navigator.of(context).pushNamedAndRemoveUntil(_routes[i], (r) => false);
       },
       items: [
         BottomNavigationBarItem(

@@ -284,5 +284,35 @@
       }
     }
   },
-  "builderSequenceNote": "Recovery is a block like any other: to build 4×8min Z4 with 2min easy, add Z4, then Z1, and duplicate the pair."
+  "builderSequenceNote": "A block can hold two or more stimuli: to build 4x8min Z4 with 2min easy, add a Z4 stimulus, tap \"+ Stimulus\" to add the Z1, and set how many times to repeat.",
+  "sourceTrainingPeaks": "TrainingPeaks",
+  "builderAddStimulus": "+ Stimulus",
+  "builderStimulus": "Stimulus {number}",
+  "@builderStimulus": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "builderRepeat": "Repeat (x)",
+  "moreTitle": "More",
+  "moreSubtitle": "Profile, integrations and more",
+  "moreProfile": "Profile",
+  "moreProfileSubtitle": "Weight, FTP and zones",
+  "moreIntegrations": "Integrations",
+  "moreIntegrationsSubtitle": "Garmin, Strava and TrainingPeaks",
+  "integrationsTitle": "Integrations",
+  "integrationsSubtitle": "Connect Garmin, Strava and TrainingPeaks to export routes and import your planned workout automatically.",
+  "integrationsConnected": "Connected",
+  "integrationsNotConnected": "Not connected",
+  "integrationsConnect": "Connect",
+  "integrationsDisconnect": "Disconnect",
+  "integrationsScopeNote": "The connection only reads the matching activity or planned workout - never a bulk import of your history (Article II).",
+  "importWorkoutFabLabel": "Import from TrainingPeaks",
+  "importWorkoutSuccessSnack": "Workout imported from TrainingPeaks",
+  "importWorkoutNoConnectionTitle": "No TrainingPeaks connection",
+  "importWorkoutNoConnectionBody": "Connect your account to import your preferred workout automatically, or keep building it manually.",
+  "importWorkoutConnectCta": "Connect now",
+  "importWorkoutManualCta": "Create manually"
 }

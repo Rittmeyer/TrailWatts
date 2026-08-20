@@ -103,8 +103,8 @@ polling to preserve symmetry.
 
 ## Key Entities
 
-- **PlatformConnection** — `platform` (strava | garmin | wahoo),
-  `riderId`, `connected`, `scopes`
+- **PlatformConnection** — `platform` (strava | garmin | wahoo |
+  trainingPeaks), `riderId`, `connected`, `scopes`
 - **ExportedRoute** — `routeId`, `platform`, `exportedAt`, `fileFormat`
 - **ActivityCandidate** — `platform`, `activityId`, `eventReceivedAt` —
   one entry per matching activity-created event received across all
@@ -147,3 +147,31 @@ polling to preserve symmetry.
 - Extra-activity candidates (Requirement 7) that the rider never acts
   on — do they expire with the `ImportAttempt`, or remain selectable
   indefinitely from history?
+
+## Addendum: TrainingPeaks and preferred-workout import
+
+TrainingPeaks joins Strava and Garmin as a connectable platform
+(`PlatformConnection`, `IntegrationsScreen`), managed the same way: connect
+or disconnect independently, read-scoped, never a bulk history import
+(Requirements 9-10 apply unchanged).
+
+TrainingPeaks additionally covers a capability this feature did not
+previously scope: **importing the rider's already-planned workout**, not
+just exporting a route and reading back a completed activity. This is a
+read of one specific planned workout, the same Article II boundary as
+Requirement 2's single-activity read, just upstream of the ride instead of
+downstream.
+
+- The workout builder MUST offer to import the rider's preferred workout
+  from TrainingPeaks via an easily discoverable action (a floating action
+  button, per the builder's UX) before falling back to manual entry.
+- If TrainingPeaks is not connected, or the import has no matching planned
+  workout, the system MUST fall back to the existing manual block editor —
+  it MUST NOT block workout creation on having a connection.
+- Imported blocks populate the same `WorkoutBlock`/`WorkoutBlockGroup`
+  structures the manual builder edits, so an imported workout remains fully
+  editable, exactly like a manually built one.
+- See `lib/services/training_peaks_import.dart` for the current
+  implementation, which stands in for the real TrainingPeaks API the same
+  way the rest of this feature's demo data stands in for Strava/Garmin
+  (README, "Status").

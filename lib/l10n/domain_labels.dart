@@ -51,6 +51,7 @@ extension ResultSourceL10n on ResultSource {
         ResultSource.strava => t.sourceStrava,
         ResultSource.garmin => t.sourceGarmin,
         ResultSource.wahoo => t.sourceWahoo,
+        ResultSource.trainingPeaks => t.sourceTrainingPeaks,
         ResultSource.manual => t.sourceManual,
       };
 }

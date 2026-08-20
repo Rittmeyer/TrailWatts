@@ -10,16 +10,29 @@ app was built from.
 
 ## Status
 
-All 15 screens in `lib/routes/screen_inventory.dart` are implemented:
+All 17 screens in `lib/routes/screen_inventory.dart` are implemented:
 account/auth, rider profile, workout builder (block editor + location map),
 today's workout, route map, route editing, result import (auto + two manual
-fallbacks), history, and calendar (week and month). The physics/route-score
-engine (`lib/engine/`), domain models (`lib/models/`) and design tokens
-(`lib/theme/`) are the same ones the audited spec package shipped with.
+fallbacks), history, calendar (week and month), "Mais" and platform
+integrations. The physics/route-score engine (`lib/engine/`), domain models
+(`lib/models/`) and design tokens (`lib/theme/`) are the same ones the
+audited spec package shipped with.
+
+A block in the workout builder can hold two or more stimuli - e.g. a Z4
+work stimulus and its Z1 recovery - added and repeated together instead of
+typed out as separate blocks; see the "repeat group" decision in
+`specs/005-workout-builder/spec.md`. The builder can also pull the rider's
+preferred workout in from TrainingPeaks (via the floating action button, or
+the "Mais" tab's Integrations link) when connected, falling back to the
+manual block editor otherwise.
 
 Map screens resolve their geometry against a real road network (see
-"Mapas e rotas" below). Demo data still stands in for the platform
-integrations in `specs/002-platform-integration`, and the workout→terrain
+"Mapas e rotas" below). The Integrations screen lets a rider connect or
+disconnect Garmin, Strava and TrainingPeaks independently
+(`lib/screens/integrations_screen.dart`), but the connection itself is
+still an in-memory demo store (`lib/services/integrations_store.dart`) -
+demo data stands in for the real OAuth flow in
+`specs/002-platform-integration`, and the workout→terrain
 matching engine in `specs/006-route-recommendation` remains subject to the
 "Implementation gate" in `SETUP.md`: the routing layer added here covers the
 "geospatial candidate source" and "route editing re-scoring" items, not the

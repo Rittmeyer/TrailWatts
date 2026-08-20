@@ -188,8 +188,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 TrailwattButton(
                   label: t.profileSave,
                   onPressed: _canSave
-                      ? () =>
-                          Navigator.of(context).pushNamed('/workout-builder')
+                      ? () => Navigator.of(context)
+                          .pushNamedAndRemoveUntil('/home', (r) => false)
                       : null,
                 ),
                 const SizedBox(height: 14),

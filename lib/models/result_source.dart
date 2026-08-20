@@ -1,1 +1,1 @@
-enum ResultSource { strava, garmin, wahoo, manual }
+enum ResultSource { strava, garmin, wahoo, trainingPeaks, manual }

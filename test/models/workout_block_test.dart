@@ -97,4 +97,51 @@ void main() {
           reason: 'a warm-up is not an interval to match against');
     });
   });
+
+  group('a block can hold two or more stimuli, repeated as one unit', () {
+    test('a group of one stimulus is not flagged as multi-stimulus', () {
+      final stimulus = _work(10);
+      final group = WorkoutBlockGroup(stimuli: [stimulus]);
+      expect(group.isMultiStimulus, isFalse);
+      expect(group.expanded, [same(stimulus)]);
+    });
+
+    test('4x8min Z4 with 2min easy is one group, not eight typed blocks', () {
+      final group = WorkoutBlockGroup(
+        repeatCount: 4,
+        stimuli: [_work(8), _recovery(2)],
+      );
+
+      expect(group.isMultiStimulus, isTrue);
+      expect(group.expanded, hasLength(8));
+      expect(
+          group.expanded.map((b) => b.durationMin), [8, 2, 8, 2, 8, 2, 8, 2]);
+      expect(group.totalDurationMin, 40);
+    });
+
+    test('flattening groups preserves order across groups', () {
+      final groups = [
+        WorkoutBlockGroup(stimuli: [_work(10)]),
+        WorkoutBlockGroup(repeatCount: 2, stimuli: [_work(8), _recovery(2)]),
+      ];
+
+      final flat = flattenBlockGroups(groups);
+      expect(flat.map((b) => b.durationMin), [10, 8, 2, 8, 2]);
+
+      // The flattened list is still what expandWorkout/workoutDurationMin
+      // operate on - grouping is purely how the rider authors it.
+      expect(expandWorkout(flat), hasLength(5));
+      expect(workoutDurationMin(flat), 30);
+    });
+
+    test('a group needs at least one stimulus', () {
+      expect(
+          () => WorkoutBlockGroup(stimuli: []), throwsA(isA<AssertionError>()));
+    });
+
+    test('a group must repeat at least once', () {
+      expect(() => WorkoutBlockGroup(stimuli: [_work(10)], repeatCount: 0),
+          throwsA(isA<AssertionError>()));
+    });
+  });
 }

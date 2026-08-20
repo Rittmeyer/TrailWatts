@@ -19,9 +19,13 @@ that Feature 006 can match against real terrain.
 5. The system MUST expand blocks into an ordered `WorkoutTimelineStep` list,
    one step per block, preserving order and duration. Only work steps carry
    an `intervalId`; nothing is matched to a recovery by interval.
-6. There is deliberately no repetition count on a block: with recovery as its
-   own block, N consecutive repeats of one block are physically identical to
-   one block N times as long, so the field could only mislead.
+6. A block MAY hold two or more stimuli (e.g. a work stimulus and its own
+   recovery stimulus) authored and repeated together as one unit - a repeat
+   group. A group still expands to the same physically real, ordered
+   sequence of blocks as if every repeat had been typed out by hand (its
+   stimuli, `repeatCount` times, in order): the repeat count is authoring
+   convenience, not a new field the timeline has to interpret. See
+   `WorkoutBlockGroup` in `lib/models/workout_block.dart`.
 7. The builder MUST use exactly one search-area map. The map selects a
    center/radius, not a route.
 8. Before route generation, the rider MUST be able to choose a route
@@ -39,14 +43,18 @@ equivalent to 30 continuous minutes of Z3/Z4.
 ## Key entities
 - `WorkoutBlock`
 - `WorkoutBlockRole`
+- `WorkoutBlockGroup`
 - `WorkoutTimelineStep`
 - `SearchArea`
 - `RouteSearchContext`
 
 ## Open decisions
 - Maximum block count: recommended warning at 12, hard maximum TBD. Writing
-  recovery out as blocks makes lists longer, so revisit this number.
+  recovery out as blocks makes lists longer, so revisit this number - now
+  counted in repeat groups, since a 4×(Z4+Z1) group is one authored block.
 - Default search radius: prototype uses 8 km; user confirmation required.
-- Whether to add a repeat group (e.g. 4× over a Z4+Z1 pair) so long interval
-  sessions do not need every block typed out. The builder currently offers a
-  per-block "duplicate" action instead.
+
+## Resolved decisions
+- Repeat group (e.g. 4× over a Z4+Z1 pair), so long interval sessions do not
+  need every block typed out: added as `WorkoutBlockGroup` (Requirement 6).
+  The per-block "duplicate" action remains, for duplicating a whole group.

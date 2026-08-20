@@ -104,6 +104,55 @@ List<WorkoutTimelineStep> expandWorkout(List<WorkoutBlock> blocks) {
 int workoutDurationMin(List<WorkoutBlock> blocks) =>
     blocks.fold(0, (sum, b) => sum + b.durationMin);
 
+/// A block as the rider authors it: one or more stimuli (e.g. a Z4 work
+/// stimulus and its Z1 recovery) held together and, optionally, repeated as
+/// one unit - so "4x8min Z4 with 2min easy" is one block with two stimuli
+/// repeated 4 times, not four separate work blocks and four separate
+/// recovery blocks typed out by hand. Settles the "repeat group" open
+/// decision in specs/005-workout-builder/spec.md.
+///
+/// A group still expands to the same physically real `WorkoutBlock`
+/// sequence as before - its stimuli, repeated `repeatCount` times, in
+/// order - so the timeline Feature 006 matches against is exactly as
+/// concrete as it always was.
+class WorkoutBlockGroup {
+  final List<WorkoutBlock> stimuli;
+  final int repeatCount;
+
+  WorkoutBlockGroup({
+    required this.stimuli,
+    this.repeatCount = 1,
+  })  : assert(stimuli.isNotEmpty, 'A block needs at least one stimulus.'),
+        assert(repeatCount >= 1);
+
+  /// True once a second stimulus (e.g. recovery) has been added to the
+  /// block - the case this class exists for.
+  bool get isMultiStimulus => stimuli.length > 1;
+
+  /// The physically real sequence this block stands for.
+  List<WorkoutBlock> get expanded => [
+        for (var i = 0; i < repeatCount; i++) ...stimuli,
+      ];
+
+  int get totalDurationMin =>
+      repeatCount * stimuli.fold(0, (sum, b) => sum + b.durationMin);
+
+  WorkoutBlockGroup copyWith({
+    List<WorkoutBlock>? stimuli,
+    int? repeatCount,
+  }) =>
+      WorkoutBlockGroup(
+        stimuli: stimuli ?? this.stimuli,
+        repeatCount: repeatCount ?? this.repeatCount,
+      );
+}
+
+/// Flattens the rider-authored block groups into the physically real,
+/// ordered block sequence `expandWorkout` and `workoutDurationMin` operate
+/// on.
+List<WorkoutBlock> flattenBlockGroups(List<WorkoutBlockGroup> groups) =>
+    [for (final g in groups) ...g.expanded];
+
 class WorkoutTimelineStep {
   final String id;
   final int sequenceIndex;

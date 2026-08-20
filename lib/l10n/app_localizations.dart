@@ -62,7 +62,8 @@ import 'app_localizations_pt.dart';
 /// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
 abstract class AppLocalizations {
-  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  AppLocalizations(String locale)
+      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -70,7 +71,8 @@ abstract class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -82,7 +84,8 @@ abstract class AppLocalizations {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
     delegate,
     GlobalMaterialLocalizations.delegate,
     GlobalCupertinoLocalizations.delegate,
@@ -1202,11 +1205,150 @@ abstract class AppLocalizations {
   /// No description provided for @builderSequenceNote.
   ///
   /// In en, this message translates to:
-  /// **'Recovery is a block like any other: to build 4×8min Z4 with 2min easy, add Z4, then Z1, and duplicate the pair.'**
+  /// **'A block can hold two or more stimuli: to build 4x8min Z4 with 2min easy, add a Z4 stimulus, tap "+ Stimulus" to add the Z1, and set how many times to repeat.'**
   String get builderSequenceNote;
+
+  /// No description provided for @sourceTrainingPeaks.
+  ///
+  /// In en, this message translates to:
+  /// **'TrainingPeaks'**
+  String get sourceTrainingPeaks;
+
+  /// No description provided for @builderAddStimulus.
+  ///
+  /// In en, this message translates to:
+  /// **'+ Stimulus'**
+  String get builderAddStimulus;
+
+  /// No description provided for @builderStimulus.
+  ///
+  /// In en, this message translates to:
+  /// **'Stimulus {number}'**
+  String builderStimulus(int number);
+
+  /// No description provided for @builderRepeat.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat (x)'**
+  String get builderRepeat;
+
+  /// No description provided for @moreTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get moreTitle;
+
+  /// No description provided for @moreSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile, integrations and more'**
+  String get moreSubtitle;
+
+  /// No description provided for @moreProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get moreProfile;
+
+  /// No description provided for @moreProfileSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight, FTP and zones'**
+  String get moreProfileSubtitle;
+
+  /// No description provided for @moreIntegrations.
+  ///
+  /// In en, this message translates to:
+  /// **'Integrations'**
+  String get moreIntegrations;
+
+  /// No description provided for @moreIntegrationsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Garmin, Strava and TrainingPeaks'**
+  String get moreIntegrationsSubtitle;
+
+  /// No description provided for @integrationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Integrations'**
+  String get integrationsTitle;
+
+  /// No description provided for @integrationsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect Garmin, Strava and TrainingPeaks to export routes and import your planned workout automatically.'**
+  String get integrationsSubtitle;
+
+  /// No description provided for @integrationsConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected'**
+  String get integrationsConnected;
+
+  /// No description provided for @integrationsNotConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Not connected'**
+  String get integrationsNotConnected;
+
+  /// No description provided for @integrationsConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get integrationsConnect;
+
+  /// No description provided for @integrationsDisconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnect'**
+  String get integrationsDisconnect;
+
+  /// No description provided for @integrationsScopeNote.
+  ///
+  /// In en, this message translates to:
+  /// **'The connection only reads the matching activity or planned workout - never a bulk import of your history (Article II).'**
+  String get integrationsScopeNote;
+
+  /// No description provided for @importWorkoutFabLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from TrainingPeaks'**
+  String get importWorkoutFabLabel;
+
+  /// No description provided for @importWorkoutSuccessSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout imported from TrainingPeaks'**
+  String get importWorkoutSuccessSnack;
+
+  /// No description provided for @importWorkoutNoConnectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No TrainingPeaks connection'**
+  String get importWorkoutNoConnectionTitle;
+
+  /// No description provided for @importWorkoutNoConnectionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect your account to import your preferred workout automatically, or keep building it manually.'**
+  String get importWorkoutNoConnectionBody;
+
+  /// No description provided for @importWorkoutConnectCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect now'**
+  String get importWorkoutConnectCta;
+
+  /// No description provided for @importWorkoutManualCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Create manually'**
+  String get importWorkoutManualCta;
 }
 
-class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
@@ -1215,25 +1357,25 @@ class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> 
   }
 
   @override
-  bool isSupported(Locale locale) => <String>['en', 'pt'].contains(locale.languageCode);
+  bool isSupported(Locale locale) =>
+      <String>['en', 'pt'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
-
-
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'en': return AppLocalizationsEn();
-    case 'pt': return AppLocalizationsPt();
+    case 'en':
+      return AppLocalizationsEn();
+    case 'pt':
+      return AppLocalizationsPt();
   }
 
   throw FlutterError(
-    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-    'an issue with the localizations generation tool. Please file an issue '
-    'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.'
-  );
+      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+      'an issue with the localizations generation tool. Please file an issue '
+      'on GitHub with a reproducible sample app and the gen-l10n configuration '
+      'that was used.');
 }

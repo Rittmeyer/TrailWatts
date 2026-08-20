@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:trailwatt/main.dart';
 import 'package:trailwatt/screens/calendar_week_screen.dart';
 import 'package:trailwatt/screens/historico_screen.dart';
+import 'package:trailwatt/screens/integrations_screen.dart';
+import 'package:trailwatt/screens/more_screen.dart';
 import 'package:trailwatt/screens/profile_screen.dart';
 import 'package:trailwatt/screens/workout_builder_screen.dart';
 
@@ -45,6 +47,18 @@ void main() {
     testWidgets('workout builder', (tester) async {
       await pumpScreen(tester, const WorkoutBuilderScreen());
       expect(find.textContaining('Z1-Z7'), findsOneWidget);
+      // The worked example is seeded as one block with two stimuli, not
+      // two separate blocks.
+      expect(find.text('BLOCO 1'), findsOneWidget);
+      expect(find.text('BLOCO 2'), findsNothing);
+    });
+
+    testWidgets('more', (tester) async {
+      await pumpScreen(tester, const MoreScreen());
+    });
+
+    testWidgets('integrations', (tester) async {
+      await pumpScreen(tester, const IntegrationsScreen());
     });
 
     testWidgets('history', (tester) async {

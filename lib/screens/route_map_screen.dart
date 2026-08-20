@@ -31,6 +31,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
     ResultSource.strava,
     ResultSource.garmin,
     ResultSource.wahoo,
+    ResultSource.trainingPeaks,
   ];
 
   static const suggestion = RouteSuggestion(

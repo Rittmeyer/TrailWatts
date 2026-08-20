@@ -16,6 +16,8 @@ import 'screens/manual_result_screen.dart';
 import 'screens/historico_screen.dart';
 import 'screens/calendar_week_screen.dart';
 import 'screens/calendar_month_screen.dart';
+import 'screens/more_screen.dart';
+import 'screens/integrations_screen.dart';
 import 'screens/web/landing_page.dart';
 
 void main() {
@@ -60,6 +62,8 @@ class TrailwattApp extends StatelessWidget {
         '/history': (_) => const HistoricoScreen(),
         '/calendar/week': (_) => const CalendarWeekScreen(),
         '/calendar/month': (_) => const CalendarMonthScreen(),
+        '/more': (_) => const MoreScreen(),
+        '/integrations': (_) => const IntegrationsScreen(),
       },
     );
   }

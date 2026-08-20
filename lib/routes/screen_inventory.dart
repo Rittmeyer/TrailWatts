@@ -77,6 +77,12 @@ const screenInventory = <ScreenSpec>[
       route: '/calendar/month',
       title: 'Calendario - mes',
       implemented: true),
+  ScreenSpec(code: '09', route: '/more', title: 'Mais', implemented: true),
+  ScreenSpec(
+      code: '09a',
+      route: '/integrations',
+      title: 'Integracoes (Garmin/Strava/TrainingPeaks)',
+      implemented: true),
   ScreenSpec(
       code: 'web', route: '/', title: 'Landing page (web)', implemented: true),
 ];

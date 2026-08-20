@@ -82,7 +82,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileTitle => 'Create profile';
 
   @override
-  String get profileSubtitle => 'Weight and FTP are required. The rest is optional.';
+  String get profileSubtitle =>
+      'Weight and FTP are required. The rest is optional.';
 
   @override
   String get profileWeight => 'Weight (kg)';
@@ -94,7 +95,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileSave => 'Save profile';
 
   @override
-  String get profileFootnote => 'Weight and FTP are enough for the engine to work. Zones can stay on the generic bands or be adjusted by hand.';
+  String get profileFootnote =>
+      'Weight and FTP are enough for the engine to work. Zones can stay on the generic bands or be adjusted by hand.';
 
   @override
   String get profilePowerZones => 'POWER ZONES';
@@ -106,7 +108,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileHeartRateZones => 'HEART RATE ZONES';
 
   @override
-  String get profileHeartRateZonesNote => 'A separate table from power - the same effort falls in different zones in each.';
+  String get profileHeartRateZonesNote =>
+      'A separate table from power - the same effort falls in different zones in each.';
 
   @override
   String get profileAnchorOn => 'Anchor on';
@@ -127,7 +130,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileOptional => 'optional';
 
   @override
-  String get profileNoHrAnchor => 'Without this measurement the app does not calculate HR zones - and does not invent them: watts-based training keeps working.';
+  String get profileNoHrAnchor =>
+      'Without this measurement the app does not calculate HR zones - and does not invent them: watts-based training keeps working.';
 
   @override
   String get scaleFive => 'Z1-Z5';
@@ -151,13 +155,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get zoneTableRecalculate => 'Recalculate';
 
   @override
-  String get zoneTableAnchorMoved => 'The anchor changed. These bounds are the ones you typed and did not follow it.';
+  String get zoneTableAnchorMoved =>
+      'The anchor changed. These bounds are the ones you typed and did not follow it.';
 
   @override
-  String get zoneTableInvalid => 'Each bound must be greater than the previous one. The table will not be saved while they overlap.';
+  String get zoneTableInvalid =>
+      'Each bound must be greater than the previous one. The table will not be saved while they overlap.';
 
   @override
-  String get zoneTableProvisional => 'Generic bands, pending physiological review. Tap \"Edit bounds\" to use yours.';
+  String get zoneTableProvisional =>
+      'Generic bands, pending physiological review. Tap \"Edit bounds\" to use yours.';
 
   @override
   String get zoneTableNeedsAnchor => 'Set the anchor to calculate this table.';
@@ -240,10 +247,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get builderContinue => 'Continue';
 
   @override
-  String get builderFootnote => 'The block name uses the same zone naming as the rest of the app. The workout is sovereign - the route adapts to the stimulus, not the other way round.';
+  String get builderFootnote =>
+      'The block name uses the same zone naming as the rest of the app. The workout is sovereign - the route adapts to the stimulus, not the other way round.';
 
   @override
-  String get builderNoHrAnchor => 'Set a threshold or max HR in your profile to prescribe by heart rate.';
+  String get builderNoHrAnchor =>
+      'Set a threshold or max HR in your profile to prescribe by heart rate.';
 
   @override
   String get locationTitle => 'Create workout';
@@ -304,7 +313,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get routeFootnote => 'The segment colour follows the effort zone (Z1 to Z5, watts or HR) predicted for that point of the climb - not just \"inside or outside the target\".';
+  String get routeFootnote =>
+      'The segment colour follows the effort zone (Z1 to Z5, watts or HR) predicted for that point of the climb - not just \"inside or outside the target\".';
 
   @override
   String get routeDegraded => 'Segment not verified against the road network.';
@@ -319,7 +329,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editRouteSubtitle => 'The workout segment inside the full ride';
 
   @override
-  String get editRouteHint => 'Drag the points to edit. On release the point snaps to the nearest road and the route is redrawn along the streets.';
+  String get editRouteHint =>
+      'Drag the points to edit. On release the point snaps to the nearest road and the route is redrawn along the streets.';
 
   @override
   String get editRouteTotal => 'TOTAL RIDE';
@@ -351,7 +362,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editRouteNeedsRoads => 'requires the road network';
 
   @override
-  String get editRouteImpactNote => 'The app does not save a material change without re-scoring the match.';
+  String get editRouteImpactNote =>
+      'The app does not save a material change without re-scoring the match.';
 
   @override
   String get editRouteSave => 'Save changes';
@@ -396,13 +408,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get importManualHint => 'enter manually';
 
   @override
-  String get importManualHelp => 'Less accurate - use only if the automatic import fails.';
+  String get importManualHelp =>
+      'Less accurate - use only if the automatic import fails.';
 
   @override
   String get importManualLink => 'Fill in manually per stimulus';
 
   @override
-  String get importFootnote => 'The API finds the matching activity automatically. Manual entry only appears as a last resort, and stays visually secondary.';
+  String get importFootnote =>
+      'The API finds the matching activity automatically. Manual entry only appears as a last resort, and stays visually secondary.';
 
   @override
   String get manualIntervalsSubtitle => 'Manual entry · interval workout';
@@ -506,10 +520,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get landingEyebrow => 'FOR CYCLISTS, FROM BEGINNER TO PRO';
 
   @override
-  String get landingHeadline => 'Your workout already tells you the ideal route.';
+  String get landingHeadline =>
+      'Your workout already tells you the ideal route.';
 
   @override
-  String get landingSubhead => 'Enter today\'s workout target and Trailwatt suggests a real route that matches it.';
+  String get landingSubhead =>
+      'Enter today\'s workout target and Trailwatt suggests a real route that matches it.';
 
   @override
   String get landingStartFree => 'Start free';
@@ -521,34 +537,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String get landingFeature1Title => 'Target by power or HR';
 
   @override
-  String get landingFeature1Body => 'From a 150w FTP to a 300w one, the engine works out the right gradient for your level.';
+  String get landingFeature1Body =>
+      'From a 150w FTP to a 300w one, the engine works out the right gradient for your level.';
 
   @override
   String get landingFeature2Title => '100% local calculation';
 
   @override
-  String get landingFeature2Body => 'The physics engine runs on the device itself. It works even with no internet.';
+  String get landingFeature2Body =>
+      'The physics engine runs on the device itself. It works even with no internet.';
 
   @override
   String get landingFeature3Title => 'Exports and imports on its own';
 
   @override
-  String get landingFeature3Body => 'Sends the finished route to Strava, Garmin or Wahoo, and fetches the result back.';
+  String get landingFeature3Body =>
+      'Sends the finished route to Strava, Garmin or Wahoo, and fetches the result back.';
 
   @override
   String get mapAttribution => 'OpenStreetMap contributors';
 
   @override
-  String get routingUnavailable => 'Routing service unavailable - straight-line distance.';
+  String get routingUnavailable =>
+      'Routing service unavailable - straight-line distance.';
 
   @override
-  String get routingNoRoute => 'No route found on the road network between these points.';
+  String get routingNoRoute =>
+      'No route found on the road network between these points.';
 
   @override
-  String get routingNeedsTwoPoints => 'Mark at least two points to trace the route.';
+  String get routingNeedsTwoPoints =>
+      'Mark at least two points to trace the route.';
 
   @override
-  String get importPowerCurveSnack => 'Optional connection - fills the curve via API';
+  String get importPowerCurveSnack =>
+      'Optional connection - fills the curve via API';
 
   @override
   String get builderAddBlock => '+ Add block';
@@ -585,5 +608,80 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get builderSequenceNote => 'Recovery is a block like any other: to build 4×8min Z4 with 2min easy, add Z4, then Z1, and duplicate the pair.';
+  String get builderSequenceNote =>
+      'A block can hold two or more stimuli: to build 4x8min Z4 with 2min easy, add a Z4 stimulus, tap "+ Stimulus" to add the Z1, and set how many times to repeat.';
+
+  @override
+  String get sourceTrainingPeaks => 'TrainingPeaks';
+
+  @override
+  String get builderAddStimulus => '+ Stimulus';
+
+  @override
+  String builderStimulus(int number) {
+    return 'Stimulus $number';
+  }
+
+  @override
+  String get builderRepeat => 'Repeat (x)';
+
+  @override
+  String get moreTitle => 'More';
+
+  @override
+  String get moreSubtitle => 'Profile, integrations and more';
+
+  @override
+  String get moreProfile => 'Profile';
+
+  @override
+  String get moreProfileSubtitle => 'Weight, FTP and zones';
+
+  @override
+  String get moreIntegrations => 'Integrations';
+
+  @override
+  String get moreIntegrationsSubtitle => 'Garmin, Strava and TrainingPeaks';
+
+  @override
+  String get integrationsTitle => 'Integrations';
+
+  @override
+  String get integrationsSubtitle =>
+      'Connect Garmin, Strava and TrainingPeaks to export routes and import your planned workout automatically.';
+
+  @override
+  String get integrationsConnected => 'Connected';
+
+  @override
+  String get integrationsNotConnected => 'Not connected';
+
+  @override
+  String get integrationsConnect => 'Connect';
+
+  @override
+  String get integrationsDisconnect => 'Disconnect';
+
+  @override
+  String get integrationsScopeNote =>
+      'The connection only reads the matching activity or planned workout - never a bulk import of your history (Article II).';
+
+  @override
+  String get importWorkoutFabLabel => 'Import from TrainingPeaks';
+
+  @override
+  String get importWorkoutSuccessSnack => 'Workout imported from TrainingPeaks';
+
+  @override
+  String get importWorkoutNoConnectionTitle => 'No TrainingPeaks connection';
+
+  @override
+  String get importWorkoutNoConnectionBody =>
+      'Connect your account to import your preferred workout automatically, or keep building it manually.';
+
+  @override
+  String get importWorkoutConnectCta => 'Connect now';
+
+  @override
+  String get importWorkoutManualCta => 'Create manually';
 }
