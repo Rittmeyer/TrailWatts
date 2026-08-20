@@ -41,10 +41,11 @@ flutter pub get
 flutter run -d chrome   # or an attached device/emulator
 ```
 
-This repo ships `lib/`, `test/`, a hand-built `web/` folder and `android/`.
-The other platform folders (`ios/`, `macos/`, `windows/`, `linux/`) are not
-committed - generate the ones you need with `flutter create . --platforms=ios`,
-which only adds platform folders and does not touch `lib/`.
+This repo ships `lib/`, `test/`, a hand-built `web/` folder, `android/` and
+`ios/`. The remaining platform folders (`macos/`, `windows/`, `linux/`) are
+not committed - generate the ones you need with
+`flutter create . --platforms=macos`, which only adds platform folders and
+does not touch `lib/`.
 
 ## Android APK
 
@@ -75,6 +76,44 @@ Two things about this Android config worth knowing:
 - The Gradle wrapper, AGP and Kotlin were bumped past Flutter's template
   defaults (Gradle 8.7 / AGP 8.3.2 / Kotlin 1.9.22) so the build works on a
   current JDK; the shipped Gradle 8.3 rejects JDK 21.
+
+## iOS
+
+O projeto Xcode está versionado em `ios/` (bundle id `app.trailwatt`,
+mínimo iOS 12). Compilar exige **macOS com Xcode** - o Flutter só registra os
+subcomandos `build ios`/`build ipa` nessa plataforma, então num Linux eles
+nem existem. Num Mac:
+
+```bash
+flutter build ios --release            # .app para rodar em device
+flutter build ipa --release            # build/ios/ipa/*.ipa para distribuir
+```
+
+Sem conta de desenvolvedor à mão, `flutter build ios --release --no-codesign`
+compila e para antes de assinar - serve para validar que o projeto compila.
+Para publicar, abra `ios/Runner.xcworkspace` e preencha o time de assinatura
+em *Signing & Capabilities*; o template não traz um.
+
+O `Info.plist` já registra o esquema `trailwatt://` em `CFBundleURLTypes`,
+que é o redirect de OAuth das integrações. Isso deixa o iOS **entregar** o
+redirect ao app; quem ainda falta é o handler que chama
+`IntegrationsStore.completeConnect` - veja "O que ainda falta para produção".
+
+## Web
+
+```bash
+flutter build web --release --web-renderer html
+# build/web/  (main.dart.js ~2.9 MB)
+```
+
+O renderer `html` é escolha, não default: o CanvasKit baixa ~2 MB de wasm
+antes do primeiro frame, e esta interface é texto, lista e um mapa de tiles -
+nada que precise do canvas. `build/web/canvaskit/` sai do template mesmo
+assim e pode ser apagado do que você publica.
+
+Sirva a pasta por HTTP; abrir `index.html` como `file://` não funciona
+(módulos e `fetch` de assets exigem origem). Para hospedar fora da raiz do
+domínio, passe `--base-href=/subpasta/`.
 
 ## Mapas e rotas
 
@@ -201,7 +240,7 @@ Datas e nomes de mês/dia vêm do `intl`, seguindo as convenções de cada idiom
 ```bash
 dart format --output=none --set-exit-if-changed lib test
 flutter analyze   # sem problemas
-flutter test      # 54 testes
+flutter test      # 183 testes
 ```
 
 Capturas de todas as telas em `docs/screenshots/` (veja o README de lá para o
