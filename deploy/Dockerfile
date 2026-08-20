@@ -19,8 +19,21 @@ ARG ANDROID_COMPILE_SDK=34
 ARG ANDROID_BUILD_TOOLS=34.0.0
 ARG ANDROID_CMDLINE_TOOLS=11076708
 
+# The Flutter SDK archive for Linux is published for x86_64 only - there is
+# no arm64 tarball - so every stage that runs the Flutter tool is pinned to
+# amd64. Without this an Apple Silicon host pulls an arm64 base image, the
+# x86_64 dart binary inside gets handed to Rosetta, and Rosetta fails
+# looking for a loader an arm64 rootfs does not have:
+#
+#   rosetta error: failed to open elf at /lib64/ld-linux-x86-64.so.2
+#
+# Pinned here rather than left to the caller because it is a fact about the
+# SDK, not a preference. It costs emulation on Apple Silicon; the runtime
+# image below is free to be whatever you deploy to.
+ARG BUILDER_PLATFORM=linux/amd64
+
 # --------------------------------------------------------------- flutter sdk
-FROM debian:bookworm-slim AS flutter
+FROM --platform=${BUILDER_PLATFORM} debian:bookworm-slim AS flutter
 ARG FLUTTER_VERSION
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
@@ -66,6 +79,9 @@ COPY --from=web-build /app/build/web/ /
 # Run or a hardened Kubernetes cluster requires. Rolling that by hand on the
 # stock image means chowning the cache, pid and log paths, and getting one
 # of them wrong fails at runtime rather than at build.
+# No --platform here on purpose: this one follows the build's target
+# platform, so it matches wherever it is deployed rather than the machine
+# that built it. deploy.sh defaults it to linux/amd64 and takes --platform.
 FROM nginxinc/nginx-unprivileged:1.27-alpine AS web-server
 COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=web-build /app/build/web/ /usr/share/nginx/html/

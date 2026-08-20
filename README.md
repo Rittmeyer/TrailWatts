@@ -100,6 +100,11 @@ deploy/deploy.sh web --run 8080
 deploy/deploy.sh web --push registry.exemplo.com/trailwatt:2026-08-20
 ```
 
+Em Mac com Apple Silicon os estágios de build rodam emulados em
+`linux/amd64`: o SDK do Flutter para Linux só existe em x86_64. Isso está
+fixado no Dockerfile — sem isso o Rosetta falha com `failed to open elf at
+/lib64/ld-linux-x86-64.so.2`. Detalhes em `deploy/README.md`.
+
 **Não existe imagem Docker capaz de compilar para iOS**: o Xcode só roda em
 macOS, e a licença da Apple não permite macOS em container fora de hardware
 Apple. Nenhuma configuração resolve isso — é a razão de o iOS ser o único

@@ -75,6 +75,35 @@ neither the keystore nor the passwords end up in an image layer. Keep both
 files out of the repo — `android/.gitignore` already covers `key.properties`
 and `*.jks`.
 
+## Apple Silicon
+
+The Flutter SDK is published for Linux x86_64 only — there is no arm64
+archive — so every stage that runs the Flutter tool is pinned to
+`linux/amd64` in the Dockerfile. That is not a preference to override: on an
+arm64 host without the pin, Docker pulls an arm64 base image, the x86_64
+`dart` binary inside gets handed to Rosetta, and Rosetta fails looking for a
+loader the arm64 rootfs does not have:
+
+```
+rosetta error: failed to open elf at /lib64/ld-linux-x86-64.so.2
+exit code: 133
+```
+
+The cost is emulation. Web builds are fine; the Android build runs Gradle
+and a JDK under Rosetta and is noticeably slower — minutes, not seconds.
+Enable *Use Rosetta for x86_64/amd64 emulation* in Docker Desktop's settings
+if it is off; the QEMU fallback is far slower.
+
+The runtime image is separate and follows where you deploy, defaulting to
+`linux/amd64` because that is what nearly every container host runs:
+
+```bash
+deploy/deploy.sh web --platform linux/arm64     # e.g. Graviton, or local
+```
+
+An image built as arm64 by accident on a Mac fails when it reaches an amd64
+host, which is why the default does not follow the build machine.
+
 ## Build-time configuration
 
 Client ids and server URLs go in `DART_DEFINES`:

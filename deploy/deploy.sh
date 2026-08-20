@@ -5,6 +5,7 @@
 #   deploy/deploy.sh web                  static bundle  -> build/deploy/web/
 #   deploy/deploy.sh web --run 8080       serve it in nginx on :8080
 #   deploy/deploy.sh web --push REF       push the nginx image to a registry
+#   deploy/deploy.sh web --platform ARCH  image arch (default linux/amd64)
 #   deploy/deploy.sh android              apk            -> build/deploy/android/
 #   deploy/deploy.sh android --aab        app bundle for the Play Console
 #   deploy/deploy.sh ios                  ipa (macOS only - see below)
@@ -29,6 +30,12 @@ dart_defines=${DART_DEFINES:-}
 
 image_name=${TRAILWATT_IMAGE:-trailwatt-web}
 image_tag=${TRAILWATT_TAG:-latest}
+# What the image will run on, which is rarely the machine that builds it:
+# almost every container host is amd64, and an image silently built as
+# arm64 on an Apple Silicon Mac fails at deploy rather than here. The build
+# stages are pinned to amd64 regardless - see BUILDER_PLATFORM in the
+# Dockerfile - because the Flutter SDK has no arm64 Linux archive.
+image_platform=${TRAILWATT_PLATFORM:-linux/amd64}
 
 android_format=apk
 keystore=""
@@ -70,10 +77,11 @@ build_web() {
 
   # The runnable image is built whenever it might be used, and always when
   # the bundle is: a static export nobody can serve is half a deploy.
-  step "web image ($image_name:$image_tag)"
+  step "web image ($image_name:$image_tag, $image_platform)"
   docker build \
     --file "$dockerfile" \
     --target web-server \
+    --platform "$image_platform" \
     --build-arg "DART_DEFINES=$dart_defines" \
     --tag "$image_name:$image_tag" \
     "$repo_root"
@@ -173,6 +181,7 @@ while [[ $# -gt 0 ]]; do
       if [[ ${2:-} =~ ^[0-9]+$ ]]; then run_port=$2; shift; else run_port=8080; fi
       ;;
     --push) push_ref=${2:?--push needs an image reference}; shift ;;
+    --platform) image_platform=${2:?--platform needs an arch, e.g. linux/amd64}; shift ;;
     -h|--help) usage 0 ;;
     *) die "unknown option: $1" ;;
   esac
