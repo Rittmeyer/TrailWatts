@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/domain_labels.dart';
 import '../theme/app_colors.dart';
 
 /// Port of screen 01 - Abertura.
@@ -20,13 +21,14 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    final t = tr(context);
+    return Scaffold(
       backgroundColor: AppColors.ink,
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
+            const Text(
               'TRAILWATT',
               style: TextStyle(
                 color: Colors.white,
@@ -35,14 +37,14 @@ class _SplashScreenState extends State<SplashScreen> {
                 letterSpacing: 1.2,
               ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Text(
-              'Sugerir. Exportar. Repetir.',
-              style: TextStyle(
+              t.splashTagline,
+              style: const TextStyle(
                   color: AppColors.accent, fontSize: 11, letterSpacing: 1.5),
             ),
-            SizedBox(height: 32),
-            SizedBox(
+            const SizedBox(height: 32),
+            const SizedBox(
               width: 16,
               height: 16,
               child: CircularProgressIndicator(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../services/routing_service.dart';
+import '../l10n/domain_labels.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/map_layers.dart';
@@ -43,6 +44,7 @@ class _WorkoutLocationScreenState extends State<WorkoutLocationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = tr(context);
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -50,13 +52,12 @@ class _WorkoutLocationScreenState extends State<WorkoutLocationScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Criar treino',
+              Text(t.locationTitle,
                   style: AppTextStyles.screenTitle.copyWith(fontSize: 24)),
               const SizedBox(height: 4),
-              Text('Continuacao - onde treinar',
-                  style: AppTextStyles.screenSubtitle),
+              Text(t.locationSubtitle, style: AppTextStyles.screenSubtitle),
               const SizedBox(height: 12),
-              Text('ONDE TREINAR',
+              Text(t.locationWhere,
                   style: AppTextStyles.label.copyWith(
                       fontSize: 9,
                       letterSpacing: 1.0,
@@ -95,7 +96,7 @@ class _WorkoutLocationScreenState extends State<WorkoutLocationScreen> {
                                   color: AppColors.primary, size: 32),
                             ),
                           ]),
-                          trailwattAttribution(),
+                          trailwattAttribution(context),
                         ],
                       ),
                       if (_snapping)
@@ -121,7 +122,7 @@ class _WorkoutLocationScreenState extends State<WorkoutLocationScreen> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            'Toque no mapa para marcar a area · raio ${_radiusKm.round()}km',
+                            t.locationHint(_radiusKm.round()),
                             style: AppTextStyles.label.copyWith(fontSize: 9),
                           ),
                         ),
@@ -141,7 +142,7 @@ class _WorkoutLocationScreenState extends State<WorkoutLocationScreen> {
               ),
               const SizedBox(height: 8),
               TrailwattButton(
-                label: 'Gerar sugestoes de rota',
+                label: t.locationGenerate,
                 onPressed: () => Navigator.of(context).pushNamed('/route-map'),
               ),
             ],

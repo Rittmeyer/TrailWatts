@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/domain_labels.dart';
 import '../theme/app_colors.dart';
 
 /// Maps to the bottom tab bar shown on screens 08a/08b/08c ("Treino /
@@ -23,19 +24,23 @@ class TrailwattBottomNav extends StatelessWidget {
         final route = _routes[i];
         if (route == null) {
           ScaffoldMessenger.of(context)
-              .showSnackBar(const SnackBar(content: Text('Em breve')));
+              .showSnackBar(SnackBar(content: Text(tr(context).navComingSoon)));
           return;
         }
         if (i == currentIndex) return;
         Navigator.of(context).pushNamedAndRemoveUntil(route, (r) => false);
       },
-      items: const [
+      items: [
         BottomNavigationBarItem(
-            icon: Icon(Icons.bolt_outlined), label: 'Treino'),
+            icon: const Icon(Icons.bolt_outlined),
+            label: tr(context).navWorkout),
         BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today_outlined), label: 'Calendario'),
-        BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Historico'),
-        BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'Mais'),
+            icon: const Icon(Icons.calendar_today_outlined),
+            label: tr(context).navCalendar),
+        BottomNavigationBarItem(
+            icon: const Icon(Icons.history), label: tr(context).navHistory),
+        BottomNavigationBarItem(
+            icon: const Icon(Icons.more_horiz), label: tr(context).navMore),
       ],
     );
   }

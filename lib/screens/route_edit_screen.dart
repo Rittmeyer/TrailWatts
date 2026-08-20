@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_dragmarker/flutter_map_dragmarker.dart';
 import 'package:latlong2/latlong.dart';
+import '../l10n/domain_labels.dart';
 import '../services/routing_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -96,6 +97,7 @@ class _RouteEditScreenState extends State<RouteEditScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = tr(context);
     final path = _path;
     final stretchKm = path?.distanceKm;
     final delta = (path != null && _baselineDistanceM != null)
@@ -110,15 +112,13 @@ class _RouteEditScreenState extends State<RouteEditScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Editar rota',
+                Text(t.editRouteTitle,
                     style: AppTextStyles.screenTitle.copyWith(fontSize: 24)),
                 const SizedBox(height: 4),
-                Text('O trecho do treino dentro do percurso completo',
-                    style: AppTextStyles.screenSubtitle),
+                Text(t.editRouteSubtitle, style: AppTextStyles.screenSubtitle),
                 const SizedBox(height: 10),
                 Text(
-                  'Arraste os pontos para editar. Ao soltar, o ponto encaixa '
-                  'na via mais proxima e a rota e refeita pelas ruas.',
+                  t.editRouteHint,
                   style: AppTextStyles.label.copyWith(fontSize: 9.5),
                 ),
                 const SizedBox(height: 12),
@@ -169,7 +169,7 @@ class _RouteEditScreenState extends State<RouteEditScreen> {
                                   ),
                               ],
                             ),
-                            trailwattAttribution(),
+                            trailwattAttribution(context),
                           ],
                         ),
                         if (_busy)
@@ -190,19 +190,19 @@ class _RouteEditScreenState extends State<RouteEditScreen> {
                 if (path != null && !path.followsRoads) ...[
                   const SizedBox(height: 10),
                   MapDegradedBanner(
-                      message: path.degradedReason ??
-                          'Trecho nao verificado contra a malha viaria.'),
+                      message:
+                          path.degradedReason?.label(t) ?? t.routeDegraded),
                 ],
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    const Expanded(
+                    Expanded(
                         child:
-                            StatBox(label: 'PERCURSO TOTAL', value: '12,4km')),
+                            StatBox(label: t.editRouteTotal, value: '12,4km')),
                     const SizedBox(width: 8),
                     Expanded(
                       child: StatBox(
-                        label: 'TRECHO DO TREINO',
+                        label: t.editRouteSegment,
                         value: stretchKm == null
                             ? '--'
                             : '${stretchKm.toStringAsFixed(2)}km',
@@ -221,31 +221,30 @@ class _RouteEditScreenState extends State<RouteEditScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Impacto da edicao',
+                        Text(t.editRouteImpact,
                             style: AppTextStyles.body
                                 .copyWith(fontWeight: FontWeight.w700)),
                         const SizedBox(height: 6),
                         _ImpactRow(
-                          label: 'Desvio',
+                          label: t.editRouteDeviation,
                           value: '${delta >= 0 ? '+' : ''}'
                               '${(delta / 1000).toStringAsFixed(2)} km',
                         ),
                         _ImpactRow(
-                          label: 'Encaixe na via',
+                          label: t.editRouteSnap,
                           value: path.followsRoads
-                              ? '${_lastSnapOffsetM.round()} m ate a via'
-                              : 'nao verificado',
+                              ? t.editRouteSnapMeters(_lastSnapOffsetM.round())
+                              : t.editRouteSnapUnverified,
                         ),
                         _ImpactRow(
-                          label: 'Match previsto',
+                          label: t.editRoutePredictedMatch,
                           value: path.followsRoads
                               ? '94% → 87%'
-                              : 'requer malha viaria',
+                              : t.editRouteNeedsRoads,
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          'A aplicacao nao salva uma alteracao material sem '
-                          'reavaliar o matching.',
+                          t.editRouteImpactNote,
                           style: AppTextStyles.label
                               .copyWith(fontSize: 9, height: 1.4),
                         ),
@@ -255,13 +254,13 @@ class _RouteEditScreenState extends State<RouteEditScreen> {
                 ],
                 const SizedBox(height: 20),
                 TrailwattButton(
-                  label: 'Salvar alteracoes',
+                  label: t.editRouteSave,
                   onPressed:
                       _busy ? null : () => Navigator.of(context).pop(true),
                 ),
                 const SizedBox(height: 8),
                 TrailwattButton(
-                  label: 'Cancelar',
+                  label: t.editRouteCancel,
                   style: TrailwattButtonStyle.secondary,
                   onPressed: () => Navigator.of(context).pop(),
                 ),

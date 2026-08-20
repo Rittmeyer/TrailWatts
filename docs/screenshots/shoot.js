@@ -8,8 +8,8 @@ const shots = [
   { id: '01-splash',                    route: '#/splash', splash: true },
   { id: '01a-login',                    route: '#/auth' },
   { id: '01b-criar-conta',              route: '#/auth', click: 'Criar conta', h: 700 },
-  { id: '02-perfil',                    route: '#/profile', h: 700 },
-  { id: '02a-criar-treino',             route: '#/workout-builder', h: 700 },
+  { id: '02-perfil',                    route: '#/profile', h: 1150 },
+  { id: '02a-criar-treino',             route: '#/workout-builder', h: 780 },
   { id: '02a2-onde-treinar',            route: '#/workout-builder/map' },
   { id: '03-treino-do-dia',             route: '#/home' },
   { id: '04-rota-no-mapa',              route: '#/route-map', h: 760 },
@@ -20,7 +20,7 @@ const shots = [
   { id: '07-historico',                 route: '#/history' },
   { id: '08a-calendario-semana',        route: '#/calendar/week' },
   { id: '08b-calendario-dia-concluido', route: '#/calendar/week', click: '21' },
-  { id: '08c-calendario-mes',           route: '#/calendar/month' },
+  { id: '08c-calendario-mes',           route: '#/calendar/month', h: 900 },
   { id: 'web-landing',                  route: '#/', w: 1440, h: 900, scale: 1 },
 ];
 
@@ -28,13 +28,16 @@ const shots = [
   fs.mkdirSync(OUT, { recursive: true });
   const browser = await chromium.launch({
     executablePath: '/opt/pw-browsers/chromium',
-    args: ['--no-sandbox', '--disable-dev-shm-usage'],
+    // The app follows the browser language, so the canonical set is pinned
+    // to pt-BR; docs/screenshots/en holds the same screens in English.
+    args: ['--no-sandbox', '--disable-dev-shm-usage', '--lang=pt-BR'],
   });
 
   for (const s of shots) {
     const ctx = await browser.newContext({
       viewport: { width: s.w || 390, height: s.h || 844 },
       deviceScaleFactor: s.scale || 2,
+      locale: 'pt-BR',
     });
     const page = await ctx.newPage();
     const errors = [];

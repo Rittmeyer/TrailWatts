@@ -101,12 +101,37 @@ flutter run \
   --dart-define=TRAILWATT_TILE_URL=https://tiles.suainfra/{z}/{x}/{y}.png
 ```
 
+## Idiomas
+
+A interface segue o idioma do aparelho (ou do navegador, na web). Português e
+inglês estão traduzidos; qualquer outro idioma cai no inglês.
+
+As strings ficam em `lib/l10n/app_pt.arb` e `app_en.arb`. Depois de editar um
+ARB, regenere as classes:
+
+```bash
+flutter gen-l10n
+```
+
+O código gerado (`lib/l10n/app_localizations*.dart`) é versionado para o repo
+analisar e testar logo após o clone. `l10n-missing.json` lista chaves sem
+tradução — hoje está vazio.
+
+Para adicionar um idioma, crie `app_<code>.arb`, traduza e rode `gen-l10n`;
+nada mais precisa mudar. Os modelos não carregam texto de interface: uma zona
+guarda `ZoneName.threshold`, e o nome visível é resolvido na UI
+(`lib/l10n/domain_labels.dart`), então o motor continua licenciável sozinho
+(Artigo VIII).
+
+Datas e nomes de mês/dia vêm do `intl`, seguindo as convenções de cada idioma
+— não são listas fixas.
+
 ## Checks
 
 ```bash
 dart format --output=none --set-exit-if-changed lib test
 flutter analyze   # sem problemas
-flutter test      # 12 testes
+flutter test      # 54 testes
 ```
 
 Capturas de todas as telas em `docs/screenshots/` (veja o README de lá para o

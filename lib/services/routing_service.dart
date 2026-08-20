@@ -33,13 +33,17 @@ class SnappedPoint {
 /// line between the waypoints, [movingTime] is null, and [degradedReason]
 /// explains why - the rider is never shown a road-accurate number that was
 /// actually a guess (see AUDIT_RESULT.md, "never hide uncertainty").
+/// Why a path is not road-matched. A code, not a sentence: the service is
+/// engine-side and licensable on its own, so the wording belongs to the UI.
+enum RouteDegradation { serviceUnavailable, noRoute, needsTwoPoints }
+
 class RoutedPath {
   final List<LatLng> polyline;
   final List<LatLng> waypoints;
   final double distanceM;
   final Duration? movingTime;
   final bool followsRoads;
-  final String? degradedReason;
+  final RouteDegradation? degradedReason;
 
   const RoutedPath({
     required this.polyline,
@@ -135,7 +139,7 @@ class OsrmRoutingService implements RoutingService {
         waypoints: List.of(waypoints),
         distanceM: 0,
         followsRoads: false,
-        degradedReason: 'Marque pelo menos dois pontos para tracar a rota.',
+        degradedReason: RouteDegradation.needsTwoPoints,
       );
     }
     try {
@@ -146,9 +150,7 @@ class OsrmRoutingService implements RoutingService {
       final body = await _getJson(uri);
       final routes = body['routes'] as List?;
       if (body['code'] != 'Ok' || routes == null || routes.isEmpty) {
-        return straightLine(waypoints,
-            reason: 'Nenhuma rota encontrada na malha viaria entre estes '
-                'pontos.');
+        return straightLine(waypoints, reason: RouteDegradation.noRoute);
       }
       final route = routes.first as Map<String, dynamic>;
       final line = (route['geometry']['coordinates'] as List)
@@ -165,12 +167,13 @@ class OsrmRoutingService implements RoutingService {
       );
     } catch (_) {
       return straightLine(waypoints,
-          reason: 'Servico de rotas indisponivel - distancia em linha reta.');
+          reason: RouteDegradation.serviceUnavailable);
     }
   }
 
   /// Straight-line fallback, explicitly flagged as not road-matched.
-  static RoutedPath straightLine(List<LatLng> waypoints, {String? reason}) {
+  static RoutedPath straightLine(List<LatLng> waypoints,
+      {RouteDegradation? reason}) {
     var total = 0.0;
     for (var i = 1; i < waypoints.length; i++) {
       total += _distance.as(LengthUnit.Meter, waypoints[i - 1], waypoints[i]);

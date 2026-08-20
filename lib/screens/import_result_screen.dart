@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/domain_labels.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/stat_box.dart';
@@ -14,6 +15,7 @@ class ImportResultScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = tr(context);
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -22,11 +24,10 @@ class ImportResultScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Resultado do treino',
+                Text(t.importTitle,
                     style: AppTextStyles.screenTitle.copyWith(fontSize: 24)),
                 const SizedBox(height: 4),
-                Text('Buscado automaticamente via API',
-                    style: AppTextStyles.screenSubtitle),
+                Text(t.importSubtitle, style: AppTextStyles.screenSubtitle),
                 const SizedBox(height: 18),
                 Container(
                   padding:
@@ -35,7 +36,7 @@ class ImportResultScreen extends StatelessWidget {
                     color: AppColors.greenBg,
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: Text('CONECTADO AO STRAVA',
+                  child: Text(t.importConnectedTo,
                       style: AppTextStyles.label.copyWith(
                           fontSize: 8.5,
                           color: AppColors.greenText,
@@ -51,24 +52,25 @@ class ImportResultScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Atividade encontrada',
+                      Text(t.importActivityFound,
                           style: AppTextStyles.body
                               .copyWith(fontWeight: FontWeight.w700)),
                       const SizedBox(height: 2),
-                      Text('Subida da Serra · hoje, 07:14',
-                          style: AppTextStyles.label),
+                      Text(t.importActivityWhen, style: AppTextStyles.label),
                       const SizedBox(height: 12),
-                      const Row(
+                      Row(
                         children: [
                           Expanded(
                               child: StatBox(
-                                  label: 'POTENCIA MED.', value: '182w')),
-                          SizedBox(width: 8),
+                                  label: t.importAvgPower, value: '182w')),
+                          const SizedBox(width: 8),
                           Expanded(
-                              child: StatBox(label: 'FC MEDIA', value: '152')),
-                          SizedBox(width: 8),
+                              child:
+                                  StatBox(label: t.importAvgHr, value: '152')),
+                          const SizedBox(width: 8),
                           Expanded(
-                              child: StatBox(label: 'DURACAO', value: '41m')),
+                              child: StatBox(
+                                  label: t.importDuration, value: '41m')),
                         ],
                       ),
                     ],
@@ -76,23 +78,22 @@ class ImportResultScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 TrailwattButton(
-                  label: 'Confirmar e salvar',
+                  label: t.importConfirm,
                   onPressed: () =>
                       Navigator.of(context).pushReplacementNamed('/history'),
                 ),
                 const SizedBox(height: 26),
-                Text('SEM CONEXAO COM A API?',
+                Text(t.importNoApi,
                     style: AppTextStyles.label.copyWith(
                         fontSize: 9,
                         letterSpacing: 1.0,
                         fontWeight: FontWeight.w700)),
                 const SizedBox(height: 8),
-                const TrailwattField(
-                  label: 'Potencia media (w)',
-                  hint: 'informar manualmente',
+                TrailwattField(
+                  label: t.importManualPower,
+                  hint: t.importManualHint,
                   keyboardType: TextInputType.number,
-                  helperText:
-                      'Menos preciso - use apenas se a importacao automatica falhar.',
+                  helperText: t.importManualHelp,
                 ),
                 Align(
                   alignment: Alignment.centerLeft,
@@ -103,7 +104,7 @@ class ImportResultScreen extends StatelessWidget {
                         padding: EdgeInsets.zero,
                         minimumSize: const Size(0, 0),
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-                    child: Text('Preencher manualmente por estimulo',
+                    child: Text(t.importManualLink,
                         style: AppTextStyles.label.copyWith(
                             color: AppColors.primary,
                             fontWeight: FontWeight.w600)),
@@ -111,9 +112,7 @@ class ImportResultScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  'A API busca a atividade correspondente automaticamente. A '
-                  'entrada manual so aparece como ultimo recurso, e fica '
-                  'visualmente secundaria.',
+                  t.importFootnote,
                   style: AppTextStyles.label.copyWith(fontSize: 9, height: 1.5),
                 ),
               ],

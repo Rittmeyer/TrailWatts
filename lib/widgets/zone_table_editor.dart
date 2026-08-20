@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/rider_profile.dart';
+import '../l10n/domain_labels.dart';
 import '../models/zone.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -159,13 +160,14 @@ class _ZoneTableEditorState extends State<ZoneTableEditor> {
 
   @override
   Widget build(BuildContext context) {
+    final t = tr(context);
     final zones = widget.table.zones;
     final parsed = _read();
     final valid =
         parsed != null && isValidZoneBounds(parsed, widget.table.scale);
 
     if (_controllers.length != zones.length) {
-      return Text('Defina a âncora para calcular esta tabela.',
+      return Text(t.zoneTableNeedsAnchor,
           style: AppTextStyles.label.copyWith(fontSize: 9));
     }
 
@@ -189,7 +191,7 @@ class _ZoneTableEditorState extends State<ZoneTableEditor> {
                   borderRadius: BorderRadius.circular(5),
                 ),
                 child: Text(
-                  _isCustom ? 'PERSONALIZADA' : 'GENERICA',
+                  _isCustom ? t.zoneTableCustom : t.zoneTableGeneric,
                   style: AppTextStyles.label.copyWith(
                     fontSize: 8,
                     fontWeight: FontWeight.w800,
@@ -200,7 +202,7 @@ class _ZoneTableEditorState extends State<ZoneTableEditor> {
               const Spacer(),
               if (_isCustom)
                 _TinyButton(
-                  label: 'Restaurar padrao',
+                  label: t.zoneTableRestoreDefault,
                   onTap: () {
                     widget.onValidityChanged?.call(true);
                     widget.onChanged(null);
@@ -208,7 +210,7 @@ class _ZoneTableEditorState extends State<ZoneTableEditor> {
                 )
               else if (widget.derivedBounds != null)
                 _TinyButton(
-                  label: 'Editar limites',
+                  label: t.zoneTableEditBounds,
                   onTap: () =>
                       widget.onChanged(List<int>.from(widget.derivedBounds!)),
                 ),
@@ -233,7 +235,7 @@ class _ZoneTableEditorState extends State<ZoneTableEditor> {
                         style: AppTextStyles.numeric.copyWith(fontSize: 10)),
                   ),
                   Expanded(
-                    child: Text(zones[i].label,
+                    child: Text(zones[i].label(t),
                         style: AppTextStyles.label.copyWith(fontSize: 10)),
                   ),
                   SizedBox(
@@ -277,15 +279,14 @@ class _ZoneTableEditorState extends State<ZoneTableEditor> {
               children: [
                 Expanded(
                   child: Text(
-                    'A ancora mudou. Estes limites sao os que voce digitou e '
-                    'nao acompanharam.',
+                    t.zoneTableAnchorMoved,
                     style: AppTextStyles.label
                         .copyWith(fontSize: 8.5, color: AppColors.warnText),
                   ),
                 ),
                 const SizedBox(width: 6),
                 _TinyButton(
-                  label: 'Recalcular',
+                  label: t.zoneTableRecalculate,
                   onTap: () {
                     widget.onValidityChanged?.call(true);
                     widget.onChanged(List<int>.from(widget.derivedBounds!));
@@ -297,8 +298,7 @@ class _ZoneTableEditorState extends State<ZoneTableEditor> {
           if (!valid) ...[
             const SizedBox(height: 6),
             Text(
-              'Cada limite precisa ser maior que o anterior. A tabela nao '
-              'sera salva enquanto houver sobreposicao.',
+              t.zoneTableInvalid,
               style: AppTextStyles.label
                   .copyWith(fontSize: 8.5, color: AppColors.warnText),
             ),
@@ -306,8 +306,7 @@ class _ZoneTableEditorState extends State<ZoneTableEditor> {
           if (!_isCustom && widget.provisional) ...[
             const SizedBox(height: 5),
             Text(
-              'Faixas genericas, pendentes de revisao fisiologica. Toque em '
-              '"Editar limites" para usar as suas.',
+              t.zoneTableProvisional,
               style: AppTextStyles.label.copyWith(fontSize: 8, height: 1.4),
             ),
           ],

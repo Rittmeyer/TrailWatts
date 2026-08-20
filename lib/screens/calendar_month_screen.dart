@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
+import '../l10n/domain_labels.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../models/zone.dart';
@@ -8,22 +10,6 @@ import '../widgets/calendar_day_detail.dart';
 import '../widgets/segmented_control.dart';
 import '../widgets/zone_legend.dart';
 import 'calendar_demo_data.dart';
-
-const _monthNamesFull = [
-  'Janeiro',
-  'Fevereiro',
-  'Marco',
-  'Abril',
-  'Maio',
-  'Junho',
-  'Julho',
-  'Agosto',
-  'Setembro',
-  'Outubro',
-  'Novembro',
-  'Dezembro',
-];
-const _dowSingleLetters = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'];
 
 /// Port of screen 08c - "Calendario, mes". Same day-detail panel as the
 /// week view (08a/08b) appears below the grid on tap - plan or result,
@@ -41,6 +27,8 @@ class _CalendarMonthScreenState extends State<CalendarMonthScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = tr(context);
+    final locale = Localizations.localeOf(context).toString();
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -49,15 +37,14 @@ class _CalendarMonthScreenState extends State<CalendarMonthScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Calendario',
+                Text(t.calendarTitle,
                     style: AppTextStyles.screenTitle.copyWith(fontSize: 24)),
                 const SizedBox(height: 4),
-                Text(
-                    '${_monthNamesFull[_focusedDay.month - 1]} ${_focusedDay.year}',
+                Text(DateFormat.yMMMM(locale).format(_focusedDay),
                     style: AppTextStyles.screenSubtitle),
                 const SizedBox(height: 14),
                 SegmentedControl(
-                  options: const ['Semana', 'Mes'],
+                  options: [t.calendarWeek, t.calendarMonth],
                   selectedIndex: 1,
                   onChanged: (i) {
                     if (i == 0) {
@@ -74,6 +61,7 @@ class _CalendarMonthScreenState extends State<CalendarMonthScreen> {
                   currentDay: DateTime(2026, 7, 20),
                   calendarFormat: CalendarFormat.month,
                   startingDayOfWeek: StartingDayOfWeek.monday,
+                  locale: locale,
                   headerVisible: false,
                   daysOfWeekHeight: 20,
                   rowHeight: 42,
@@ -90,7 +78,8 @@ class _CalendarMonthScreenState extends State<CalendarMonthScreen> {
                           : const [],
                   calendarBuilders: CalendarBuilders(
                     dowBuilder: (context, day) => Center(
-                      child: Text(_dowSingleLetters[day.weekday - 1],
+                      child: Text(
+                          DateFormat.E(locale).format(day)[0].toUpperCase(),
                           style: AppTextStyles.label.copyWith(fontSize: 9)),
                     ),
                   ),

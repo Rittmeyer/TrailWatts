@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import '../l10n/domain_labels.dart';
 import '../services/routing_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -82,6 +83,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = tr(context);
     final path = _path;
     final distanceLabel = path != null && path.followsRoads
         ? '${path.distanceM.round()}m'
@@ -98,8 +100,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                 Text(suggestion.name,
                     style: AppTextStyles.screenTitle.copyWith(fontSize: 24)),
                 const SizedBox(height: 4),
-                Text('Trecho sugerido para o treino de hoje',
-                    style: AppTextStyles.screenSubtitle),
+                Text(t.routeSubtitle, style: AppTextStyles.screenSubtitle),
                 const SizedBox(height: 14),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(13),
@@ -136,7 +137,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                             child: const _EndCap(color: AppColors.zone5),
                           ),
                         ]),
-                        trailwattAttribution(),
+                        trailwattAttribution(context),
                       ],
                     ),
                   ),
@@ -144,8 +145,8 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                 if (path != null && !path.followsRoads) ...[
                   const SizedBox(height: 10),
                   MapDegradedBanner(
-                      message: path.degradedReason ??
-                          'Trecho nao verificado contra a malha viaria.'),
+                      message:
+                          path.degradedReason?.label(t) ?? t.routeDegraded),
                 ],
                 const SizedBox(height: 10),
                 const ZoneLegend(metric: _workoutMetric, scale: _workoutScale),
@@ -153,15 +154,16 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                 Row(
                   children: [
                     Expanded(
-                        child:
-                            StatBox(label: 'DISTANCIA', value: distanceLabel)),
-                    const SizedBox(width: 8),
-                    const Expanded(
-                        child: StatBox(label: 'GRADIENTE', value: '5.2%')),
+                        child: StatBox(
+                            label: t.routeDistance, value: distanceLabel)),
                     const SizedBox(width: 8),
                     Expanded(
                         child: StatBox(
-                            label: 'MATCH',
+                            label: t.routeGradientLabel, value: '5.2%')),
+                    const SizedBox(width: 8),
+                    Expanded(
+                        child: StatBox(
+                            label: t.routeMatch,
                             value: '${suggestion.matchPct}%',
                             valueColor: AppColors.greenText)),
                   ],
@@ -173,18 +175,17 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                         .pushNamed<bool>('/route-edit');
                     if (saved == true && context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text('Rota reavaliada e salva')),
+                        SnackBar(content: Text(t.routeSavedRescored)),
                       );
                     }
                   },
-                  child: Text('Editar rota manualmente',
+                  child: Text(t.routeEditManually,
                       style: AppTextStyles.label.copyWith(
                           color: AppColors.primary,
                           fontWeight: FontWeight.w600)),
                 ),
                 const SizedBox(height: 20),
-                Text('EXPORTAR PARA',
+                Text(t.routeExportTo,
                     style: AppTextStyles.label.copyWith(
                         fontSize: 9,
                         letterSpacing: 1.0,
@@ -195,7 +196,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                   spacing: 8,
                   children: _exportPlatforms
                       .map((p) => ChoiceChip(
-                            label: Text(p.label),
+                            label: Text(p.label(t)),
                             selected: _platform == p,
                             selectedColor: AppColors.greenBg,
                             onSelected: (_) => setState(() => _platform = p),
@@ -204,18 +205,15 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                 ),
                 const SizedBox(height: 20),
                 TrailwattButton(
-                  label: 'Exportar rota',
+                  label: t.routeExport,
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content:
-                            Text('Rota exportada para ${_platform.label}')));
+                        content: Text(t.routeExported(_platform.label(t)))));
                   },
                 ),
                 const SizedBox(height: 14),
                 Text(
-                  'A cor do trecho segue a zona de esforco (Z1 a Z5, watts ou '
-                  'FC) prevista para aquele ponto da subida - nao so '
-                  '"dentro ou fora do alvo".',
+                  t.routeFootnote,
                   style: AppTextStyles.label.copyWith(fontSize: 9, height: 1.5),
                 ),
               ],
@@ -242,13 +240,4 @@ class _EndCap extends StatelessWidget {
       ),
     );
   }
-}
-
-extension on ResultSource {
-  String get label => switch (this) {
-        ResultSource.strava => 'Strava',
-        ResultSource.garmin => 'Garmin',
-        ResultSource.wahoo => 'Wahoo',
-        ResultSource.manual => 'Manual',
-      };
 }

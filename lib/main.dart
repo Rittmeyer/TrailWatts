@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'l10n/app_localizations.dart';
 import 'theme/app_theme.dart';
 import 'screens/splash_screen.dart';
 import 'screens/auth_screen.dart';
@@ -16,7 +18,12 @@ import 'screens/calendar_week_screen.dart';
 import 'screens/calendar_month_screen.dart';
 import 'screens/web/landing_page.dart';
 
-void main() => runApp(const TrailwattApp());
+void main() {
+  // DateFormat needs the symbol data for whatever locale the device is in
+  // before any date is formatted; flutter_localizations does not cover it.
+  initializeDateFormatting();
+  runApp(const TrailwattApp());
+}
 
 class TrailwattApp extends StatelessWidget {
   const TrailwattApp({super.key});
@@ -24,9 +31,13 @@ class TrailwattApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Trailwatt',
+      onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
+      // Follows the device locale, falling back to English for anything we
+      // do not translate yet.
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       // On web the browser reports '/', which would otherwise be overridden
       // by initialRoute and leave the landing page unreachable; a browser
       // visitor gets the marketing page, the app gets the splash.

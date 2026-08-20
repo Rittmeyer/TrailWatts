@@ -9,6 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:     # pt/en, following the device locale
+    sdk: flutter
   google_fonts: ^6.2.1       # Fraunces / Inter / IBM Plex Mono
   flutter_map: ^7.0.2        # for screens 04/05/02a2/02b3 (route + zone maps)
   flutter_map_dragmarker: ^7.0.0  # draggable waypoints on screen 05
@@ -24,3 +26,4 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  generate: true             # builds AppLocalizations from lib/l10n/*.arb

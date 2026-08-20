@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/rider_profile.dart';
+import '../l10n/domain_labels.dart';
 import '../models/zone.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -68,6 +69,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = tr(context);
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -76,20 +78,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Criar perfil',
+                Text(t.profileTitle,
                     style: AppTextStyles.screenTitle.copyWith(fontSize: 24)),
                 const SizedBox(height: 4),
-                Text('Peso e FTP obrigatorios. O resto e opcional.',
-                    style: AppTextStyles.screenSubtitle),
+                Text(t.profileSubtitle, style: AppTextStyles.screenSubtitle),
                 const SizedBox(height: 20),
                 TrailwattField(
-                  label: 'Peso (kg)',
+                  label: t.profileWeight,
                   hint: '74',
                   controller: _weightController,
                   keyboardType: TextInputType.number,
                 ),
                 TrailwattField(
-                  label: 'FTP (watts)',
+                  label: t.profileFtp,
                   hint: '210',
                   controller: _ftpController,
                   keyboardType: TextInputType.number,
@@ -97,11 +98,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
 
                 // --- Power zones -----------------------------------------
-                const _SectionLabel('ZONAS DE POTENCIA'),
-                Text('Ancoradas no FTP', style: AppTextStyles.label),
+                _SectionLabel(t.profilePowerZones),
+                Text(t.profilePowerZonesAnchor, style: AppTextStyles.label),
                 const SizedBox(height: 6),
                 SegmentedControl(
-                  options: const ['Z1-Z5', 'Z1-Z7'],
+                  options: [t.scaleFive, t.scaleSeven],
                   selectedIndex: _powerScale == ZoneScale.five ? 0 : 1,
                   onChanged: (i) => setState(() {
                     _powerScale = i == 0 ? ZoneScale.five : ZoneScale.seven;
@@ -123,15 +124,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
 
                 // --- Heart-rate zones ------------------------------------
-                const _SectionLabel('ZONAS DE FREQUENCIA CARDIACA'),
+                _SectionLabel(t.profileHeartRateZones),
                 Text(
-                  'Tabela separada da de potencia - o mesmo esforco cai em '
-                  'zonas diferentes nas duas.',
+                  t.profileHeartRateZonesNote,
                   style: AppTextStyles.label.copyWith(fontSize: 9, height: 1.4),
                 ),
                 const SizedBox(height: 8),
                 SegmentedControl(
-                  options: const ['Z1-Z5', 'Z1-Z7'],
+                  options: [t.scaleFive, t.scaleSeven],
                   selectedIndex: _hrScale == ZoneScale.five ? 0 : 1,
                   onChanged: (i) => setState(() {
                     _hrScale = i == 0 ? ZoneScale.five : ZoneScale.seven;
@@ -140,10 +140,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   }),
                 ),
                 const SizedBox(height: 10),
-                Text('Ancorar em', style: AppTextStyles.label),
+                Text(t.profileAnchorOn, style: AppTextStyles.label),
                 const SizedBox(height: 4),
                 SegmentedControl(
-                  options: const ['Limiar (LTHR)', 'FC maxima'],
+                  options: [t.profileAnchorThreshold, t.profileAnchorMax],
                   selectedIndex:
                       _hrAnchor == HeartRateAnchor.lactateThreshold ? 0 : 1,
                   onChanged: (i) => setState(() {
@@ -158,17 +158,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 10),
                 TrailwattField(
                   label: _hrAnchor == HeartRateAnchor.lactateThreshold
-                      ? 'FC de limiar (bpm)'
-                      : 'FC maxima (bpm)',
-                  hint: 'opcional',
+                      ? t.profileThresholdHr
+                      : t.profileMaxHr,
+                  hint: t.profileOptional,
                   controller: _hrAnchorController,
                   keyboardType: TextInputType.number,
                   onChanged: (_) => setState(() {}),
                 ),
                 if (_hrAnchorBpm == null)
                   Text(
-                    'Sem esta medida o app nao calcula zonas de FC - e nao '
-                    'inventa: o treino em watts continua funcionando.',
+                    t.profileNoHrAnchor,
                     style: AppTextStyles.label
                         .copyWith(fontSize: 9, color: AppColors.warnText),
                   )
@@ -187,7 +186,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                 const SizedBox(height: 20),
                 TrailwattButton(
-                  label: 'Salvar perfil',
+                  label: t.profileSave,
                   onPressed: _canSave
                       ? () =>
                           Navigator.of(context).pushNamed('/workout-builder')
@@ -195,8 +194,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 const SizedBox(height: 14),
                 Text(
-                  'Peso e FTP bastam para o motor funcionar. As zonas podem '
-                  'ficar nas faixas genericas ou ser ajustadas a mao.',
+                  t.profileFootnote,
                   style: AppTextStyles.label.copyWith(fontSize: 9, height: 1.5),
                 ),
               ],

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/calendar_entry.dart';
-import '../models/result_source.dart';
+import '../l10n/domain_labels.dart';
 import '../models/zone.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -17,6 +17,7 @@ class CalendarDayDetail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = tr(context);
     final entry = this.entry;
     if (entry == null || !entry.hasWorkout) {
       return Container(
@@ -25,8 +26,7 @@ class CalendarDayDetail extends StatelessWidget {
           border: Border.all(color: AppColors.line),
           borderRadius: BorderRadius.circular(10),
         ),
-        child: Text('Dia de descanso - sem treino planejado.',
-            style: AppTextStyles.label),
+        child: Text(t.calendarRestDay, style: AppTextStyles.label),
       );
     }
 
@@ -49,14 +49,14 @@ class CalendarDayDetail extends StatelessWidget {
                   decoration: BoxDecoration(
                       color: AppColors.greenBg,
                       borderRadius: BorderRadius.circular(6)),
-                  child: Text('CONCLUIDO',
+                  child: Text(t.calendarDone,
                       style: AppTextStyles.label.copyWith(
                           fontSize: 8,
                           color: AppColors.greenText,
                           fontWeight: FontWeight.w800)),
                 ),
                 const SizedBox(width: 6),
-                Text('via ${_sourceLabel(c.source)}',
+                Text(t.calendarVia(c.source.label(t)),
                     style: AppTextStyles.label.copyWith(fontSize: 9)),
               ],
             ),
@@ -69,16 +69,17 @@ class CalendarDayDetail extends StatelessWidget {
               children: [
                 Expanded(
                     child: StatBox(
-                        label: 'REAL',
+                        label: t.calendarActual,
                         value: '${c.realizedWatts}w',
                         valueColor: AppColors.greenText)),
                 const SizedBox(width: 8),
                 Expanded(
-                    child: StatBox(label: 'ALVO', value: '${c.targetWatts}w')),
+                    child: StatBox(
+                        label: t.calendarPlanned, value: '${c.targetWatts}w')),
                 const SizedBox(width: 8),
                 Expanded(
-                    child:
-                        StatBox(label: 'DURACAO', value: '${c.durationMin}m')),
+                    child: StatBox(
+                        label: t.calendarDuration, value: '${c.durationMin}m')),
               ],
             ),
           ],
@@ -116,11 +117,4 @@ class CalendarDayDetail extends StatelessWidget {
       ),
     );
   }
-
-  String _sourceLabel(ResultSource s) => switch (s) {
-        ResultSource.strava => 'Strava',
-        ResultSource.garmin => 'Garmin',
-        ResultSource.wahoo => 'Wahoo',
-        ResultSource.manual => 'entrada manual',
-      };
 }

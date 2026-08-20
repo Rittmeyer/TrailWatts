@@ -4,6 +4,8 @@ import 'package:trailwatt/models/rider_profile.dart';
 import 'package:trailwatt/models/zone.dart';
 import 'package:trailwatt/widgets/zone_table_editor.dart';
 
+import '../l10n_harness.dart';
+
 /// Hosts the editor with a mutable anchor, the way the profile screen does.
 class _Host extends StatefulWidget {
   const _Host();
@@ -22,8 +24,8 @@ class _HostState extends State<_Host> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
+    return localized(
+      Scaffold(
         body: SingleChildScrollView(
           child: ZoneTableEditor(
             table: ZoneTables.of(ZoneMetric.power, ZoneScale.seven),
@@ -37,6 +39,8 @@ class _HostState extends State<_Host> {
     );
   }
 }
+
+final _t = stringsFor(const Locale('pt'));
 
 void main() {
   testWidgets('the generic table follows the anchor as it changes',
@@ -58,10 +62,10 @@ void main() {
       (tester) async {
     await tester.pumpWidget(const _Host());
 
-    await tester.tap(find.text('Editar limites'));
+    await tester.tap(find.text(_t.zoneTableEditBounds));
     await tester.pump();
 
-    expect(find.text('PERSONALIZADA'), findsOneWidget);
+    expect(find.text(_t.zoneTableCustom), findsOneWidget);
     expect(find.text('118'), findsOneWidget);
   });
 
@@ -69,7 +73,7 @@ void main() {
       'a custom table keeps the rider values when the anchor moves, '
       'and offers to recalculate', (tester) async {
     await tester.pumpWidget(const _Host());
-    await tester.tap(find.text('Editar limites'));
+    await tester.tap(find.text(_t.zoneTableEditBounds));
     await tester.pump();
 
     tester.state<_HostState>(find.byType(_Host)).setFtp(300);
@@ -79,33 +83,33 @@ void main() {
     expect(find.text('118'), findsOneWidget);
     expect(find.text('168'), findsNothing);
     // ...but the drift is surfaced rather than left silent.
-    expect(find.text('Recalcular'), findsOneWidget);
+    expect(find.text(_t.zoneTableRecalculate), findsOneWidget);
 
-    await tester.tap(find.text('Recalcular'));
+    await tester.tap(find.text(_t.zoneTableRecalculate));
     await tester.pump();
 
     expect(find.text('168'), findsOneWidget);
     expect(find.text('118'), findsNothing);
-    expect(find.text('Recalcular'), findsNothing);
+    expect(find.text(_t.zoneTableRecalculate), findsNothing);
   });
 
   testWidgets('restoring the default drops back to the generic table',
       (tester) async {
     await tester.pumpWidget(const _Host());
-    await tester.tap(find.text('Editar limites'));
+    await tester.tap(find.text(_t.zoneTableEditBounds));
     await tester.pump();
-    expect(find.text('PERSONALIZADA'), findsOneWidget);
+    expect(find.text(_t.zoneTableCustom), findsOneWidget);
 
-    await tester.tap(find.text('Restaurar padrao'));
+    await tester.tap(find.text(_t.zoneTableRestoreDefault));
     await tester.pump();
 
-    expect(find.text('GENERICA'), findsOneWidget);
+    expect(find.text(_t.zoneTableGeneric), findsOneWidget);
   });
 
   testWidgets('editing a bound updates the neighbouring upper bound',
       (tester) async {
     await tester.pumpWidget(const _Host());
-    await tester.tap(find.text('Editar limites'));
+    await tester.tap(find.text(_t.zoneTableEditBounds));
     await tester.pump();
 
     // Z2 starts at 118, so Z1 is shown ending at 117.
@@ -120,7 +124,7 @@ void main() {
 
   testWidgets('typing keeps focus and the caret', (tester) async {
     await tester.pumpWidget(const _Host());
-    await tester.tap(find.text('Editar limites'));
+    await tester.tap(find.text(_t.zoneTableEditBounds));
     await tester.pump();
 
     final field = find.widgetWithText(TextField, '118');

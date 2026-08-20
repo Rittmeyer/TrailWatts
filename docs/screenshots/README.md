@@ -23,6 +23,12 @@ telefone 390pt @2x). O script que as gera está em `shoot.js`.
 | `08c-calendario-mes.png` | 08c Calendário, mês |
 | `web-landing.png` | Landing page (web, 1440px) |
 
+## Idiomas
+
+O conjunto principal está em português. `en/` traz as mesmas telas com o
+navegador em inglês, mostrando que a interface segue o idioma do usuário —
+inclusive os nomes de dias e meses do calendário, que vêm do `intl`.
+
 ## Por que os mapas aparecem cinza
 
 O ambiente onde estas imagens foram geradas bloqueia, por política de rede,

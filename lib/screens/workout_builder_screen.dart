@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../l10n/domain_labels.dart';
 import '../models/rider_profile.dart';
 import '../models/zone.dart';
 import '../widgets/segmented_control.dart';
@@ -114,7 +115,8 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final unit = _metric.unit;
+    final t = tr(context);
+    final unit = _metric.unit(t);
     final table = _table;
     return Scaffold(
       body: SafeArea(
@@ -124,14 +126,13 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Criar treino',
+                Text(t.builderTitle,
                     style: AppTextStyles.screenTitle.copyWith(fontSize: 24)),
                 const SizedBox(height: 4),
-                Text('Monte o treino e marque onde pedalar',
-                    style: AppTextStyles.screenSubtitle),
+                Text(t.builderSubtitle, style: AppTextStyles.screenSubtitle),
                 const SizedBox(height: 16),
                 SegmentedControl(
-                  options: const ['Watts', 'FC'],
+                  options: [t.builderWatts, t.builderHr],
                   selectedIndex: _metric == ZoneMetric.power ? 0 : 1,
                   onChanged: (i) => setState(() {
                     _metric = i == 0 ? ZoneMetric.power : ZoneMetric.heartRate;
@@ -145,8 +146,8 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'Tabela de ${_metric.label.toLowerCase()} · '
-                  'Z1-Z${_scale.count}',
+                  t.builderTableLabel(
+                      _metric.label(t).toLowerCase(), _scale.count),
                   style: AppTextStyles.label.copyWith(fontSize: 9),
                 ),
                 const SizedBox(height: 12),
@@ -163,21 +164,19 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
                   const SizedBox(height: 12),
                 ],
                 TrailwattButton(
-                  label: '+ Adicionar serie',
+                  label: t.builderAddSet,
                   style: TrailwattButtonStyle.dashed,
                   onPressed: _addBlock,
                 ),
                 const SizedBox(height: 20),
                 TrailwattButton(
-                  label: 'Continuar',
+                  label: t.builderContinue,
                   onPressed: () =>
                       Navigator.of(context).pushNamed('/workout-builder/map'),
                 ),
                 const SizedBox(height: 14),
                 Text(
-                  'O nome do bloco usa a mesma nomenclatura de zona do resto '
-                  'do app. O treino e soberano - a rota se adapta ao '
-                  'estimulo, nao o contrario.',
+                  t.builderFootnote,
                   style: AppTextStyles.label.copyWith(fontSize: 9, height: 1.5),
                 ),
               ],
@@ -208,6 +207,7 @@ class _BlockCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = tr(context);
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -217,14 +217,14 @@ class _BlockCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('BLOCO ${index + 1}',
+          Text(t.builderBlock(index + 1),
               style: AppTextStyles.label.copyWith(
                   fontSize: 9,
                   letterSpacing: 1.0,
                   color: AppColors.primary,
                   fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
-          Text('Zona', style: AppTextStyles.label),
+          Text(t.builderZone, style: AppTextStyles.label),
           const SizedBox(height: 4),
           DropdownButtonFormField<int>(
             value: form.zoneIndex,
@@ -243,7 +243,7 @@ class _BlockCard extends StatelessWidget {
                             decoration: BoxDecoration(
                                 color: z.color, shape: BoxShape.circle),
                           ),
-                          Expanded(child: Text(z.pickerLabel)),
+                          Expanded(child: Text(z.pickerLabel(t))),
                         ],
                       ),
                     ))
@@ -260,7 +260,7 @@ class _BlockCard extends StatelessWidget {
             children: [
               Expanded(
                 child: TrailwattField(
-                  label: 'Duracao (min)',
+                  label: t.builderDuration,
                   controller: form.duration,
                   keyboardType: TextInputType.number,
                 ),
@@ -268,10 +268,10 @@ class _BlockCard extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: TrailwattField(
-                  label: 'Repeticoes',
+                  label: t.builderRepetitions,
                   controller: form.repetitions,
                   keyboardType: TextInputType.number,
-                  helperText: '1 = sem repeticao',
+                  helperText: t.builderRepetitionsHelp,
                 ),
               ),
             ],
@@ -280,7 +280,7 @@ class _BlockCard extends StatelessWidget {
             children: [
               Expanded(
                 child: TrailwattField(
-                  label: 'Minimo ($unit)',
+                  label: t.builderMin(unit),
                   controller: form.minTarget,
                   keyboardType: TextInputType.number,
                 ),
@@ -288,7 +288,7 @@ class _BlockCard extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: TrailwattField(
-                  label: 'Maximo ($unit)',
+                  label: t.builderMax(unit),
                   controller: form.maxTarget,
                   keyboardType: TextInputType.number,
                 ),
@@ -296,7 +296,7 @@ class _BlockCard extends StatelessWidget {
             ],
           ),
           TrailwattField(
-            label: 'Descanso entre series (min)',
+            label: t.builderRest,
             controller: form.rest,
             keyboardType: TextInputType.number,
           ),

@@ -20,22 +20,24 @@ enum ZoneScale {
   final int count;
 }
 
+/// The zone's identity, independent of language. The rider-facing name is
+/// resolved in the UI layer: the engine is licensable on its own
+/// (Article VIII) and has no business carrying pt-BR interface text.
+enum ZoneName {
+  recovery,
+  activeRecovery,
+  endurance,
+  tempo,
+  threshold,
+  vo2max,
+  anaerobic,
+  neuromuscular,
+}
+
 /// What a heart-rate table's percentages are measured against. The two are
 /// not interchangeable - the same zone boundary is a different percentage of
 /// LTHR than of maximum heart rate - so each anchor carries its own table.
 enum HeartRateAnchor { lactateThreshold, maximum }
-
-extension ZoneMetricX on ZoneMetric {
-  String get label => switch (this) {
-        ZoneMetric.power => 'Potência',
-        ZoneMetric.heartRate => 'Frequência cardíaca',
-      };
-
-  String get unit => switch (this) {
-        ZoneMetric.power => 'w',
-        ZoneMetric.heartRate => 'bpm',
-      };
-}
 
 /// One zone inside a [ZoneTable]: its position, its name, and the band it
 /// covers as a percentage of that table's anchor (FTP, LTHR or HR max).
@@ -43,7 +45,7 @@ extension ZoneMetricX on ZoneMetric {
 class ZoneDefinition {
   /// 1-based, so it reads the same as the rider-facing code (Z1, Z2...).
   final int index;
-  final String label;
+  final ZoneName name;
 
   /// Inclusive lower bound, as a percentage of the table's anchor.
   final double minPct;
@@ -53,7 +55,7 @@ class ZoneDefinition {
 
   const ZoneDefinition({
     required this.index,
-    required this.label,
+    required this.name,
     required this.minPct,
     this.maxPct,
   })  : assert(index >= 1),
@@ -61,8 +63,6 @@ class ZoneDefinition {
         assert(maxPct == null || maxPct > minPct);
 
   String get code => 'Z$index';
-
-  String get pickerLabel => '$label ($code)';
 
   /// Fixed colour mapping, shared by every surface that shows intensity.
   Color get color => switch (index) {
@@ -141,9 +141,8 @@ class TrainingZone {
   ZoneDefinition get definition => table.byIndex(index);
 
   String get code => definition.code;
-  String get label => definition.label;
+  ZoneName get name => definition.name;
   Color get color => definition.color;
-  String get pickerLabel => definition.pickerLabel;
 
   @override
   bool operator ==(Object other) =>
@@ -190,13 +189,16 @@ class ZoneTables {
     scale: ZoneScale.seven,
     zones: [
       ZoneDefinition(
-          index: 1, label: 'Recuperação ativa', minPct: 0, maxPct: 56),
-      ZoneDefinition(index: 2, label: 'Resistência', minPct: 56, maxPct: 76),
-      ZoneDefinition(index: 3, label: 'Tempo', minPct: 76, maxPct: 91),
-      ZoneDefinition(index: 4, label: 'Limiar', minPct: 91, maxPct: 106),
-      ZoneDefinition(index: 5, label: 'VO2max', minPct: 106, maxPct: 121),
-      ZoneDefinition(index: 6, label: 'Anaeróbico', minPct: 121, maxPct: 151),
-      ZoneDefinition(index: 7, label: 'Neuromuscular', minPct: 151),
+          index: 1, name: ZoneName.activeRecovery, minPct: 0, maxPct: 56),
+      ZoneDefinition(
+          index: 2, name: ZoneName.endurance, minPct: 56, maxPct: 76),
+      ZoneDefinition(index: 3, name: ZoneName.tempo, minPct: 76, maxPct: 91),
+      ZoneDefinition(
+          index: 4, name: ZoneName.threshold, minPct: 91, maxPct: 106),
+      ZoneDefinition(index: 5, name: ZoneName.vo2max, minPct: 106, maxPct: 121),
+      ZoneDefinition(
+          index: 6, name: ZoneName.anaerobic, minPct: 121, maxPct: 151),
+      ZoneDefinition(index: 7, name: ZoneName.neuromuscular, minPct: 151),
     ],
   );
 
@@ -206,11 +208,13 @@ class ZoneTables {
     metric: ZoneMetric.power,
     scale: ZoneScale.five,
     zones: [
-      ZoneDefinition(index: 1, label: 'Recuperação', minPct: 0, maxPct: 56),
-      ZoneDefinition(index: 2, label: 'Resistência', minPct: 56, maxPct: 76),
-      ZoneDefinition(index: 3, label: 'Tempo', minPct: 76, maxPct: 91),
-      ZoneDefinition(index: 4, label: 'Limiar', minPct: 91, maxPct: 106),
-      ZoneDefinition(index: 5, label: 'VO2max', minPct: 106),
+      ZoneDefinition(index: 1, name: ZoneName.recovery, minPct: 0, maxPct: 56),
+      ZoneDefinition(
+          index: 2, name: ZoneName.endurance, minPct: 56, maxPct: 76),
+      ZoneDefinition(index: 3, name: ZoneName.tempo, minPct: 76, maxPct: 91),
+      ZoneDefinition(
+          index: 4, name: ZoneName.threshold, minPct: 91, maxPct: 106),
+      ZoneDefinition(index: 5, name: ZoneName.vo2max, minPct: 106),
     ],
   );
 
@@ -220,11 +224,13 @@ class ZoneTables {
     scale: ZoneScale.five,
     anchor: HeartRateAnchor.lactateThreshold,
     zones: [
-      ZoneDefinition(index: 1, label: 'Recuperação', minPct: 0, maxPct: 85),
-      ZoneDefinition(index: 2, label: 'Resistência', minPct: 85, maxPct: 90),
-      ZoneDefinition(index: 3, label: 'Tempo', minPct: 90, maxPct: 95),
-      ZoneDefinition(index: 4, label: 'Limiar', minPct: 95, maxPct: 100),
-      ZoneDefinition(index: 5, label: 'VO2max', minPct: 100),
+      ZoneDefinition(index: 1, name: ZoneName.recovery, minPct: 0, maxPct: 85),
+      ZoneDefinition(
+          index: 2, name: ZoneName.endurance, minPct: 85, maxPct: 90),
+      ZoneDefinition(index: 3, name: ZoneName.tempo, minPct: 90, maxPct: 95),
+      ZoneDefinition(
+          index: 4, name: ZoneName.threshold, minPct: 95, maxPct: 100),
+      ZoneDefinition(index: 5, name: ZoneName.vo2max, minPct: 100),
     ],
   );
 
@@ -235,13 +241,16 @@ class ZoneTables {
     anchor: HeartRateAnchor.lactateThreshold,
     zones: [
       ZoneDefinition(
-          index: 1, label: 'Recuperação ativa', minPct: 0, maxPct: 81),
-      ZoneDefinition(index: 2, label: 'Resistência', minPct: 81, maxPct: 90),
-      ZoneDefinition(index: 3, label: 'Tempo', minPct: 90, maxPct: 94),
-      ZoneDefinition(index: 4, label: 'Limiar', minPct: 94, maxPct: 100),
-      ZoneDefinition(index: 5, label: 'VO2max', minPct: 100, maxPct: 103),
-      ZoneDefinition(index: 6, label: 'Anaeróbico', minPct: 103, maxPct: 107),
-      ZoneDefinition(index: 7, label: 'Neuromuscular', minPct: 107),
+          index: 1, name: ZoneName.activeRecovery, minPct: 0, maxPct: 81),
+      ZoneDefinition(
+          index: 2, name: ZoneName.endurance, minPct: 81, maxPct: 90),
+      ZoneDefinition(index: 3, name: ZoneName.tempo, minPct: 90, maxPct: 94),
+      ZoneDefinition(
+          index: 4, name: ZoneName.threshold, minPct: 94, maxPct: 100),
+      ZoneDefinition(index: 5, name: ZoneName.vo2max, minPct: 100, maxPct: 103),
+      ZoneDefinition(
+          index: 6, name: ZoneName.anaerobic, minPct: 103, maxPct: 107),
+      ZoneDefinition(index: 7, name: ZoneName.neuromuscular, minPct: 107),
     ],
   );
 
@@ -252,11 +261,13 @@ class ZoneTables {
     scale: ZoneScale.five,
     anchor: HeartRateAnchor.maximum,
     zones: [
-      ZoneDefinition(index: 1, label: 'Recuperação', minPct: 0, maxPct: 60),
-      ZoneDefinition(index: 2, label: 'Resistência', minPct: 60, maxPct: 70),
-      ZoneDefinition(index: 3, label: 'Tempo', minPct: 70, maxPct: 80),
-      ZoneDefinition(index: 4, label: 'Limiar', minPct: 80, maxPct: 90),
-      ZoneDefinition(index: 5, label: 'VO2max', minPct: 90),
+      ZoneDefinition(index: 1, name: ZoneName.recovery, minPct: 0, maxPct: 60),
+      ZoneDefinition(
+          index: 2, name: ZoneName.endurance, minPct: 60, maxPct: 70),
+      ZoneDefinition(index: 3, name: ZoneName.tempo, minPct: 70, maxPct: 80),
+      ZoneDefinition(
+          index: 4, name: ZoneName.threshold, minPct: 80, maxPct: 90),
+      ZoneDefinition(index: 5, name: ZoneName.vo2max, minPct: 90),
     ],
   );
 
@@ -267,13 +278,16 @@ class ZoneTables {
     anchor: HeartRateAnchor.maximum,
     zones: [
       ZoneDefinition(
-          index: 1, label: 'Recuperação ativa', minPct: 0, maxPct: 60),
-      ZoneDefinition(index: 2, label: 'Resistência', minPct: 60, maxPct: 70),
-      ZoneDefinition(index: 3, label: 'Tempo', minPct: 70, maxPct: 80),
-      ZoneDefinition(index: 4, label: 'Limiar', minPct: 80, maxPct: 88),
-      ZoneDefinition(index: 5, label: 'VO2max', minPct: 88, maxPct: 93),
-      ZoneDefinition(index: 6, label: 'Anaeróbico', minPct: 93, maxPct: 97),
-      ZoneDefinition(index: 7, label: 'Neuromuscular', minPct: 97),
+          index: 1, name: ZoneName.activeRecovery, minPct: 0, maxPct: 60),
+      ZoneDefinition(
+          index: 2, name: ZoneName.endurance, minPct: 60, maxPct: 70),
+      ZoneDefinition(index: 3, name: ZoneName.tempo, minPct: 70, maxPct: 80),
+      ZoneDefinition(
+          index: 4, name: ZoneName.threshold, minPct: 80, maxPct: 88),
+      ZoneDefinition(index: 5, name: ZoneName.vo2max, minPct: 88, maxPct: 93),
+      ZoneDefinition(
+          index: 6, name: ZoneName.anaerobic, minPct: 93, maxPct: 97),
+      ZoneDefinition(index: 7, name: ZoneName.neuromuscular, minPct: 97),
     ],
   );
 }

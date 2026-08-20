@@ -1,27 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
+import '../l10n/domain_labels.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/bottom_nav.dart';
 import '../widgets/calendar_day_detail.dart';
 import '../widgets/segmented_control.dart';
 import 'calendar_demo_data.dart';
-
-const _weekdayLabels = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB', 'DOM'];
-const _monthNames = [
-  'Janeiro',
-  'Fevereiro',
-  'Marco',
-  'Abril',
-  'Maio',
-  'Junho',
-  'Julho',
-  'Agosto',
-  'Setembro',
-  'Outubro',
-  'Novembro',
-  'Dezembro',
-];
 
 /// Port of screens 08a/08b - "Calendario, semana". The current day comes
 /// pre-selected; the panel below the strip shows the plan if the day
@@ -39,13 +25,17 @@ class _CalendarWeekScreenState extends State<CalendarWeekScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = tr(context);
+    final locale = Localizations.localeOf(context).toString();
     final monday =
         _focusedDay.subtract(Duration(days: _focusedDay.weekday - 1));
     final sunday = monday.add(const Duration(days: 6));
+    // "20 - 26 de julho" / "20 – July 26", per the locale's own conventions.
     final rangeLabel = monday.month == sunday.month
-        ? '${monday.day} - ${sunday.day} de ${_monthNames[monday.month - 1].toLowerCase()}'
-        : '${monday.day} de ${_monthNames[monday.month - 1].toLowerCase()} - '
-            '${sunday.day} de ${_monthNames[sunday.month - 1].toLowerCase()}';
+        ? '${DateFormat.d(locale).format(monday)} - '
+            '${DateFormat.MMMMd(locale).format(sunday)}'
+        : '${DateFormat.MMMMd(locale).format(monday)} - '
+            '${DateFormat.MMMMd(locale).format(sunday)}';
 
     return Scaffold(
       body: SafeArea(
@@ -55,13 +45,13 @@ class _CalendarWeekScreenState extends State<CalendarWeekScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Calendario',
+                Text(t.calendarTitle,
                     style: AppTextStyles.screenTitle.copyWith(fontSize: 24)),
                 const SizedBox(height: 4),
                 Text(rangeLabel, style: AppTextStyles.screenSubtitle),
                 const SizedBox(height: 14),
                 SegmentedControl(
-                  options: const ['Semana', 'Mes'],
+                  options: [t.calendarWeek, t.calendarMonth],
                   selectedIndex: 0,
                   onChanged: (i) {
                     if (i == 1) {
@@ -78,6 +68,7 @@ class _CalendarWeekScreenState extends State<CalendarWeekScreen> {
                   currentDay: DateTime(2026, 7, 20),
                   calendarFormat: CalendarFormat.week,
                   startingDayOfWeek: StartingDayOfWeek.monday,
+                  locale: locale,
                   headerVisible: false,
                   daysOfWeekHeight: 22,
                   rowHeight: 58,
@@ -92,7 +83,8 @@ class _CalendarWeekScreenState extends State<CalendarWeekScreen> {
                           : const [],
                   calendarBuilders: CalendarBuilders(
                     dowBuilder: (context, day) => Center(
-                      child: Text(_weekdayLabels[day.weekday - 1],
+                      child: Text(
+                          DateFormat.E(locale).format(day).toUpperCase(),
                           style: AppTextStyles.label.copyWith(fontSize: 9)),
                     ),
                   ),

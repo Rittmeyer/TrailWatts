@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import '../l10n/domain_labels.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 
@@ -28,10 +29,10 @@ TileLayer trailwattTileLayer({String urlTemplate = trailwattTileUrl}) {
 }
 
 /// Attribution required by the OSM licence whenever OSM tiles are shown.
-Widget trailwattAttribution() {
-  return const RichAttributionWidget(
+Widget trailwattAttribution(BuildContext context) {
+  return RichAttributionWidget(
     alignment: AttributionAlignment.bottomLeft,
-    attributions: [TextSourceAttribution('OpenStreetMap contributors')],
+    attributions: [TextSourceAttribution(tr(context).mapAttribution)],
   );
 }
 

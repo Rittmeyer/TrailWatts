@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/history_entry.dart';
 import '../models/result_source.dart';
+import '../l10n/domain_labels.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/bottom_nav.dart';
@@ -40,6 +41,7 @@ class HistoricoScreen extends StatelessWidget {
           source: ResultSource.manual),
     ];
 
+    final t = tr(context);
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -47,22 +49,24 @@ class HistoricoScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Seu progresso',
+              Text(t.historyTitle,
                   style: AppTextStyles.screenTitle.copyWith(fontSize: 24)),
               const SizedBox(height: 16),
-              const Row(
+              Row(
                 children: [
-                  Expanded(child: StatBox(label: 'FTP ATUAL', value: '212w')),
-                  SizedBox(width: 8),
+                  Expanded(
+                      child:
+                          StatBox(label: t.historyCurrentFtp, value: '212w')),
+                  const SizedBox(width: 8),
                   Expanded(
                       child: StatBox(
-                          label: 'PRECISAO',
+                          label: t.historyAccuracy,
                           value: '94%',
                           valueColor: AppColors.greenText)),
                 ],
               ),
               const SizedBox(height: 16),
-              Text('Treinos recentes', style: AppTextStyles.label),
+              Text(t.historyRecent, style: AppTextStyles.label),
               const SizedBox(height: 8),
               Expanded(
                 child: ListView.separated(
@@ -89,7 +93,7 @@ class HistoricoScreen extends StatelessWidget {
                                   style: AppTextStyles.body.copyWith(
                                       fontWeight: FontWeight.w700,
                                       fontSize: 13)),
-                              Text('alvo ${e.targetWatts}w',
+                              Text(t.historyTargetWatts(e.targetWatts),
                                   style: AppTextStyles.label
                                       .copyWith(fontSize: 11)),
                             ],

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
+import '../l10n/domain_labels.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/segmented_control.dart';
@@ -27,6 +29,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = tr(context);
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -35,26 +38,24 @@ class _AuthScreenState extends State<AuthScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Bem-vindo',
+                Text(t.authWelcome,
                     style: AppTextStyles.screenTitle.copyWith(fontSize: 24)),
                 const SizedBox(height: 4),
                 Text(
-                  _isLogin
-                      ? 'Acesse sua conta Trailwatt'
-                      : 'Leva menos de um minuto',
+                  _isLogin ? t.authLoginSubtitle : t.authSignupSubtitle,
                   style: AppTextStyles.screenSubtitle,
                 ),
                 const SizedBox(height: 20),
                 SegmentedControl(
-                  options: const ['Entrar', 'Criar conta'],
+                  options: [t.authSignIn, t.authCreateAccount],
                   selectedIndex: _tab,
                   onChanged: (i) => setState(() => _tab = i),
                 ),
                 const SizedBox(height: 16),
-                if (_isLogin) ..._loginFields() else ..._signupFields(),
+                if (_isLogin) ..._loginFields(t) else ..._signupFields(t),
                 const SizedBox(height: 4),
                 TrailwattButton(
-                  label: _isLogin ? 'Entrar' : 'Criar conta',
+                  label: _isLogin ? t.authSignIn : t.authCreateAccount,
                   onPressed: () => Navigator.of(context)
                       .pushReplacementNamed(_isLogin ? '/home' : '/profile'),
                 ),
@@ -62,7 +63,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 // fully manual per Constitution Article II.
                 if (_isLogin) ...[
                   const SizedBox(height: 20),
-                  const _Divider(label: 'OU'),
+                  _Divider(label: t.authOr),
                   const SizedBox(height: 14),
                   TrailwattButton(
                       label: 'Google',
@@ -90,16 +91,16 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
-  List<Widget> _loginFields() {
+  List<Widget> _loginFields(AppLocalizations t) {
     return [
-      const TrailwattField(label: 'Email', hint: 'nome@email.com'),
-      const TrailwattField(
-          label: 'Senha', hint: 'sua senha', obscureText: true),
+      TrailwattField(label: t.authEmail, hint: t.authEmailHint),
+      TrailwattField(
+          label: t.authPassword, hint: t.authPasswordHint, obscureText: true),
       Align(
         alignment: Alignment.centerRight,
         child: Padding(
           padding: const EdgeInsets.only(bottom: 14),
-          child: Text('Esqueceu a senha?',
+          child: Text(t.authForgotPassword,
               style: AppTextStyles.label.copyWith(
                   color: AppColors.primary, fontWeight: FontWeight.w600)),
         ),
@@ -107,31 +108,35 @@ class _AuthScreenState extends State<AuthScreen> {
     ];
   }
 
-  List<Widget> _signupFields() {
+  List<Widget> _signupFields(AppLocalizations t) {
     return [
-      const TrailwattField(label: 'Nome', hint: 'seu nome'),
-      const TrailwattField(label: 'Email', hint: 'nome@email.com'),
-      const TrailwattField(label: 'Data de nascimento', hint: 'DD/MM/AAAA'),
-      const TrailwattField(
-          label: 'Senha', hint: 'crie uma senha', obscureText: true),
-      const TrailwattField(
-          label: 'Confirmar senha', hint: 'repita a senha', obscureText: true),
+      TrailwattField(label: t.authName, hint: t.authNameHint),
+      TrailwattField(label: t.authEmail, hint: t.authEmailHint),
+      TrailwattField(label: t.authBirthDate, hint: t.authBirthDateHint),
+      TrailwattField(
+          label: t.authPassword,
+          hint: t.authCreatePasswordHint,
+          obscureText: true),
+      TrailwattField(
+          label: t.authConfirmPassword,
+          hint: t.authConfirmPasswordHint,
+          obscureText: true),
       ConsentCheckbox(
         value: _consent,
         onChanged: (v) => setState(() => _consent = v),
         label: Text.rich(
           TextSpan(
             style: AppTextStyles.label.copyWith(fontSize: 9.5),
-            children: const [
-              TextSpan(text: 'Concordo com os '),
+            children: [
+              TextSpan(text: t.authConsentPrefix),
               TextSpan(
-                  text: 'Termos de Uso',
-                  style: TextStyle(
+                  text: t.authConsentTerms,
+                  style: const TextStyle(
                       fontWeight: FontWeight.w600, color: AppColors.ink)),
-              TextSpan(text: ' e a '),
+              TextSpan(text: t.authConsentMiddle),
               TextSpan(
-                  text: 'Politica de Privacidade',
-                  style: TextStyle(
+                  text: t.authConsentPrivacy,
+                  style: const TextStyle(
                       fontWeight: FontWeight.w600, color: AppColors.ink)),
             ],
           ),
