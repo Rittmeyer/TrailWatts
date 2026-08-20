@@ -1,6 +1,16 @@
 import 'result_source.dart';
 
-enum PlatformConnectionState { connected, expired, disconnected }
+enum PlatformConnectionState {
+  connected,
+  expired,
+  disconnected,
+
+  /// This build carries no client id for the platform, so it cannot connect
+  /// at all. Distinct from `disconnected`, which is a rider choice: telling
+  /// the two apart is what stops the UI offering a Connect button that could
+  /// only ever fail.
+  notConfigured,
+}
 
 enum ImportAttemptStatus { matched, noMatch, manual }
 

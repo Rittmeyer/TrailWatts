@@ -27,12 +27,8 @@ the "Mais" tab's Integrations link) when connected, falling back to the
 manual block editor otherwise.
 
 Map screens resolve their geometry against a real road network (see
-"Mapas e rotas" below). The Integrations screen lets a rider connect or
-disconnect Garmin, Strava and TrainingPeaks independently
-(`lib/screens/integrations_screen.dart`), but the connection itself is
-still an in-memory demo store (`lib/services/integrations_store.dart`) -
-demo data stands in for the real OAuth flow in
-`specs/002-platform-integration`, and the workout→terrain
+"Mapas e rotas" below), and the platform connections are real OAuth
+sessions rather than a flag (see "Integrações" below). The workout→terrain
 matching engine in `specs/006-route-recommendation` remains subject to the
 "Implementation gate" in `SETUP.md`: the routing layer added here covers the
 "geospatial candidate source" and "route editing re-scoring" items, not the
@@ -113,6 +109,67 @@ flutter run \
   --dart-define=TRAILWATT_OSRM_PROFILE=cycling \
   --dart-define=TRAILWATT_TILE_URL=https://tiles.suainfra/{z}/{x}/{y}.png
 ```
+
+## Integrações (Strava, Garmin, Wahoo, TrainingPeaks)
+
+A tela **Mais › Integrações** conecta e desconecta cada plataforma de forma
+independente. A conexão é uma sessão OAuth de verdade — Authorization Code
+com PKCE (RFC 7636), que é o fluxo correto para app público: **nenhum client
+secret vai no binário**, e o app só marca uma plataforma como conectada
+quando está segurando um token que ela emitiu.
+
+O papel de cada uma:
+
+- **Strava, Garmin, Wahoo** — recebem a rota sugerida e devolvem a atividade
+  concluída correspondente.
+- **TrainingPeaks** — lê o treino já planejado para dentro do construtor.
+  Não recebe rota.
+
+### Configurando
+
+Cada plataforma precisa do client id registrado por você. Sem ele a tela diz
+**"Indisponível nesta build"** em vez de oferecer um botão que só poderia
+falhar:
+
+```bash
+flutter run \
+  --dart-define=TRAILWATT_STRAVA_CLIENT_ID=... \
+  --dart-define=TRAILWATT_GARMIN_CLIENT_ID=... \
+  --dart-define=TRAILWATT_WAHOO_CLIENT_ID=... \
+  --dart-define=TRAILWATT_TRAININGPEAKS_CLIENT_ID=... \
+  --dart-define=TRAILWATT_OAUTH_REDIRECT=trailwatt://oauth
+```
+
+O redirect registrado em cada plataforma é o valor acima com o nome dela no
+fim — `trailwatt://oauth/strava`, `/garmin`, `/wahoo`, `/trainingpeaks`.
+
+### Exportar rota
+
+O GPX é sempre gerado (`lib/services/platform/gpx_export.dart`). Onde a
+plataforma documenta um endpoint de rotas, ele é enviado direto; onde não
+documenta, o app entrega o GPX para você importar pelo importador da própria
+plataforma — **nunca** simula sessão de navegador nem usa endpoint não
+documentado. Qual plataforma tem qual capacidade é dado, não suposição:
+veja `PlatformCapabilities` em
+`lib/services/platform/platform_credentials.dart`.
+
+Os endpoints padrão são **provisórios**, no mesmo sentido dos defaults do
+OSRM: servem para desenvolvimento e precisam ser verificados contra a
+documentação e os termos de cada parceiro antes de publicar — é a decisão P0
+"Platform API capabilities" de `DECISIONS_REQUIRED.md`.
+
+### O que ainda falta para produção
+
+Duas coisas, ambas de propósito fora daqui em vez de meio-feitas:
+
+- **Receber o redirect por deep link.** Hoje o app abre o endereço de
+  autorização e você cola de volta a URL para onde foi redirecionado. Um
+  build de produção registra o esquema `trailwatt://` e chama
+  `IntegrationsStore.completeConnect(platform, uri)` direto do handler —
+  mesmo fluxo, sem o passo manual.
+- **Guardar os tokens.** Eles vivem só em memória: persistir exige keystore
+  do Android / keychain do iOS, e guardar token de plataforma em
+  `shared_preferences` seria pior do que não guardar.
 
 ## Idiomas
 

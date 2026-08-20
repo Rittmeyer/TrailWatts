@@ -301,9 +301,9 @@
   "moreProfile": "Profile",
   "moreProfileSubtitle": "Weight, FTP and zones",
   "moreIntegrations": "Integrations",
-  "moreIntegrationsSubtitle": "Garmin, Strava and TrainingPeaks",
+  "moreIntegrationsSubtitle": "Strava, Garmin, Wahoo and TrainingPeaks",
   "integrationsTitle": "Integrations",
-  "integrationsSubtitle": "Connect Garmin, Strava and TrainingPeaks to export routes and import your planned workout automatically.",
+  "integrationsSubtitle": "Connect Strava, Garmin and Wahoo to export routes and pick the result back up, and TrainingPeaks to import your planned workout.",
   "integrationsConnected": "Connected",
   "integrationsNotConnected": "Not connected",
   "integrationsConnect": "Connect",
@@ -314,5 +314,88 @@
   "importWorkoutNoConnectionTitle": "No TrainingPeaks connection",
   "importWorkoutNoConnectionBody": "Connect your account to import your preferred workout automatically, or keep building it manually.",
   "importWorkoutConnectCta": "Connect now",
-  "importWorkoutManualCta": "Create manually"
+  "importWorkoutManualCta": "Create manually",
+  "integrationsExpired": "Session expired",
+  "integrationsNotConfigured": "Not available in this build",
+  "integrationsReconnect": "Reconnect",
+  "integrationsNotConfiguredNote": "This build carries no API client id for the platform, so it cannot connect. Supply one at build time with --dart-define.",
+  "integrationsScopes": "Permissions: {scopes}",
+  "@integrationsScopes": {
+    "placeholders": {
+      "scopes": {
+        "type": "String"
+      }
+    }
+  },
+  "integrationsConnectTitle": "Connect {platform}",
+  "@integrationsConnectTitle": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "integrationsConnectStep1": "1. Open this address and approve the access:",
+  "integrationsConnectStep2": "2. Paste the address you were redirected to:",
+  "integrationsRedirectLabel": "Redirect URL",
+  "integrationsConnectConfirm": "Finish connecting",
+  "integrationsConnectedSnack": "{platform} connected",
+  "@integrationsConnectedSnack": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "integrationsCopyUrl": "Copy address",
+  "integrationsUrlCopied": "Address copied",
+  "integrationsErrorNotConfigured": "This build cannot connect to that platform.",
+  "integrationsErrorDenied": "Access was not granted on the platform.",
+  "integrationsErrorStateMismatch": "That redirect does not match the connection we started. Try connecting again.",
+  "integrationsErrorNoCode": "The redirect carried no authorization code.",
+  "integrationsErrorNetwork": "Could not reach the platform. Check your connection and try again.",
+  "integrationsErrorInvalidResponse": "The platform answered with something unexpected.",
+  "routeExporting": "Exporting...",
+  "routeExportNotConnected": "Connect {platform} under More › Integrations first.",
+  "@routeExportNotConnected": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "routeExportNotSupported": "{platform} has no route API - export the file instead.",
+  "@routeExportNotSupported": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "routeExportFailed": "Could not export to {platform}.",
+  "@routeExportFailed": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "routeHandoffTitle": "Import into {platform}",
+  "@routeHandoffTitle": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "routeHandoffBody": "{platform} has no official endpoint for creating a route, so the app does not invent one. Here is the GPX - import it through {platform}'s own route importer.",
+  "@routeHandoffBody": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "routeHandoffCopy": "Copy GPX",
+  "routeHandoffCopied": "GPX copied"
 }

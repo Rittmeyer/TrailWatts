@@ -20,7 +20,7 @@ known model contradictions. They are intentionally not invented as facts.
 | Search radius | Controls candidate availability and performance | 8 km prototype default, rider-editable |
 | Route type default | Changes route geometry | Loop for structured training, rider-editable |
 | Calibration threshold | Prevents noisy personalization | Multiple high-quality observations; exact rule TBD |
-| Platform API capabilities | Determines export/import reality | Verify per platform before implementation freeze |
+| Platform API capabilities | Determines export/import reality | Modeled as data (`PlatformCapabilities`), not assumed: a platform with no documented endpoint takes the file-handoff/manual path. Values still to verify per platform before implementation freeze |
 
 ## P1 — needed before polished UX
 

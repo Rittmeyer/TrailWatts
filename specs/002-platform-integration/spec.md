@@ -175,3 +175,38 @@ downstream.
   implementation, which stands in for the real TrainingPeaks API the same
   way the rest of this feature's demo data stands in for Strava/Garmin
   (README, "Status").
+
+## Addendum: connection implementation
+
+The connections themselves are now real OAuth sessions rather than a flag,
+which is what makes Requirements 2, 9 and 10 verifiable instead of merely
+stated.
+
+- **Public-client PKCE.** Authorization Code with PKCE (RFC 7636). No client
+  secret exists anywhere in the app, because a shipped binary cannot keep
+  one - any flow that needs a secret has to be completed by a backend.
+  `lib/services/platform/platform_oauth_service.dart`.
+- **A platform is `connected` only while a token it issued is held.** There
+  is no code path that marks one connected without one, so the export and
+  import screens can never claim a round-trip that did not happen.
+  `lib/services/integrations_store.dart`.
+- **`notConfigured` is a distinct state.** A build with no client id for a
+  platform says so, rather than offering a Connect button that could only
+  fail. This satisfies "connect or disconnect independently" honestly on
+  builds that ship with only some platforms configured.
+- **Capability is data, not an assumption** (`PlatformCapabilities`). This
+  is what keeps the implementation inside the requirement that Strava,
+  Garmin and Wahoo MUST NOT be assumed equivalent: a platform with no
+  documented route endpoint takes the file-handoff path, and one with no
+  documented event mechanism falls back to manual entry - neither is
+  papered over with an invented call.
+- **Candidate confidence weighs two independent signals** - how soon after
+  the export the ride started, and how closely its distance matches the
+  route's - so arrival time alone cannot decide correctness
+  (Requirement 7). `PlatformApiClient.matchConfidencePct`.
+
+Two pieces are deliberately left to the host app rather than half-built:
+delivering the OAuth redirect by deep link (the app currently accepts the
+redirect URL by hand, which is the same flow with the last hop manual), and
+persisting tokens, which needs the platform keystore/keychain rather than
+plain-text preferences.

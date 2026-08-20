@@ -1205,7 +1205,7 @@ abstract class AppLocalizations {
   /// No description provided for @builderSequenceNote.
   ///
   /// In en, this message translates to:
-  /// **'A block can hold two or more stimuli: to build 4x8min Z4 with 2min easy, add a Z4 stimulus, tap "+ Stimulus" to add the Z1, and set how many times to repeat.'**
+  /// **'A block can hold two or more stimuli: to build 4x8min Z4 with 2min easy, add a Z4 stimulus, tap \"+ Stimulus\" to add the Z1, and set how many times to repeat.'**
   String get builderSequenceNote;
 
   /// No description provided for @sourceTrainingPeaks.
@@ -1265,7 +1265,7 @@ abstract class AppLocalizations {
   /// No description provided for @moreIntegrationsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Garmin, Strava and TrainingPeaks'**
+  /// **'Strava, Garmin, Wahoo and TrainingPeaks'**
   String get moreIntegrationsSubtitle;
 
   /// No description provided for @integrationsTitle.
@@ -1277,7 +1277,7 @@ abstract class AppLocalizations {
   /// No description provided for @integrationsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Connect Garmin, Strava and TrainingPeaks to export routes and import your planned workout automatically.'**
+  /// **'Connect Strava, Garmin and Wahoo to export routes and pick the result back up, and TrainingPeaks to import your planned workout.'**
   String get integrationsSubtitle;
 
   /// No description provided for @integrationsConnected.
@@ -1345,6 +1345,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Create manually'**
   String get importWorkoutManualCta;
+
+  /// No description provided for @integrationsExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Session expired'**
+  String get integrationsExpired;
+
+  /// No description provided for @integrationsNotConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'Not available in this build'**
+  String get integrationsNotConfigured;
+
+  /// No description provided for @integrationsReconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect'**
+  String get integrationsReconnect;
+
+  /// No description provided for @integrationsNotConfiguredNote.
+  ///
+  /// In en, this message translates to:
+  /// **'This build carries no API client id for the platform, so it cannot connect. Supply one at build time with --dart-define.'**
+  String get integrationsNotConfiguredNote;
+
+  /// No description provided for @integrationsScopes.
+  ///
+  /// In en, this message translates to:
+  /// **'Permissions: {scopes}'**
+  String integrationsScopes(String scopes);
+
+  /// No description provided for @integrationsConnectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect {platform}'**
+  String integrationsConnectTitle(String platform);
+
+  /// No description provided for @integrationsConnectStep1.
+  ///
+  /// In en, this message translates to:
+  /// **'1. Open this address and approve the access:'**
+  String get integrationsConnectStep1;
+
+  /// No description provided for @integrationsConnectStep2.
+  ///
+  /// In en, this message translates to:
+  /// **'2. Paste the address you were redirected to:'**
+  String get integrationsConnectStep2;
+
+  /// No description provided for @integrationsRedirectLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Redirect URL'**
+  String get integrationsRedirectLabel;
+
+  /// No description provided for @integrationsConnectConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish connecting'**
+  String get integrationsConnectConfirm;
+
+  /// No description provided for @integrationsConnectedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'{platform} connected'**
+  String integrationsConnectedSnack(String platform);
+
+  /// No description provided for @integrationsCopyUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy address'**
+  String get integrationsCopyUrl;
+
+  /// No description provided for @integrationsUrlCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Address copied'**
+  String get integrationsUrlCopied;
+
+  /// No description provided for @integrationsErrorNotConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'This build cannot connect to that platform.'**
+  String get integrationsErrorNotConfigured;
+
+  /// No description provided for @integrationsErrorDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Access was not granted on the platform.'**
+  String get integrationsErrorDenied;
+
+  /// No description provided for @integrationsErrorStateMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'That redirect does not match the connection we started. Try connecting again.'**
+  String get integrationsErrorStateMismatch;
+
+  /// No description provided for @integrationsErrorNoCode.
+  ///
+  /// In en, this message translates to:
+  /// **'The redirect carried no authorization code.'**
+  String get integrationsErrorNoCode;
+
+  /// No description provided for @integrationsErrorNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not reach the platform. Check your connection and try again.'**
+  String get integrationsErrorNetwork;
+
+  /// No description provided for @integrationsErrorInvalidResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'The platform answered with something unexpected.'**
+  String get integrationsErrorInvalidResponse;
+
+  /// No description provided for @routeExporting.
+  ///
+  /// In en, this message translates to:
+  /// **'Exporting...'**
+  String get routeExporting;
+
+  /// No description provided for @routeExportNotConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect {platform} under More › Integrations first.'**
+  String routeExportNotConnected(String platform);
+
+  /// No description provided for @routeExportNotSupported.
+  ///
+  /// In en, this message translates to:
+  /// **'{platform} has no route API - export the file instead.'**
+  String routeExportNotSupported(String platform);
+
+  /// No description provided for @routeExportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not export to {platform}.'**
+  String routeExportFailed(String platform);
+
+  /// No description provided for @routeHandoffTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import into {platform}'**
+  String routeHandoffTitle(String platform);
+
+  /// No description provided for @routeHandoffBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{platform} has no official endpoint for creating a route, so the app does not invent one. Here is the GPX - import it through {platform}\'s own route importer.'**
+  String routeHandoffBody(String platform);
+
+  /// No description provided for @routeHandoffCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy GPX'**
+  String get routeHandoffCopy;
+
+  /// No description provided for @routeHandoffCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'GPX copied'**
+  String get routeHandoffCopied;
 }
 
 class _AppLocalizationsDelegate

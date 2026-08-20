@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../l10n/domain_labels.dart';
+import '../services/integrations_store.dart';
+import '../services/platform/gpx_export.dart';
+import '../services/platform/platform_api_client.dart';
 import '../services/routing_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -27,12 +31,16 @@ class RouteMapScreen extends StatefulWidget {
 class _RouteMapScreenState extends State<RouteMapScreen> {
   ResultSource _platform = ResultSource.strava;
 
+  /// Route export goes to the platforms the rider records on. TrainingPeaks
+  /// is deliberately not here: it is connected to read the *planned* workout
+  /// into the builder, not to receive a route.
   static const _exportPlatforms = [
     ResultSource.strava,
     ResultSource.garmin,
     ResultSource.wahoo,
-    ResultSource.trainingPeaks,
   ];
+
+  bool _exporting = false;
 
   static const suggestion = RouteSuggestion(
     id: 'demo-route-01',
@@ -80,6 +88,114 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
   Future<void> _load() async {
     final path = await _routing.routeThrough(_waypoints);
     if (mounted) setState(() => _path = path);
+  }
+
+  /// Exports the suggested stretch to the selected platform.
+  ///
+  /// The GPX is generated either way (spec 002, Requirement 1). Where the
+  /// platform documents a route endpoint it is pushed straight through;
+  /// where it does not, the rider gets the file to run through the
+  /// platform's own importer - the compliant handoff, never a scraped upload.
+  Future<void> _export() async {
+    final t = tr(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final store = IntegrationsStore.instance;
+    final platform = _platform;
+    final label = platform.label(t);
+
+    setState(() => _exporting = true);
+    try {
+      final tokens = await store.validTokensFor(platform);
+      final gpx = buildRouteGpx(
+        name: suggestion.name,
+        points: [
+          for (final point in _path?.polyline ?? _waypoints)
+            GpxRoutePoint(point),
+        ],
+      );
+
+      final result = await store.api.exportRoute(
+        credentials: store.credentialsFor(platform),
+        tokens: tokens,
+        routeId: suggestion.id,
+        name: suggestion.name,
+        gpx: gpx,
+      );
+
+      if (!mounted) return;
+      switch (result.outcome) {
+        case RouteExportOutcome.uploaded:
+          messenger
+              .showSnackBar(SnackBar(content: Text(t.routeExported(label))));
+        case RouteExportOutcome.fileHandoff:
+          await _showGpxHandoff(result.gpx, label);
+      }
+    } on PlatformApiException catch (e) {
+      messenger.showSnackBar(SnackBar(
+        content: Text(switch (e.failure) {
+          PlatformApiFailure.unauthorized => t.routeExportNotConnected(label),
+          PlatformApiFailure.notSupported => t.routeExportNotSupported(label),
+          PlatformApiFailure.invalidResponse ||
+          PlatformApiFailure.network =>
+            t.routeExportFailed(label),
+        }),
+      ));
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
+  }
+
+  Future<void> _showGpxHandoff(String gpx, String platformLabel) async {
+    final t = tr(context);
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(t.routeHandoffTitle(platformLabel),
+            style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w700)),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(t.routeHandoffBody(platformLabel),
+                  style: AppTextStyles.label.copyWith(height: 1.5)),
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                constraints: const BoxConstraints(maxHeight: 160),
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.paper,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: SingleChildScrollView(
+                  child: SelectableText(gpx,
+                      style: AppTextStyles.label
+                          .copyWith(fontSize: 8, height: 1.35)),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              await Clipboard.setData(ClipboardData(text: gpx));
+              if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(t.routeHandoffCopied)));
+              }
+            },
+            child: Text(t.routeHandoffCopy),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(t.editRouteCancel),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -206,11 +322,8 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                 ),
                 const SizedBox(height: 20),
                 TrailwattButton(
-                  label: t.routeExport,
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text(t.routeExported(_platform.label(t)))));
-                  },
+                  label: _exporting ? t.routeExporting : t.routeExport,
+                  onPressed: _exporting ? null : _export,
                 ),
                 const SizedBox(height: 14),
                 Text(

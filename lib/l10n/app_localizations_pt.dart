@@ -609,7 +609,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get builderSequenceNote =>
-      'Um bloco pode ter dois ou mais estímulos: para montar 4×8min Z4 com 2min leve, adicione um estímulo Z4, toque em "+ Estímulo" para adicionar o Z1, e defina quantas vezes repetir.';
+      'Um bloco pode ter dois ou mais estímulos: para montar 4×8min Z4 com 2min leve, adicione um estímulo Z4, toque em \"+ Estímulo\" para adicionar o Z1, e defina quantas vezes repetir.';
 
   @override
   String get sourceTrainingPeaks => 'TrainingPeaks';
@@ -641,14 +641,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get moreIntegrations => 'Integrações';
 
   @override
-  String get moreIntegrationsSubtitle => 'Garmin, Strava e TrainingPeaks';
+  String get moreIntegrationsSubtitle =>
+      'Strava, Garmin, Wahoo e TrainingPeaks';
 
   @override
   String get integrationsTitle => 'Integrações';
 
   @override
   String get integrationsSubtitle =>
-      'Conecte Garmin, Strava e TrainingPeaks para exportar rotas e importar o treino planejado automaticamente.';
+      'Conecte Strava, Garmin e Wahoo para exportar rotas e buscar o resultado de volta, e o TrainingPeaks para importar o treino planejado.';
 
   @override
   String get integrationsConnected => 'Conectado';
@@ -685,4 +686,110 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get importWorkoutManualCta => 'Criar manualmente';
+
+  @override
+  String get integrationsExpired => 'Sessão expirada';
+
+  @override
+  String get integrationsNotConfigured => 'Indisponível nesta build';
+
+  @override
+  String get integrationsReconnect => 'Reconectar';
+
+  @override
+  String get integrationsNotConfiguredNote =>
+      'Esta build não tem o client id da API da plataforma, então não consegue conectar. Informe um em tempo de build com --dart-define.';
+
+  @override
+  String integrationsScopes(String scopes) {
+    return 'Permissões: $scopes';
+  }
+
+  @override
+  String integrationsConnectTitle(String platform) {
+    return 'Conectar $platform';
+  }
+
+  @override
+  String get integrationsConnectStep1 =>
+      '1. Abra este endereço e aprove o acesso:';
+
+  @override
+  String get integrationsConnectStep2 =>
+      '2. Cole o endereço para onde você foi redirecionado:';
+
+  @override
+  String get integrationsRedirectLabel => 'URL de redirecionamento';
+
+  @override
+  String get integrationsConnectConfirm => 'Concluir conexão';
+
+  @override
+  String integrationsConnectedSnack(String platform) {
+    return '$platform conectado';
+  }
+
+  @override
+  String get integrationsCopyUrl => 'Copiar endereço';
+
+  @override
+  String get integrationsUrlCopied => 'Endereço copiado';
+
+  @override
+  String get integrationsErrorNotConfigured =>
+      'Esta build não consegue conectar a essa plataforma.';
+
+  @override
+  String get integrationsErrorDenied =>
+      'O acesso não foi autorizado na plataforma.';
+
+  @override
+  String get integrationsErrorStateMismatch =>
+      'Esse redirecionamento não corresponde à conexão iniciada. Tente conectar de novo.';
+
+  @override
+  String get integrationsErrorNoCode =>
+      'O redirecionamento não trouxe o código de autorização.';
+
+  @override
+  String get integrationsErrorNetwork =>
+      'Não foi possível falar com a plataforma. Verifique a conexão e tente de novo.';
+
+  @override
+  String get integrationsErrorInvalidResponse =>
+      'A plataforma respondeu algo inesperado.';
+
+  @override
+  String get routeExporting => 'Exportando...';
+
+  @override
+  String routeExportNotConnected(String platform) {
+    return 'Conecte o $platform em Mais › Integrações primeiro.';
+  }
+
+  @override
+  String routeExportNotSupported(String platform) {
+    return 'O $platform não tem API de rotas - exporte o arquivo.';
+  }
+
+  @override
+  String routeExportFailed(String platform) {
+    return 'Não foi possível exportar para o $platform.';
+  }
+
+  @override
+  String routeHandoffTitle(String platform) {
+    return 'Importar no $platform';
+  }
+
+  @override
+  String routeHandoffBody(String platform) {
+    return 'O $platform não tem endpoint oficial para criar rota, e o app não inventa um. Este é o GPX - importe pelo próprio importador de rotas do $platform.';
+  }
+
+  @override
+  String get routeHandoffCopy => 'Copiar GPX';
+
+  @override
+  String get routeHandoffCopied => 'GPX copiado';
 }

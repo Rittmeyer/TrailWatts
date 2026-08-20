@@ -1,47 +1,166 @@
 import 'package:flutter/foundation.dart';
+
 import '../models/platform_integration.dart';
 import '../models/result_source.dart';
+import 'platform/oauth_tokens.dart';
+import 'platform/platform_api_client.dart';
+import 'platform/platform_credentials.dart';
+import 'platform/platform_oauth_service.dart';
 
 /// The rider's platform connections, shared across every screen that needs
-/// to know whether Garmin, Strava or TrainingPeaks is connected: the
-/// Integrations screen writes it, the workout builder's TrainingPeaks
-/// import and the route export screen both read it.
+/// to know whether Strava, Garmin, Wahoo or TrainingPeaks is connected: the
+/// Integrations screen writes it, the route export and the workout import
+/// both read it.
 ///
-/// This app has no backend of its own (see README - "demo data stands in
-/// for the platform integrations"), so this store holds the connection
-/// state in memory instead of driving it from a real OAuth callback. The
-/// shape - `PlatformConnection` with a state, scopes and a connected-at
-/// timestamp - is the one specs/002-platform-integration/spec.md defines,
-/// so swapping this for a real persisted store later does not change any
-/// caller.
+/// Connections are real OAuth sessions, not a flag. A platform is
+/// `connected` only when this store is holding a token the platform issued;
+/// there is no code path that marks one connected without one. That matters
+/// more than it sounds: a fake "connected" state would make the export and
+/// import screens claim a round-trip that never happened, which is the one
+/// thing AUDIT_RESULT.md's "never hide uncertainty" rules out.
+///
+/// Tokens live in memory only. Persisting them is a real requirement for a
+/// shipping build and it needs the platform keystore/keychain rather than
+/// shared preferences - deliberately left to the host app instead of being
+/// half-done here with plain-text storage.
 class IntegrationsStore extends ChangeNotifier {
-  IntegrationsStore._();
-  static final IntegrationsStore instance = IntegrationsStore._();
+  final PlatformOAuthService _oauth;
+  final PlatformApiClient _api;
+  final Map<ResultSource, PlatformCredentials> _credentials;
 
-  final Map<ResultSource, PlatformConnection> _connections = {};
+  final Map<ResultSource, OAuthTokens> _tokens = {};
+  final Map<ResultSource, DateTime> _connectedAt = {};
+  final Map<ResultSource, PendingAuthorization> _pending = {};
 
-  PlatformConnection? connectionFor(ResultSource platform) =>
-      _connections[platform];
+  IntegrationsStore({
+    PlatformOAuthService? oauth,
+    PlatformApiClient? api,
+    Map<ResultSource, PlatformCredentials>? credentials,
+  })  : _oauth = oauth ?? PlatformOAuthService(),
+        _api = api ?? PlatformApiClient(),
+        _credentials = credentials ??
+            {
+              for (final p in PlatformCredentials.connectable)
+                p: PlatformCredentials.of(p),
+            };
+
+  /// The app-wide store. Tests build their own with injected services rather
+  /// than reaching for this one.
+  static final IntegrationsStore instance = IntegrationsStore();
+
+  PlatformApiClient get api => _api;
+
+  PlatformCredentials credentialsFor(ResultSource platform) =>
+      _credentials[platform] ?? PlatformCredentials.of(platform);
+
+  List<ResultSource> get platforms => _credentials.keys.toList(growable: false);
+
+  PlatformConnectionState stateOf(ResultSource platform) {
+    if (!credentialsFor(platform).isConfigured) {
+      return PlatformConnectionState.notConfigured;
+    }
+    final tokens = _tokens[platform];
+    if (tokens == null) return PlatformConnectionState.disconnected;
+    // An expired token that can still be refreshed is not a broken
+    // connection, so it keeps reading as connected and is renewed on use.
+    if (tokens.isExpired && !tokens.canRefresh) {
+      return PlatformConnectionState.expired;
+    }
+    return PlatformConnectionState.connected;
+  }
+
+  PlatformConnection? connectionFor(ResultSource platform) {
+    final tokens = _tokens[platform];
+    if (tokens == null) return null;
+    return PlatformConnection(
+      platform: platform,
+      state: stateOf(platform),
+      scopes: tokens.scopes.isEmpty
+          ? credentialsFor(platform).scopes
+          : tokens.scopes,
+      connectedAt: _connectedAt[platform],
+    );
+  }
 
   bool isConnected(ResultSource platform) =>
-      _connections[platform]?.state == PlatformConnectionState.connected;
+      stateOf(platform) == PlatformConnectionState.connected;
 
-  /// Article II: the connection only ever asks for read access to a single
-  /// matching activity/workout, never a bulk history import.
-  void connect(ResultSource platform) {
-    _connections[platform] = PlatformConnection(
-      platform: platform,
-      state: PlatformConnectionState.connected,
-      scopes: const ['activity:read', 'workout:read'],
-      connectedAt: DateTime.now(),
+  /// Starts an authorization: returns the URL the rider has to open and
+  /// approve. Throws [PlatformAuthException] with `notConfigured` when this
+  /// build has no client id for the platform.
+  PendingAuthorization beginConnect(ResultSource platform) {
+    final pending = _oauth.beginAuthorization(credentialsFor(platform));
+    _pending[platform] = pending;
+    return pending;
+  }
+
+  /// Finishes the authorization the platform redirected back from. Wire this
+  /// to the app's deep-link handler, or to the redirect URL the rider pastes
+  /// back in.
+  Future<void> completeConnect(ResultSource platform, Uri redirect) async {
+    final pending = _pending[platform];
+    if (pending == null) {
+      throw const PlatformAuthException(
+          PlatformAuthFailure.noPendingAuthorization);
+    }
+
+    final tokens = await _oauth.completeAuthorization(
+      credentials: credentialsFor(platform),
+      pending: pending,
+      redirect: redirect,
     );
+
+    _pending.remove(platform);
+    _tokens[platform] = tokens;
+    _connectedAt[platform] = DateTime.now();
     notifyListeners();
   }
 
   /// Disconnecting one platform MUST NOT affect the others (spec 002,
-  /// Requirement 9) - this only ever touches its own map entry.
+  /// Requirement 9) - this only ever touches its own entries.
   void disconnect(ResultSource platform) {
-    _connections.remove(platform);
+    _tokens.remove(platform);
+    _connectedAt.remove(platform);
+    _pending.remove(platform);
     notifyListeners();
   }
+
+  /// A usable token for [platform], refreshed first if it has expired.
+  ///
+  /// Throws [PlatformApiException] with `unauthorized` when the platform is
+  /// not connected or the session can no longer be renewed - callers surface
+  /// that as "connect again", never as a silent no-op.
+  Future<OAuthTokens> validTokensFor(ResultSource platform) async {
+    final tokens = _tokens[platform];
+    if (tokens == null) {
+      throw const PlatformApiException(PlatformApiFailure.unauthorized);
+    }
+    if (!tokens.isExpired) return tokens;
+
+    if (!tokens.canRefresh) {
+      throw const PlatformApiException(PlatformApiFailure.unauthorized);
+    }
+
+    try {
+      final refreshed = await _oauth.refresh(
+        credentials: credentialsFor(platform),
+        tokens: tokens,
+      );
+      _tokens[platform] = refreshed;
+      notifyListeners();
+      return refreshed;
+    } on PlatformAuthException catch (e) {
+      // A refresh that fails is a dead session, not a transient error: drop
+      // it so the UI stops claiming the platform is connected.
+      _tokens.remove(platform);
+      _connectedAt.remove(platform);
+      notifyListeners();
+      throw PlatformApiException(PlatformApiFailure.unauthorized,
+          detail: e.detail);
+    }
+  }
+
+  /// Every platform the rider currently has connected, in listing order.
+  List<ResultSource> get connectedPlatforms =>
+      platforms.where(isConnected).toList(growable: false);
 }
