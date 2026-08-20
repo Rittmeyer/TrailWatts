@@ -227,12 +227,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get builderDuration => 'Duration (min)';
 
   @override
-  String get builderRepetitions => 'Repetitions';
-
-  @override
-  String get builderRepetitionsHelp => '1 = no repetition';
-
-  @override
   String builderMin(String unit) {
     return 'Minimum ($unit)';
   }
@@ -241,12 +235,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String builderMax(String unit) {
     return 'Maximum ($unit)';
   }
-
-  @override
-  String get builderRest => 'Rest between sets (min)';
-
-  @override
-  String get builderAddSet => '+ Add set';
 
   @override
   String get builderContinue => 'Continue';
@@ -488,11 +476,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get calendarDuration => 'DURATION';
 
   @override
-  String calendarWorkoutSummary(String reps, int duration, int min, int max, String unit) {
-    return '${reps}x${duration}min at $min-$max$unit';
-  }
-
-  @override
   String get navWorkout => 'Workout';
 
   @override
@@ -566,4 +549,41 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get importPowerCurveSnack => 'Optional connection - fills the curve via API';
+
+  @override
+  String get builderAddBlock => '+ Add block';
+
+  @override
+  String calendarWorkoutSummary(int blocks, int minutes) {
+    return '$blocks blocks · $minutes min';
+  }
+
+  @override
+  String get builderRoleWarmUp => 'Warm-up';
+
+  @override
+  String get builderRoleWork => 'Work';
+
+  @override
+  String get builderRoleRecovery => 'Recovery';
+
+  @override
+  String get builderRoleCoolDown => 'Cool-down';
+
+  @override
+  String get builderRole => 'Type';
+
+  @override
+  String get builderDuplicate => 'Duplicate';
+
+  @override
+  String get builderRemove => 'Remove';
+
+  @override
+  String builderTotalDuration(int minutes) {
+    return 'Total: $minutes min';
+  }
+
+  @override
+  String get builderSequenceNote => 'Recovery is a block like any other: to build 4×8min Z4 with 2min easy, add Z4, then Z1, and duplicate the pair.';
 }

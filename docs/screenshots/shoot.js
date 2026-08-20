@@ -9,7 +9,7 @@ const shots = [
   { id: '01a-login',                    route: '#/auth' },
   { id: '01b-criar-conta',              route: '#/auth', click: 'Criar conta', h: 700 },
   { id: '02-perfil',                    route: '#/profile', h: 1150 },
-  { id: '02a-criar-treino',             route: '#/workout-builder', h: 780 },
+  { id: '02a-criar-treino',             route: '#/workout-builder', h: 1000 },
   { id: '02a2-onde-treinar',            route: '#/workout-builder/map' },
   { id: '03-treino-do-dia',             route: '#/home' },
   { id: '04-rota-no-mapa',              route: '#/route-map', h: 760 },

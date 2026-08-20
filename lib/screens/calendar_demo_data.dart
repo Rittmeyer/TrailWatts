@@ -19,13 +19,15 @@ final demoCalendarEntries = <DateTime, CalendarEntry>{
         zone: const TrainingZone(
             metric: ZoneMetric.power, scale: _powerZones, index: 4),
         durationMin: 8,
-        repetitions: 4,
         target: const WorkoutTarget(
             metric: ZoneMetric.power, minValue: 170, maxValue: 190),
-        recoveryDurationMin: 2,
-        recoveryZone: const TrainingZone(
+      ),
+      WorkoutBlock(
+        role: WorkoutBlockRole.recovery,
+        zone: const TrainingZone(
             metric: ZoneMetric.power, scale: _powerZones, index: 1),
-        recoveryTarget: const WorkoutTarget(
+        durationMin: 2,
+        target: const WorkoutTarget(
             metric: ZoneMetric.power, minValue: 90, maxValue: 110),
       ),
     ],

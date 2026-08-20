@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_text_styles.dart';
+import '../l10n/app_localizations.dart';
 import '../l10n/domain_labels.dart';
 import '../models/rider_profile.dart';
+import '../models/workout_block.dart';
 import '../models/zone.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
 import '../widgets/segmented_control.dart';
 import '../widgets/trailwatt_field.dart';
 import '../widgets/trailwatt_button.dart';
 
-/// Port of screen 02a - "Criar treino". One scrollable block editor: each
-/// card is a prescribed stimulus (zone, duration, repetitions, target,
-/// recovery). The prototype shows this as several phone-frames because a
-/// phone screen is short - here it is one screen the rider scrolls,
-/// exactly like screens 02b(1/3-2/3) demonstrate with a 3-block example.
+/// Port of screen 02a - "Criar treino".
+///
+/// The workout is an ordered list of blocks, and that order is the timeline.
+/// Recovery is a block like any other - "4x8min Z4 with 2min easy" is built as
+/// Z4, Z1, Z4, Z1, Z4, Z1, Z4 - so nothing about the prescription is hidden
+/// inside a field on another block.
 class WorkoutBuilderScreen extends StatefulWidget {
   const WorkoutBuilderScreen({super.key});
 
@@ -21,33 +24,37 @@ class WorkoutBuilderScreen extends StatefulWidget {
 }
 
 class _BlockForm {
+  WorkoutBlockRole role;
+
   /// Zone index within whichever table the selected metric uses.
   int zoneIndex;
   final TextEditingController duration;
-  final TextEditingController repetitions;
   final TextEditingController minTarget;
   final TextEditingController maxTarget;
-  final TextEditingController rest;
 
   _BlockForm({
+    this.role = WorkoutBlockRole.work,
     this.zoneIndex = 4,
     String duration = '8',
-    String repetitions = '4',
     String minTarget = '170',
     String maxTarget = '190',
-    String rest = '2',
   })  : duration = TextEditingController(text: duration),
-        repetitions = TextEditingController(text: repetitions),
         minTarget = TextEditingController(text: minTarget),
-        maxTarget = TextEditingController(text: maxTarget),
-        rest = TextEditingController(text: rest);
+        maxTarget = TextEditingController(text: maxTarget);
+
+  _BlockForm.from(_BlockForm other)
+      : role = other.role,
+        zoneIndex = other.zoneIndex,
+        duration = TextEditingController(text: other.duration.text),
+        minTarget = TextEditingController(text: other.minTarget.text),
+        maxTarget = TextEditingController(text: other.maxTarget.text);
+
+  int get durationMin => int.tryParse(duration.text) ?? 0;
 
   void dispose() {
     duration.dispose();
-    repetitions.dispose();
     minTarget.dispose();
     maxTarget.dispose();
-    rest.dispose();
   }
 }
 
@@ -71,7 +78,18 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
     ),
   );
 
-  final List<_BlockForm> _blocks = [_BlockForm()];
+  /// Seeded as the worked example: a threshold block followed by its own
+  /// recovery block.
+  final List<_BlockForm> _blocks = [
+    _BlockForm(),
+    _BlockForm(
+      role: WorkoutBlockRole.recovery,
+      zoneIndex: 1,
+      duration: '2',
+      minTarget: '90',
+      maxTarget: '110',
+    ),
+  ];
 
   ZoneScale get _scale => _metric == ZoneMetric.power
       ? _rider.powerZones.scale
@@ -79,6 +97,8 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
 
   ZoneTable get _table =>
       ZoneTables.of(_metric, _scale, anchor: _rider.heartRateZones!.anchor);
+
+  int get _totalMinutes => _blocks.fold(0, (sum, b) => sum + b.durationMin);
 
   /// Absolute range for a zone on the active table, e.g. "191-222 w".
   String _rangeLabel(int index) {
@@ -90,7 +110,7 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
     final hr = _rider.heartRateZones!;
     final min = hr.lowerBoundBpm(index);
     final max = hr.upperBoundBpm(index);
-    if (min == null) return 'sem âncora de FC';
+    if (min == null) return '';
     return max == null ? '≥ $min bpm' : '$min-$max bpm';
   }
 
@@ -102,22 +122,24 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
     super.dispose();
   }
 
-  void _addBlock() {
-    setState(() => _blocks.add(_BlockForm(
-          zoneIndex: 2,
-          duration: '10',
-          repetitions: '1',
-          minTarget: '140',
-          maxTarget: '160',
-          rest: '0',
-        )));
-  }
+  void _addBlock() => setState(() => _blocks.add(_BlockForm(
+        zoneIndex: 2,
+        duration: '10',
+        minTarget: '140',
+        maxTarget: '160',
+      )));
+
+  void _duplicate(int i) =>
+      setState(() => _blocks.insert(i + 1, _BlockForm.from(_blocks[i])));
+
+  void _remove(int i) => setState(() => _blocks.removeAt(i).dispose());
 
   @override
   Widget build(BuildContext context) {
     final t = tr(context);
     final unit = _metric.unit(t);
     final table = _table;
+
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -145,10 +167,17 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
                   }),
                 ),
                 const SizedBox(height: 6),
-                Text(
-                  t.builderTableLabel(
-                      _metric.label(t).toLowerCase(), _scale.count),
-                  style: AppTextStyles.label.copyWith(fontSize: 9),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      t.builderTableLabel(
+                          _metric.label(t).toLowerCase(), _scale.count),
+                      style: AppTextStyles.label.copyWith(fontSize: 9),
+                    ),
+                    Text(t.builderTotalDuration(_totalMinutes),
+                        style: AppTextStyles.numeric.copyWith(fontSize: 10)),
+                  ],
                 ),
                 const SizedBox(height: 12),
                 for (var i = 0; i < _blocks.length; i++) ...[
@@ -160,15 +189,23 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
                     rangeLabel: _rangeLabel,
                     onZoneChanged: (z) =>
                         setState(() => _blocks[i].zoneIndex = z),
+                    onRoleChanged: (r) => setState(() => _blocks[i].role = r),
+                    onDurationChanged: () => setState(() {}),
+                    onDuplicate: () => _duplicate(i),
+                    onRemove: _blocks.length > 1 ? () => _remove(i) : null,
                   ),
                   const SizedBox(height: 12),
                 ],
                 TrailwattButton(
-                  label: t.builderAddSet,
+                  label: t.builderAddBlock,
                   style: TrailwattButtonStyle.dashed,
                   onPressed: _addBlock,
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 10),
+                Text(t.builderSequenceNote,
+                    style:
+                        AppTextStyles.label.copyWith(fontSize: 9, height: 1.5)),
+                const SizedBox(height: 16),
                 TrailwattButton(
                   label: t.builderContinue,
                   onPressed: () =>
@@ -195,6 +232,10 @@ class _BlockCard extends StatelessWidget {
   final ZoneTable table;
   final String Function(int zoneIndex) rangeLabel;
   final ValueChanged<int> onZoneChanged;
+  final ValueChanged<WorkoutBlockRole> onRoleChanged;
+  final VoidCallback onDurationChanged;
+  final VoidCallback onDuplicate;
+  final VoidCallback? onRemove;
 
   const _BlockCard({
     required this.index,
@@ -203,54 +244,118 @@ class _BlockCard extends StatelessWidget {
     required this.table,
     required this.rangeLabel,
     required this.onZoneChanged,
+    required this.onRoleChanged,
+    required this.onDurationChanged,
+    required this.onDuplicate,
+    required this.onRemove,
   });
+
+  static String _roleLabel(WorkoutBlockRole role, AppLocalizations t) =>
+      switch (role) {
+        WorkoutBlockRole.warmUp => t.builderRoleWarmUp,
+        WorkoutBlockRole.work => t.builderRoleWork,
+        WorkoutBlockRole.recovery => t.builderRoleRecovery,
+        WorkoutBlockRole.coolDown => t.builderRoleCoolDown,
+      };
 
   @override
   Widget build(BuildContext context) {
     final t = tr(context);
+    final zone = table.byIndex(form.zoneIndex);
+    // Recovery reads as a lighter card, so the alternation between work and
+    // recovery is visible at a glance down the list.
+    final isRecovery = form.role == WorkoutBlockRole.recovery;
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
+        color: isRecovery ? AppColors.paper : null,
         border: Border.all(color: AppColors.line),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(t.builderBlock(index + 1),
-              style: AppTextStyles.label.copyWith(
-                  fontSize: 9,
-                  letterSpacing: 1.0,
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w700)),
+          Row(
+            children: [
+              Container(
+                width: 9,
+                height: 9,
+                margin: const EdgeInsets.only(right: 7),
+                decoration:
+                    BoxDecoration(color: zone.color, shape: BoxShape.circle),
+              ),
+              Text(t.builderBlock(index + 1),
+                  style: AppTextStyles.label.copyWith(
+                      fontSize: 9,
+                      letterSpacing: 1.0,
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w700)),
+              const Spacer(),
+              _TinyAction(label: t.builderDuplicate, onTap: onDuplicate),
+              if (onRemove != null) ...[
+                const SizedBox(width: 10),
+                _TinyAction(label: t.builderRemove, onTap: onRemove!),
+              ],
+            ],
+          ),
           const SizedBox(height: 8),
-          Text(t.builderZone, style: AppTextStyles.label),
-          const SizedBox(height: 4),
-          DropdownButtonFormField<int>(
-            value: form.zoneIndex,
-            isExpanded: true,
-            style: AppTextStyles.body,
-            decoration: const InputDecoration(),
-            items: table.zones
-                .map((z) => DropdownMenuItem(
-                      value: z.index,
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 9,
-                            height: 9,
-                            margin: const EdgeInsets.only(right: 7),
-                            decoration: BoxDecoration(
-                                color: z.color, shape: BoxShape.circle),
-                          ),
-                          Expanded(child: Text(z.pickerLabel(t))),
-                        ],
-                      ),
-                    ))
-                .toList(),
-            onChanged: (z) {
-              if (z != null) onZoneChanged(z);
-            },
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(t.builderRole, style: AppTextStyles.label),
+                    const SizedBox(height: 4),
+                    DropdownButtonFormField<WorkoutBlockRole>(
+                      value: form.role,
+                      isExpanded: true,
+                      style: AppTextStyles.body,
+                      decoration: const InputDecoration(),
+                      items: WorkoutBlockRole.values
+                          .map((r) => DropdownMenuItem(
+                                value: r,
+                                child: Text(_roleLabel(r, t),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis),
+                              ))
+                          .toList(),
+                      onChanged: (r) {
+                        if (r != null) onRoleChanged(r);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(t.builderZone, style: AppTextStyles.label),
+                    const SizedBox(height: 4),
+                    DropdownButtonFormField<int>(
+                      value: form.zoneIndex,
+                      isExpanded: true,
+                      style: AppTextStyles.body,
+                      decoration: const InputDecoration(),
+                      items: table.zones
+                          .map((z) => DropdownMenuItem(
+                                value: z.index,
+                                child: Text(z.pickerLabel(t),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis),
+                              ))
+                          .toList(),
+                      onChanged: (z) {
+                        if (z != null) onZoneChanged(z);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 3),
           Text(rangeLabel(form.zoneIndex),
@@ -263,21 +368,10 @@ class _BlockCard extends StatelessWidget {
                   label: t.builderDuration,
                   controller: form.duration,
                   keyboardType: TextInputType.number,
+                  onChanged: (_) => onDurationChanged(),
                 ),
               ),
               const SizedBox(width: 10),
-              Expanded(
-                child: TrailwattField(
-                  label: t.builderRepetitions,
-                  controller: form.repetitions,
-                  keyboardType: TextInputType.number,
-                  helperText: t.builderRepetitionsHelp,
-                ),
-              ),
-            ],
-          ),
-          Row(
-            children: [
               Expanded(
                 child: TrailwattField(
                   label: t.builderMin(unit),
@@ -295,13 +389,26 @@ class _BlockCard extends StatelessWidget {
               ),
             ],
           ),
-          TrailwattField(
-            label: t.builderRest,
-            controller: form.rest,
-            keyboardType: TextInputType.number,
-          ),
         ],
       ),
+    );
+  }
+}
+
+class _TinyAction extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+  const _TinyAction({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Text(label,
+          style: AppTextStyles.label.copyWith(
+              fontSize: 9,
+              color: AppColors.primary,
+              fontWeight: FontWeight.w700)),
     );
   }
 }

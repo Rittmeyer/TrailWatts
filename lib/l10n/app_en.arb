@@ -1,9 +1,7 @@
 {
   "@@locale": "en",
-
   "appTitle": "Trailwatt",
   "splashTagline": "Suggest. Export. Repeat.",
-
   "authWelcome": "Welcome",
   "authLoginSubtitle": "Sign in to your Trailwatt account",
   "authSignupSubtitle": "Takes less than a minute",
@@ -26,7 +24,6 @@
   "authConsentTerms": "Terms of Use",
   "authConsentMiddle": " and the ",
   "authConsentPrivacy": "Privacy Policy",
-
   "profileTitle": "Create profile",
   "profileSubtitle": "Weight and FTP are required. The rest is optional.",
   "profileWeight": "Weight (kg)",
@@ -44,10 +41,8 @@
   "profileMaxHr": "Max HR (bpm)",
   "profileOptional": "optional",
   "profileNoHrAnchor": "Without this measurement the app does not calculate HR zones - and does not invent them: watts-based training keeps working.",
-
   "scaleFive": "Z1-Z5",
   "scaleSeven": "Z1-Z7",
-
   "zoneTableGeneric": "GENERIC",
   "zoneTableCustom": "CUSTOM",
   "zoneTableEditBounds": "Edit bounds",
@@ -57,7 +52,6 @@
   "zoneTableInvalid": "Each bound must be greater than the previous one. The table will not be saved while they overlap.",
   "zoneTableProvisional": "Generic bands, pending physiological review. Tap \"Edit bounds\" to use yours.",
   "zoneTableNeedsAnchor": "Set the anchor to calculate this table.",
-
   "zoneRecovery": "Recovery",
   "zoneActiveRecovery": "Active recovery",
   "zoneEndurance": "Endurance",
@@ -66,49 +60,71 @@
   "zoneVo2max": "VO2max",
   "zoneAnaerobic": "Anaerobic",
   "zoneNeuromuscular": "Neuromuscular",
-
   "metricPower": "Power",
   "metricHeartRate": "Heart rate",
   "unitWatts": "w",
   "unitBpm": "bpm",
-
   "builderTitle": "Create workout",
   "builderSubtitle": "Build the workout and mark where to ride",
   "builderWatts": "Watts",
   "builderHr": "HR",
   "builderTableLabel": "{metric} table · Z1-Z{count}",
   "@builderTableLabel": {
-    "placeholders": { "metric": { "type": "String" }, "count": { "type": "int" } }
+    "placeholders": {
+      "metric": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "builderBlock": "BLOCK {number}",
-  "@builderBlock": { "placeholders": { "number": { "type": "int" } } },
+  "@builderBlock": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "builderZone": "Zone",
   "builderDuration": "Duration (min)",
-  "builderRepetitions": "Repetitions",
-  "builderRepetitionsHelp": "1 = no repetition",
   "builderMin": "Minimum ({unit})",
-  "@builderMin": { "placeholders": { "unit": { "type": "String" } } },
+  "@builderMin": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "builderMax": "Maximum ({unit})",
-  "@builderMax": { "placeholders": { "unit": { "type": "String" } } },
-  "builderRest": "Rest between sets (min)",
-  "builderAddSet": "+ Add set",
+  "@builderMax": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "builderContinue": "Continue",
   "builderFootnote": "The block name uses the same zone naming as the rest of the app. The workout is sovereign - the route adapts to the stimulus, not the other way round.",
   "builderNoHrAnchor": "Set a threshold or max HR in your profile to prescribe by heart rate.",
-
   "locationTitle": "Create workout",
   "locationSubtitle": "Continued - where to ride",
   "locationWhere": "WHERE TO RIDE",
   "locationHint": "Tap the map to mark the area · {radius} km radius",
-  "@locationHint": { "placeholders": { "radius": { "type": "int" } } },
+  "@locationHint": {
+    "placeholders": {
+      "radius": {
+        "type": "int"
+      }
+    }
+  },
   "locationGenerate": "Generate route suggestions",
-
   "todayTitle": "Today's workout",
   "todaySubtitle": "4x8min at 180w",
   "todayTarget": "TARGET",
   "todayGradient": "GRADIENT",
   "todaySegment": "SEGMENT",
-
   "routeSubtitle": "Segment suggested for today's workout",
   "routeDistance": "DISTANCE",
   "routeGradientLabel": "GRADIENT",
@@ -117,11 +133,16 @@
   "routeExportTo": "EXPORT TO",
   "routeExport": "Export route",
   "routeExported": "Route exported to {platform}",
-  "@routeExported": { "placeholders": { "platform": { "type": "String" } } },
+  "@routeExported": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
   "routeFootnote": "The segment colour follows the effort zone (Z1 to Z5, watts or HR) predicted for that point of the climb - not just \"inside or outside the target\".",
   "routeDegraded": "Segment not verified against the road network.",
   "routeSavedRescored": "Route re-scored and saved",
-
   "editRouteTitle": "Edit route",
   "editRouteSubtitle": "The workout segment inside the full ride",
   "editRouteHint": "Drag the points to edit. On release the point snaps to the nearest road and the route is redrawn along the streets.",
@@ -131,14 +152,19 @@
   "editRouteDeviation": "Deviation",
   "editRouteSnap": "Road snap",
   "editRouteSnapMeters": "{meters} m to the road",
-  "@editRouteSnapMeters": { "placeholders": { "meters": { "type": "int" } } },
+  "@editRouteSnapMeters": {
+    "placeholders": {
+      "meters": {
+        "type": "int"
+      }
+    }
+  },
   "editRouteSnapUnverified": "not verified",
   "editRoutePredictedMatch": "Predicted match",
   "editRouteNeedsRoads": "requires the road network",
   "editRouteImpactNote": "The app does not save a material change without re-scoring the match.",
   "editRouteSave": "Save changes",
   "editRouteCancel": "Cancel",
-
   "importTitle": "Workout result",
   "importSubtitle": "Fetched automatically via API",
   "importConnectedTo": "CONNECTED TO STRAVA",
@@ -154,55 +180,67 @@
   "importManualHelp": "Less accurate - use only if the automatic import fails.",
   "importManualLink": "Fill in manually per stimulus",
   "importFootnote": "The API finds the matching activity automatically. Manual entry only appears as a last resort, and stays visually secondary.",
-
   "manualIntervalsSubtitle": "Manual entry · interval workout",
   "manualContinuousSubtitle": "Manual entry · continuous workout",
   "manualStimulus": "STIMULUS {number} · {duration}",
   "@manualStimulus": {
-    "placeholders": { "number": { "type": "int" }, "duration": { "type": "String" } }
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
   },
   "manualEnduranceRide": "ENDURANCE RIDE · 60 MIN",
   "manualTarget": "target {watts}w",
-  "@manualTarget": { "placeholders": { "watts": { "type": "int" } } },
+  "@manualTarget": {
+    "placeholders": {
+      "watts": {
+        "type": "int"
+      }
+    }
+  },
   "manualAvgWatts": "avg watts",
   "manualSave": "Save workout",
-
   "historyTitle": "Your progress",
   "historyCurrentFtp": "CURRENT FTP",
   "historyAccuracy": "ACCURACY",
   "historyRecent": "Recent workouts",
   "historyTargetWatts": "target {watts}w",
-  "@historyTargetWatts": { "placeholders": { "watts": { "type": "int" } } },
-
+  "@historyTargetWatts": {
+    "placeholders": {
+      "watts": {
+        "type": "int"
+      }
+    }
+  },
   "calendarTitle": "Calendar",
   "calendarWeek": "Week",
   "calendarMonth": "Month",
   "calendarRestDay": "Rest day - no workout planned.",
   "calendarDone": "DONE",
   "calendarVia": "via {source}",
-  "@calendarVia": { "placeholders": { "source": { "type": "String" } } },
+  "@calendarVia": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
   "calendarActual": "ACTUAL",
   "calendarPlanned": "TARGET",
   "calendarDuration": "DURATION",
-  "calendarWorkoutSummary": "{reps}x{duration}min at {min}-{max}{unit}",
-  "@calendarWorkoutSummary": {
-    "placeholders": {
-      "reps": { "type": "String" }, "duration": { "type": "int" },
-      "min": { "type": "int" }, "max": { "type": "int" }, "unit": { "type": "String" }
-    }
-  },
-
   "navWorkout": "Workout",
   "navCalendar": "Calendar",
   "navHistory": "History",
   "navMore": "More",
   "navComingSoon": "Coming soon",
-
   "sourceStrava": "Strava",
   "sourceGarmin": "Garmin",
   "sourceWahoo": "Wahoo",
   "sourceManual": "manual entry",
-
   "landingEyebrow": "FOR CYCLISTS, FROM BEGINNER TO PRO",
   "landingHeadline": "Your workout already tells you the ideal route.",
   "landingSubhead": "Enter today's workout target and Trailwatt suggests a real route that matches it.",
@@ -214,10 +252,37 @@
   "landingFeature2Body": "The physics engine runs on the device itself. It works even with no internet.",
   "landingFeature3Title": "Exports and imports on its own",
   "landingFeature3Body": "Sends the finished route to Strava, Garmin or Wahoo, and fetches the result back.",
-
   "mapAttribution": "OpenStreetMap contributors",
   "routingUnavailable": "Routing service unavailable - straight-line distance.",
   "routingNoRoute": "No route found on the road network between these points.",
   "routingNeedsTwoPoints": "Mark at least two points to trace the route.",
-  "importPowerCurveSnack": "Optional connection - fills the curve via API"
+  "importPowerCurveSnack": "Optional connection - fills the curve via API",
+  "builderAddBlock": "+ Add block",
+  "calendarWorkoutSummary": "{blocks} blocks · {minutes} min",
+  "@calendarWorkoutSummary": {
+    "placeholders": {
+      "blocks": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "builderRoleWarmUp": "Warm-up",
+  "builderRoleWork": "Work",
+  "builderRoleRecovery": "Recovery",
+  "builderRoleCoolDown": "Cool-down",
+  "builderRole": "Type",
+  "builderDuplicate": "Duplicate",
+  "builderRemove": "Remove",
+  "builderTotalDuration": "Total: {minutes} min",
+  "@builderTotalDuration": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "builderSequenceNote": "Recovery is a block like any other: to build 4×8min Z4 with 2min easy, add Z4, then Z1, and duplicate the pair."
 }

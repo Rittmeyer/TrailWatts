@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/calendar_entry.dart';
+import '../models/workout_block.dart';
 import '../l10n/domain_labels.dart';
-import '../models/zone.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import 'stat_box.dart';
@@ -88,7 +88,8 @@ class CalendarDayDetail extends StatelessWidget {
     }
 
     final blocks = entry.planned!;
-    final first = blocks.first;
+    // The pill shows the hardest zone in the sequence - what the day is for.
+    final first = blocks.reduce((a, b) => b.zone.index > a.zone.index ? b : a);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -104,13 +105,7 @@ class CalendarDayDetail extends StatelessWidget {
               style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w700)),
           const SizedBox(height: 2),
           Text(
-            () {
-              final unit =
-                  first.target.metric == ZoneMetric.power ? 'w' : 'bpm';
-              final reps = first.isRepeated ? '${first.repetitions}x' : '';
-              return '$reps${first.durationMin}min a '
-                  '${first.target.minValue}-${first.target.maxValue}$unit';
-            }(),
+            t.calendarWorkoutSummary(blocks.length, workoutDurationMin(blocks)),
             style: AppTextStyles.label,
           ),
         ],

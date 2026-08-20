@@ -17,94 +17,98 @@ class WorkoutTarget {
         assert(maxValue >= minValue);
 }
 
-/// A single prescribed training stimulus. Recovery is modeled explicitly.
+/// What a block is for. Recovery is a block like any other, so the timeline
+/// still distinguishes work from recovery (Feature 006 matches the sequence,
+/// not just the totals) without recovery being a field hidden inside a work
+/// block. Warm-up and cool-down are blocks too, which settles Feature 005's
+/// open decision.
+enum WorkoutBlockRole { warmUp, work, recovery, coolDown }
+
+/// One segment of the prescribed workout: a zone held at a target for a
+/// duration.
+///
+/// A workout is an ordered list of these, and that order IS the timeline -
+/// "4x8min Z4 with 2min recovery" is written as Z4, Z1, Z4, Z1, Z4, Z1, Z4.
+/// There is deliberately no repetition count: with recovery as its own block,
+/// N consecutive repeats of the same block would be physically identical to
+/// one block N times as long, so the field could only mislead.
 class WorkoutBlock {
   final TrainingZone zone;
   final int durationMin;
-  final int repetitions;
   final WorkoutTarget target;
-  final int? recoveryDurationMin;
-  final TrainingZone? recoveryZone;
-  final WorkoutTarget? recoveryTarget;
+  final WorkoutBlockRole role;
 
-  // Not const: the metric-agreement invariants below read fields off the
+  // Not const: the metric-agreement invariant below reads fields off the
   // zone and target objects, which a const constructor cannot evaluate.
   WorkoutBlock({
     required this.zone,
     required this.durationMin,
-    this.repetitions = 1,
     required this.target,
-    this.recoveryDurationMin,
-    this.recoveryZone,
-    this.recoveryTarget,
+    this.role = WorkoutBlockRole.work,
   })  : assert(durationMin > 0),
-        assert(repetitions > 0),
-        assert(
-          repetitions == 1 || recoveryDurationMin != null,
-          'Repeated blocks require an explicit recovery duration.',
-        ),
-        assert(
-          repetitions == 1 || recoveryZone != null,
-          'Repeated blocks require an explicit recovery zone.',
-        ),
-        assert(
-          repetitions == 1 || recoveryTarget != null,
-          'Repeated blocks require an explicit recovery target.',
-        ),
         // A block prescribed in watts must reference a power zone, and one
         // prescribed in heart rate a heart-rate zone: the two tables are
         // independent and their zone numbers are not interchangeable.
         assert(
           zone.metric == target.metric,
           'Block zone metric must match its target metric.',
-        ),
-        assert(
-          recoveryZone == null ||
-              recoveryTarget == null ||
-              recoveryZone.metric == recoveryTarget.metric,
-          'Recovery zone metric must match its recovery target metric.',
         );
 
-  bool get isRepeated => repetitions > 1;
+  bool get isRecovery => role == WorkoutBlockRole.recovery;
 
-  int get workDurationTotalMin => durationMin * repetitions;
+  int get totalDurationMin => durationMin;
 
-  int get recoveryDurationTotalMin =>
-      isRepeated ? (repetitions - 1) * recoveryDurationMin! : 0;
-
-  int get totalDurationMin => workDurationTotalMin + recoveryDurationTotalMin;
-
-  List<WorkoutTimelineStep> expand({required String blockId}) {
-    final steps = <WorkoutTimelineStep>[];
-    for (var repetition = 0; repetition < repetitions; repetition++) {
-      steps.add(WorkoutTimelineStep(
-        id: '$blockId-work-${repetition + 1}',
-        sequenceIndex: steps.length,
-        isRecovery: false,
-        durationMin: durationMin,
-        zone: zone,
-        target: target,
-        intervalId: '$blockId-${repetition + 1}',
-      ));
-      if (repetition < repetitions - 1) {
-        steps.add(WorkoutTimelineStep(
-          id: '$blockId-recovery-${repetition + 1}',
-          sequenceIndex: steps.length,
-          isRecovery: true,
-          durationMin: recoveryDurationMin!,
-          zone: recoveryZone!,
-          target: recoveryTarget!,
-        ));
-      }
-    }
-    return steps;
-  }
+  WorkoutBlock copyWith({
+    TrainingZone? zone,
+    int? durationMin,
+    WorkoutTarget? target,
+    WorkoutBlockRole? role,
+  }) =>
+      WorkoutBlock(
+        zone: zone ?? this.zone,
+        durationMin: durationMin ?? this.durationMin,
+        target: target ?? this.target,
+        role: role ?? this.role,
+      );
 }
+
+/// Expands an ordered list of blocks into the timeline Feature 006 matches
+/// against terrain. Every block becomes exactly one step, in order.
+///
+/// Work steps carry an `intervalId` so a route segment can reference the
+/// specific interval it satisfies; recovery, warm-up and cool-down steps do
+/// not, because nothing is matched to them by interval.
+List<WorkoutTimelineStep> expandWorkout(List<WorkoutBlock> blocks) {
+  final steps = <WorkoutTimelineStep>[];
+  var workCount = 0;
+  for (var i = 0; i < blocks.length; i++) {
+    final block = blocks[i];
+    final isWork = block.role == WorkoutBlockRole.work;
+    if (isWork) workCount++;
+    steps.add(WorkoutTimelineStep(
+      id: 'step-${i + 1}',
+      sequenceIndex: i,
+      isRecovery: block.isRecovery,
+      role: block.role,
+      durationMin: block.durationMin,
+      zone: block.zone,
+      target: block.target,
+      intervalId: isWork ? 'interval-$workCount' : null,
+    ));
+  }
+  return steps;
+}
+
+/// Total prescribed time, recovery included - it is part of the workout, not
+/// an implicit gap.
+int workoutDurationMin(List<WorkoutBlock> blocks) =>
+    blocks.fold(0, (sum, b) => sum + b.durationMin);
 
 class WorkoutTimelineStep {
   final String id;
   final int sequenceIndex;
   final bool isRecovery;
+  final WorkoutBlockRole role;
   final int durationMin;
   final TrainingZone zone;
   final WorkoutTarget target;
@@ -117,6 +121,7 @@ class WorkoutTimelineStep {
     required this.durationMin,
     required this.zone,
     required this.target,
+    this.role = WorkoutBlockRole.work,
     this.intervalId,
   }) : assert(durationMin > 0);
 }

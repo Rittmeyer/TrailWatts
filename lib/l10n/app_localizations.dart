@@ -527,18 +527,6 @@ abstract class AppLocalizations {
   /// **'Duration (min)'**
   String get builderDuration;
 
-  /// No description provided for @builderRepetitions.
-  ///
-  /// In en, this message translates to:
-  /// **'Repetitions'**
-  String get builderRepetitions;
-
-  /// No description provided for @builderRepetitionsHelp.
-  ///
-  /// In en, this message translates to:
-  /// **'1 = no repetition'**
-  String get builderRepetitionsHelp;
-
   /// No description provided for @builderMin.
   ///
   /// In en, this message translates to:
@@ -550,18 +538,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Maximum ({unit})'**
   String builderMax(String unit);
-
-  /// No description provided for @builderRest.
-  ///
-  /// In en, this message translates to:
-  /// **'Rest between sets (min)'**
-  String get builderRest;
-
-  /// No description provided for @builderAddSet.
-  ///
-  /// In en, this message translates to:
-  /// **'+ Add set'**
-  String get builderAddSet;
 
   /// No description provided for @builderContinue.
   ///
@@ -1013,12 +989,6 @@ abstract class AppLocalizations {
   /// **'DURATION'**
   String get calendarDuration;
 
-  /// No description provided for @calendarWorkoutSummary.
-  ///
-  /// In en, this message translates to:
-  /// **'{reps}x{duration}min at {min}-{max}{unit}'**
-  String calendarWorkoutSummary(String reps, int duration, int min, int max, String unit);
-
   /// No description provided for @navWorkout.
   ///
   /// In en, this message translates to:
@@ -1168,6 +1138,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Optional connection - fills the curve via API'**
   String get importPowerCurveSnack;
+
+  /// No description provided for @builderAddBlock.
+  ///
+  /// In en, this message translates to:
+  /// **'+ Add block'**
+  String get builderAddBlock;
+
+  /// No description provided for @calendarWorkoutSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{blocks} blocks · {minutes} min'**
+  String calendarWorkoutSummary(int blocks, int minutes);
+
+  /// No description provided for @builderRoleWarmUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Warm-up'**
+  String get builderRoleWarmUp;
+
+  /// No description provided for @builderRoleWork.
+  ///
+  /// In en, this message translates to:
+  /// **'Work'**
+  String get builderRoleWork;
+
+  /// No description provided for @builderRoleRecovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery'**
+  String get builderRoleRecovery;
+
+  /// No description provided for @builderRoleCoolDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Cool-down'**
+  String get builderRoleCoolDown;
+
+  /// No description provided for @builderRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get builderRole;
+
+  /// No description provided for @builderDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate'**
+  String get builderDuplicate;
+
+  /// No description provided for @builderRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get builderRemove;
+
+  /// No description provided for @builderTotalDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Total: {minutes} min'**
+  String builderTotalDuration(int minutes);
+
+  /// No description provided for @builderSequenceNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery is a block like any other: to build 4×8min Z4 with 2min easy, add Z4, then Z1, and duplicate the pair.'**
+  String get builderSequenceNote;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

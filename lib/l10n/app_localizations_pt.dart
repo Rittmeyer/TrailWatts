@@ -227,12 +227,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get builderDuration => 'Duração (min)';
 
   @override
-  String get builderRepetitions => 'Repetições';
-
-  @override
-  String get builderRepetitionsHelp => '1 = sem repetição';
-
-  @override
   String builderMin(String unit) {
     return 'Mínimo ($unit)';
   }
@@ -241,12 +235,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String builderMax(String unit) {
     return 'Máximo ($unit)';
   }
-
-  @override
-  String get builderRest => 'Descanso entre séries (min)';
-
-  @override
-  String get builderAddSet => '+ Adicionar série';
 
   @override
   String get builderContinue => 'Continuar';
@@ -488,11 +476,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get calendarDuration => 'DURAÇÃO';
 
   @override
-  String calendarWorkoutSummary(String reps, int duration, int min, int max, String unit) {
-    return '${reps}x${duration}min a $min-$max$unit';
-  }
-
-  @override
   String get navWorkout => 'Treino';
 
   @override
@@ -566,4 +549,41 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get importPowerCurveSnack => 'Conexão opcional - preenche a curva via API';
+
+  @override
+  String get builderAddBlock => '+ Adicionar bloco';
+
+  @override
+  String calendarWorkoutSummary(int blocks, int minutes) {
+    return '$blocks blocos · $minutes min';
+  }
+
+  @override
+  String get builderRoleWarmUp => 'Aquecimento';
+
+  @override
+  String get builderRoleWork => 'Trabalho';
+
+  @override
+  String get builderRoleRecovery => 'Recuperação';
+
+  @override
+  String get builderRoleCoolDown => 'Volta à calma';
+
+  @override
+  String get builderRole => 'Tipo';
+
+  @override
+  String get builderDuplicate => 'Duplicar';
+
+  @override
+  String get builderRemove => 'Remover';
+
+  @override
+  String builderTotalDuration(int minutes) {
+    return 'Total: $minutes min';
+  }
+
+  @override
+  String get builderSequenceNote => 'A recuperação é um bloco como qualquer outro: para montar 4×8min Z4 com 2min leve, adicione Z4, depois Z1, e duplique o par.';
 }

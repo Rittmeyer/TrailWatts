@@ -1,9 +1,7 @@
 {
   "@@locale": "pt",
-
   "appTitle": "Trailwatt",
   "splashTagline": "Sugerir. Exportar. Repetir.",
-
   "authWelcome": "Bem-vindo",
   "authLoginSubtitle": "Acesse sua conta Trailwatt",
   "authSignupSubtitle": "Leva menos de um minuto",
@@ -26,7 +24,6 @@
   "authConsentTerms": "Termos de Uso",
   "authConsentMiddle": " e a ",
   "authConsentPrivacy": "Política de Privacidade",
-
   "profileTitle": "Criar perfil",
   "profileSubtitle": "Peso e FTP obrigatórios. O resto é opcional.",
   "profileWeight": "Peso (kg)",
@@ -44,10 +41,8 @@
   "profileMaxHr": "FC máxima (bpm)",
   "profileOptional": "opcional",
   "profileNoHrAnchor": "Sem esta medida o app não calcula zonas de FC - e não inventa: o treino em watts continua funcionando.",
-
   "scaleFive": "Z1-Z5",
   "scaleSeven": "Z1-Z7",
-
   "zoneTableGeneric": "GENÉRICA",
   "zoneTableCustom": "PERSONALIZADA",
   "zoneTableEditBounds": "Editar limites",
@@ -57,7 +52,6 @@
   "zoneTableInvalid": "Cada limite precisa ser maior que o anterior. A tabela não será salva enquanto houver sobreposição.",
   "zoneTableProvisional": "Faixas genéricas, pendentes de revisão fisiológica. Toque em \"Editar limites\" para usar as suas.",
   "zoneTableNeedsAnchor": "Defina a âncora para calcular esta tabela.",
-
   "zoneRecovery": "Recuperação",
   "zoneActiveRecovery": "Recuperação ativa",
   "zoneEndurance": "Resistência",
@@ -66,12 +60,10 @@
   "zoneVo2max": "VO2max",
   "zoneAnaerobic": "Anaeróbico",
   "zoneNeuromuscular": "Neuromuscular",
-
   "metricPower": "Potência",
   "metricHeartRate": "Frequência cardíaca",
   "unitWatts": "w",
   "unitBpm": "bpm",
-
   "builderTitle": "Criar treino",
   "builderSubtitle": "Monte o treino e marque onde pedalar",
   "builderWatts": "Watts",
@@ -80,28 +72,21 @@
   "builderBlock": "BLOCO {number}",
   "builderZone": "Zona",
   "builderDuration": "Duração (min)",
-  "builderRepetitions": "Repetições",
-  "builderRepetitionsHelp": "1 = sem repetição",
   "builderMin": "Mínimo ({unit})",
   "builderMax": "Máximo ({unit})",
-  "builderRest": "Descanso entre séries (min)",
-  "builderAddSet": "+ Adicionar série",
   "builderContinue": "Continuar",
   "builderFootnote": "O nome do bloco usa a mesma nomenclatura de zona do resto do app. O treino é soberano - a rota se adapta ao estímulo, não o contrário.",
   "builderNoHrAnchor": "Defina uma FC de limiar ou máxima no perfil para prescrever por frequência cardíaca.",
-
   "locationTitle": "Criar treino",
   "locationSubtitle": "Continuação - onde treinar",
   "locationWhere": "ONDE TREINAR",
   "locationHint": "Toque no mapa para marcar a área · raio {radius} km",
   "locationGenerate": "Gerar sugestões de rota",
-
   "todayTitle": "Treino de hoje",
   "todaySubtitle": "4x8min a 180w",
   "todayTarget": "ALVO",
   "todayGradient": "GRADIENTE",
   "todaySegment": "TRECHO",
-
   "routeSubtitle": "Trecho sugerido para o treino de hoje",
   "routeDistance": "DISTÂNCIA",
   "routeGradientLabel": "GRADIENTE",
@@ -113,7 +98,6 @@
   "routeFootnote": "A cor do trecho segue a zona de esforço (Z1 a Z5, watts ou FC) prevista para aquele ponto da subida - não só \"dentro ou fora do alvo\".",
   "routeDegraded": "Trecho não verificado contra a malha viária.",
   "routeSavedRescored": "Rota reavaliada e salva",
-
   "editRouteTitle": "Editar rota",
   "editRouteSubtitle": "O trecho do treino dentro do percurso completo",
   "editRouteHint": "Arraste os pontos para editar. Ao soltar, o ponto encaixa na via mais próxima e a rota é refeita pelas ruas.",
@@ -129,7 +113,6 @@
   "editRouteImpactNote": "A aplicação não salva uma alteração material sem reavaliar o matching.",
   "editRouteSave": "Salvar alterações",
   "editRouteCancel": "Cancelar",
-
   "importTitle": "Resultado do treino",
   "importSubtitle": "Buscado automaticamente via API",
   "importConnectedTo": "CONECTADO AO STRAVA",
@@ -145,7 +128,6 @@
   "importManualHelp": "Menos preciso - use apenas se a importação automática falhar.",
   "importManualLink": "Preencher manualmente por estímulo",
   "importFootnote": "A API busca a atividade correspondente automaticamente. A entrada manual só aparece como último recurso, e fica visualmente secundária.",
-
   "manualIntervalsSubtitle": "Entrada manual · treino intervalado",
   "manualContinuousSubtitle": "Entrada manual · treino contínuo",
   "manualStimulus": "ESTÍMULO {number} · {duration}",
@@ -153,13 +135,11 @@
   "manualTarget": "alvo {watts}w",
   "manualAvgWatts": "watts médios",
   "manualSave": "Salvar treino",
-
   "historyTitle": "Seu progresso",
   "historyCurrentFtp": "FTP ATUAL",
   "historyAccuracy": "PRECISÃO",
   "historyRecent": "Treinos recentes",
   "historyTargetWatts": "alvo {watts}w",
-
   "calendarTitle": "Calendário",
   "calendarWeek": "Semana",
   "calendarMonth": "Mês",
@@ -169,19 +149,15 @@
   "calendarActual": "REAL",
   "calendarPlanned": "ALVO",
   "calendarDuration": "DURAÇÃO",
-  "calendarWorkoutSummary": "{reps}x{duration}min a {min}-{max}{unit}",
-
   "navWorkout": "Treino",
   "navCalendar": "Calendário",
   "navHistory": "Histórico",
   "navMore": "Mais",
   "navComingSoon": "Em breve",
-
   "sourceStrava": "Strava",
   "sourceGarmin": "Garmin",
   "sourceWahoo": "Wahoo",
   "sourceManual": "entrada manual",
-
   "landingEyebrow": "PARA CICLISTAS, DO INICIANTE AO PRO",
   "landingHeadline": "Seu treino já diz o percurso ideal.",
   "landingSubhead": "Digite o alvo do treino de hoje e o Trailwatt sugere uma rota real que bate com ele.",
@@ -193,10 +169,20 @@
   "landingFeature2Body": "O motor físico roda no próprio aparelho. Funciona mesmo sem internet.",
   "landingFeature3Title": "Exporta e importa sozinho",
   "landingFeature3Body": "Manda a rota pronta para o Strava, Garmin ou Wahoo, e busca o resultado de volta.",
-
   "mapAttribution": "colaboradores do OpenStreetMap",
   "routingUnavailable": "Serviço de rotas indisponível - distância em linha reta.",
   "routingNoRoute": "Nenhuma rota encontrada na malha viária entre estes pontos.",
   "routingNeedsTwoPoints": "Marque pelo menos dois pontos para traçar a rota.",
-  "importPowerCurveSnack": "Conexão opcional - preenche a curva via API"
+  "importPowerCurveSnack": "Conexão opcional - preenche a curva via API",
+  "builderAddBlock": "+ Adicionar bloco",
+  "calendarWorkoutSummary": "{blocks} blocos · {minutes} min",
+  "builderRoleWarmUp": "Aquecimento",
+  "builderRoleWork": "Trabalho",
+  "builderRoleRecovery": "Recuperação",
+  "builderRoleCoolDown": "Volta à calma",
+  "builderRole": "Tipo",
+  "builderDuplicate": "Duplicar",
+  "builderRemove": "Remover",
+  "builderTotalDuration": "Total: {minutes} min",
+  "builderSequenceNote": "A recuperação é um bloco como qualquer outro: para montar 4×8min Z4 com 2min leve, adicione Z4, depois Z1, e duplique o par."
 }
