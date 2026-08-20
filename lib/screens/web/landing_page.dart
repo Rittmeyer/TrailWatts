@@ -57,15 +57,21 @@ class LandingPage extends StatelessWidget {
                     spacing: 12,
                     children: [
                       SizedBox(
-                          width: 180,
-                          child: TrailwattButton(
-                              label: 'Comecar gratis', onPressed: () {})),
+                        width: 180,
+                        child: TrailwattButton(
+                          label: 'Comecar gratis',
+                          onPressed: () =>
+                              Navigator.of(context).pushNamed('/auth'),
+                        ),
+                      ),
                       SizedBox(
                         width: 180,
                         child: TrailwattButton(
-                            label: 'Ver como funciona',
-                            style: TrailwattButtonStyle.secondary,
-                            onPressed: () {}),
+                          label: 'Ver como funciona',
+                          style: TrailwattButtonStyle.secondary,
+                          onPressed: () =>
+                              Navigator.of(context).pushNamed('/home'),
+                        ),
                       ),
                     ],
                   ),
