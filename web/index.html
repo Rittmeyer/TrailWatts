@@ -16,8 +16,143 @@
 
   <title>Trailwatt</title>
   <link rel="manifest" href="manifest.json">
+  <style>
+    /* Only ever seen when the app did not start. Deliberately plain CSS:
+       whatever broke the app must not be able to break the explanation. */
+    #tw-boot {
+      display: none;
+      font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #0b2b2b;
+      max-width: 34rem;
+      margin: 12vh auto;
+      padding: 0 1.5rem;
+    }
+    #tw-boot h1 { font-size: 1.15rem; margin: 0 0 .6rem; }
+    #tw-boot p { margin: 0 0 .9rem; }
+    #tw-boot code {
+      background: #eef2f1;
+      border-radius: 4px;
+      padding: .1rem .35rem;
+      font-size: .92em;
+    }
+    #tw-boot .tw-en { color: #5b6b6b; }
+    @media (prefers-color-scheme: dark) {
+      body { background: #0d1414; }
+      #tw-boot { color: #e6eceb; }
+      #tw-boot code { background: #1b2626; }
+      #tw-boot .tw-en { color: #93a3a3; }
+    }
+  </style>
 </head>
 <body>
-  <script src="flutter_bootstrap.js" async></script>
+  <div id="tw-boot">
+    <h1 id="tw-boot-title"></h1>
+    <p id="tw-boot-why"></p>
+    <p class="tw-en" id="tw-boot-en"></p>
+  </div>
+
+  <noscript>
+    <p style="font-family: sans-serif; margin: 12vh auto; max-width: 30rem; padding: 0 1.5rem;">
+      O Trailwatt precisa de JavaScript.<br>
+      <span style="color:#5b6b6b">Trailwatt needs JavaScript.</span>
+    </p>
+  </noscript>
+
+  <script>
+    // Runs on its own, before the engine and independently of it: if
+    // loading the engine is what failed, a diagnostic living inside that
+    // same script would fail with it.
+    window.__trailwatt = (function () {
+      var boot = document.getElementById('tw-boot');
+      var booted = false;
+      var timer = null;
+
+      function explain(title, pt, en) {
+        if (booted) return;
+        document.getElementById('tw-boot-title').textContent = title;
+        document.getElementById('tw-boot-why').innerHTML = pt;
+        document.getElementById('tw-boot-en').innerHTML = en;
+        boot.style.display = 'block';
+      }
+
+      function stalled(detail) {
+        explain(
+          'O Trailwatt não carregou',
+          'A página abriu mas o app não iniciou. Quase sempre é '
+            + 'um arquivo que não chegou: veja a aba '
+            + '<strong>Network</strong> das ferramentas de desenvolvedor. Um '
+            + 'deploy incompleto ou um service worker antigo também '
+            + 'fazem isso — recarregue com '
+            + '<code>Ctrl/Cmd + Shift + R</code>.'
+            + (detail ? '<br><code>' + detail + '</code>' : ''),
+          'The page loaded but the app never started — usually an asset '
+            + 'that failed to load. Check the Network tab, and try a hard '
+            + 'reload.');
+      }
+
+      // Opening the built index.html straight from disk cannot work: the
+      // engine fetches its own assets, and a file:// page is not allowed
+      // to. It fails identically in every browser and leaves a blank page,
+      // so say so rather than let it look like the app is broken.
+      if (location.protocol === 'file:') {
+        explain(
+          'Sirva esta pasta por HTTP',
+          'O app foi aberto como <code>file://</code>. O navegador bloqueia '
+            + 'o carregamento dos arquivos do app nesse modo. Rode '
+            + '<code>python3 -m http.server</code> nesta pasta e abra '
+            + '<code>http://localhost:8000</code>.',
+          'Opened as <code>file://</code>, which browsers do not allow to '
+            + 'fetch the app’s own files. Serve the folder over HTTP '
+            + 'instead.');
+        return { ok: function () {}, fail: function () {} };
+      }
+
+      // A last resort, not the primary signal: the loader below reports
+      // success and failure exactly, and a timeout that fires on a slow
+      // but working load would be worse than saying nothing at all.
+      timer = setTimeout(function () { stalled(null); }, 30000);
+
+      return {
+        ok: function () {
+          booted = true;
+          clearTimeout(timer);
+          boot.style.display = 'none';
+        },
+        fail: function (error) {
+          clearTimeout(timer);
+          stalled(error && error.message ? error.message : String(error));
+        }
+      };
+    })();
+  </script>
+
+  <script>
+    // Both tokens are raw JavaScript, so they only work inside a script
+    // block. Left loose in the body they are pasted into the page as text,
+    // the parser chokes on the first "<" in them, and the page goes blank
+    // with nothing in the console to say why.
+    {{flutter_js}}
+    {{flutter_build_config}}
+
+    var trailwattLoad = _flutter.loader.load({
+      config: {
+        // CanvasKit comes from this app, never from gstatic.com. The
+        // default is a CDN fetch, and when that CDN is unreachable -
+        // offline, a filtered network, a locked-down proxy - the engine
+        // renders nothing at all and reports nothing. The files are
+        // already in the build output, so fetching them from elsewhere
+        // buys nothing and can only fail.
+        canvasKitBaseUrl: 'canvaskit/'
+      }
+    });
+
+    // The loader knows whether it started; asking it beats watching the
+    // DOM and guessing from a timer.
+    if (trailwattLoad && trailwattLoad.then) {
+      trailwattLoad.then(window.__trailwatt.ok, window.__trailwatt.fail);
+    } else {
+      window.__trailwatt.ok();
+    }
+  </script>
 </body>
 </html>

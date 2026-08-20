@@ -146,8 +146,19 @@ flutter build web --release --web-renderer html   # ou direto, sem Docker
 
 O renderer `html` é escolha, não default: o CanvasKit baixa ~2 MB de wasm
 antes do primeiro frame, e esta interface é texto, lista e um mapa de tiles -
-nada que precise do canvas. `build/web/canvaskit/` sai do template mesmo
-assim e pode ser apagado do que você publica.
+nada que precise do canvas.
+
+**Sem a flag o build sai em CanvasKit**, que por padrão busca o wasm em
+`gstatic.com`. Numa rede que bloqueia esse domínio — ou offline — o app não
+desenha nada e não diz nada. Por isso `web/index.html` aponta o
+`canvasKitBaseUrl` para a cópia local em `canvaskit/`, que já vem no build:
+o app nunca depende de CDN para abrir, com qualquer renderer.
+
+E se mesmo assim ele não iniciar, `web/index.html` mostra o porquê em HTML
+puro em vez de deixar a página em branco: detecta `file://` na hora, e usa a
+promessa do loader do Flutter para reportar falha real. Um `file://` aberto
+direto do disco falha igual em todo navegador — é a causa mais comum de
+"não funciona".
 
 Sirva a pasta por HTTP; abrir `index.html` como `file://` não funciona
 (módulos e `fetch` de assets exigem origem). Para hospedar fora da raiz do

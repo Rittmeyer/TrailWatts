@@ -75,6 +75,20 @@ neither the keystore nor the passwords end up in an image layer. Keep both
 files out of the repo — `android/.gitignore` already covers `key.properties`
 and `*.jks`.
 
+## Quando a página abre em branco
+
+Duas causas, ambas silenciosas antes:
+
+- **`file://`** — abrir `build/web/index.html` direto do disco falha igual em
+  Chrome, Edge, Firefox e Safari: o navegador não deixa uma página `file://`
+  buscar os próprios arquivos do app. Sirva a pasta por HTTP.
+- **CanvasKit vindo do CDN** — um build sem `--web-renderer html` busca o
+  wasm em `gstatic.com`; se esse domínio não responde, nada é desenhado.
+  `web/index.html` aponta para a cópia local, então isso não acontece mais.
+
+Em qualquer outro caso a página agora explica o que houve em vez de ficar
+vazia.
+
 ## Apple Silicon
 
 The Flutter SDK is published for Linux x86_64 only — there is no arm64
