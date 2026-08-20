@@ -15,7 +15,6 @@ without being forced through an advanced configuration screen.
   (threshold HR, or maximum HR when threshold is unknown);
 - personal HR zone boundaries, overriding the generic table;
 - power zone scale (Z1–Z5 or Z1–Z7), anchored on FTP;
-- 5s/1min/5min power curve;
 - CdA;
 - Crr.
 
@@ -27,8 +26,10 @@ stale. Calibration state and prediction confidence are separate concepts.
 Changing a major physics input MUST follow Feature 009's stale-calibration
 policy; it MUST NOT silently present an old calibration as current.
 
-The optional power-curve import is limited to power-curve points and never
-blocks onboarding.
+The power curve (5s/1min/5min peaks) is out of scope: nothing in the engine
+consumed it, so collecting it only added onboarding friction. With it goes
+the platform import offered on this screen - profile setup is now entirely
+manual, with no third-party connection at all.
 
 ## UX principles
 - Required onboarding fields should be completable quickly.

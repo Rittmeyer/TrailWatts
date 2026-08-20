@@ -1,5 +1,12 @@
 <!--
 Sync Impact Report:
+- Version change: 2.0.0 -> 2.1.0 (MINOR: power curve removed from profile
+  data; Article II's import exception is now dormant, and the footer version,
+  which had been left at 1.2.0 when 2.0.0 shipped, is corrected)
+- Templates/specs updated: specs/004-rider-profile (power curve and its
+  import removed from scope)
+
+Previous entry (1.2.0 -> 2.0.0):
 - Version change: 1.2.0 -> 2.0.0 (MAJOR: Article VII no longer mandates a
   single five-zone taxonomy; power and heart rate are now separate zone
   tables, each selectable as Z1-Z5 or Z1-Z7)
@@ -48,16 +55,17 @@ redesigned before it can be planned.
 
 The app MUST NOT import data from third-party platforms (Strava, Garmin,
 TrainingPeaks, or similar) during onboarding or profile setup. All profile
-data — weight, FTP, heart-rate zones, power curve — is entered manually by
-the rider.
+data — weight, FTP, heart-rate zones — is entered manually by the rider.
 
 Rationale: avoids the restrictions most third-party API terms of service
 place on caching, storing, or redistributing their data, and keeps the rider
 in full control of what enters their account.
 
-Exception: optional import of power-curve data points (e.g. 5s/1min/5min
-peaks) MAY be offered through a read-scoped OAuth connection as a
-convenience, but MUST NOT be required to use the app.
+Exception: an optional read-scoped OAuth import MAY be offered as a
+convenience for data the rider would otherwise type, but MUST NOT be required
+to use the app. No surface currently exercises this: the power curve, which
+was its only intended use, is out of scope (see specs/004-rider-profile), so
+profile setup involves no third-party connection at all.
 
 ### Article III — No In-App Workout Recording
 
@@ -202,10 +210,12 @@ Amending an article requires: stating which article changes and why,
 identifying every existing spec or plan that assumed the old boundary, and
 updating them before the amendment merges.
 
-**Version**: 1.2.0
-**Amendment note**: 1.2.0 clarifies Article I to include speed in the
-physics domain and resolves the Article II manual-entry/optional-power-curve
-exception. The route-matching engine is now treated as a first-class product
-capability rather than an undefined dependency.
+**Version**: 2.1.0
+**Amendment note**: 2.1.0 drops the power curve from profile data, leaving
+onboarding fully manual with no third-party connection. 2.0.0 replaced the
+single five-zone taxonomy with separate power and heart-rate tables, each
+selectable as Z1-Z5 or Z1-Z7. 1.2.0 clarified Article I to include speed in
+the physics domain and treated the route-matching engine as a first-class
+product capability rather than an undefined dependency.
 **Ratified**: 2026-08-08
 **Last Amended**: 2026-08-10

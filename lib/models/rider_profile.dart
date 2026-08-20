@@ -155,7 +155,6 @@ class RiderProfile {
   final double cda;
   final double crr;
   final double drivetrainEfficiency;
-  final Map<int, int>? powerCurveWatts;
 
   const RiderProfile({
     required this.weightKg,
@@ -166,7 +165,6 @@ class RiderProfile {
     this.cda = 0.32,
     this.crr = 0.004,
     this.drivetrainEfficiency = 0.975,
-    this.powerCurveWatts,
   })  : assert(weightKg > 0),
         assert(ftpWatts > 0),
         assert(bikeWeightKg >= 0),
@@ -204,7 +202,6 @@ class RiderProfile {
     double? cda,
     double? crr,
     double? drivetrainEfficiency,
-    Map<int, int>? powerCurveWatts,
   }) =>
       RiderProfile(
         weightKg: weightKg ?? this.weightKg,
@@ -215,6 +212,5 @@ class RiderProfile {
         cda: cda ?? this.cda,
         crr: crr ?? this.crr,
         drivetrainEfficiency: drivetrainEfficiency ?? this.drivetrainEfficiency,
-        powerCurveWatts: powerCurveWatts ?? this.powerCurveWatts,
       );
 }

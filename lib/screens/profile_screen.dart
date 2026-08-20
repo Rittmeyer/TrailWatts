@@ -26,9 +26,6 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final _weightController = TextEditingController(text: '74');
   final _ftpController = TextEditingController(text: '210');
-  final _power5sController = TextEditingController();
-  final _power1minController = TextEditingController();
-  final _power5minController = TextEditingController();
   final _hrAnchorController = TextEditingController(text: '168');
 
   ZoneScale _powerScale = ZoneScale.seven;
@@ -62,9 +59,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void dispose() {
     _weightController.dispose();
     _ftpController.dispose();
-    _power5sController.dispose();
-    _power1minController.dispose();
-    _power5minController.dispose();
     _hrAnchorController.dispose();
     super.dispose();
   }
@@ -191,39 +185,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         setState(() => _hrBoundsValid = v),
                   ),
 
-                // --- Power curve -----------------------------------------
-                const _SectionLabel('CURVA DE POTENCIA'),
-                TrailwattField(
-                  label: 'Potencia 5s (w)',
-                  hint: 'opcional · ex: 850',
-                  controller: _power5sController,
-                  keyboardType: TextInputType.number,
-                ),
-                TrailwattField(
-                  label: 'Potencia 1min (w)',
-                  hint: 'opcional · ex: 420',
-                  controller: _power1minController,
-                  keyboardType: TextInputType.number,
-                ),
-                TrailwattField(
-                  label: 'Potencia 5min (w)',
-                  hint: 'opcional · ex: 260',
-                  controller: _power5minController,
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 8),
-                TrailwattButton(
-                  label: 'Importar do Strava/Garmin',
-                  style: TrailwattButtonStyle.secondary,
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                        content: Text(
-                            'Conexao opcional - preenche a curva via API')));
-                  },
-                ),
-                const SizedBox(height: 4),
-                Text('preenche a curva via API',
-                    style: AppTextStyles.label.copyWith(fontSize: 9)),
                 const SizedBox(height: 20),
                 TrailwattButton(
                   label: 'Salvar perfil',
@@ -234,9 +195,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 const SizedBox(height: 14),
                 Text(
-                  'Peso e FTP bastam para o motor funcionar. A curva de '
-                  'potencia refina estimulos curtos e intensos, e pode vir '
-                  'da API em vez de digitada a mao.',
+                  'Peso e FTP bastam para o motor funcionar. As zonas podem '
+                  'ficar nas faixas genericas ou ser ajustadas a mao.',
                   style: AppTextStyles.label.copyWith(fontSize: 9, height: 1.5),
                 ),
               ],
