@@ -986,4 +986,23 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get builderSaveBlocked =>
       'Hoje já tem um resultado registrado. Desassocie a atividade antes de trocar o treino.';
+
+  @override
+  String get modelGeneric => 'Modelo genérico';
+
+  @override
+  String modelCalibrated(int accuracy) {
+    return 'Calibrado · $accuracy% de acerto';
+  }
+
+  @override
+  String get modelStale => 'Calibração desatualizada';
+
+  @override
+  String get modelGenericWhy =>
+      'As estimativas usam constantes padrão. Depois de algumas pedaladas com potência, o app aprende as suas.';
+
+  @override
+  String get modelStaleWhy =>
+      'Você mudou peso, FTP ou equipamento — o que foi aprendido não descreve mais essa combinação.';
 }

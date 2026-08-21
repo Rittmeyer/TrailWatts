@@ -1837,6 +1837,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Today already has a recorded result. Unlink the activity before changing the workout.'**
   String get builderSaveBlocked;
+
+  /// No description provided for @modelGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Generic model'**
+  String get modelGeneric;
+
+  /// No description provided for @modelCalibrated.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibrated · {accuracy}% accurate'**
+  String modelCalibrated(int accuracy);
+
+  /// No description provided for @modelStale.
+  ///
+  /// In en, this message translates to:
+  /// **'Calibration out of date'**
+  String get modelStale;
+
+  /// No description provided for @modelGenericWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimates use standard constants. After a few rides with power, the app learns yours.'**
+  String get modelGenericWhy;
+
+  /// No description provided for @modelStaleWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'You changed weight, FTP or equipment — what was learned no longer describes that combination.'**
+  String get modelStaleWhy;
 }
 
 class _AppLocalizationsDelegate

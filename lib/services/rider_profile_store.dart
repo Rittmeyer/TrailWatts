@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../models/rider_profile.dart';
+import 'calibration_store.dart';
 import '../models/zone.dart';
 
 /// The rider's profile, shared by every screen that needs it.
@@ -52,7 +53,13 @@ class RiderProfileStore extends ChangeNotifier {
   HeartRateZoneSettings? get heartRateZones => _profile.heartRateZones;
 
   void save(RiderProfile profile) {
+    final before = _profile;
     _profile = profile;
+    // What the road taught us was about a particular rider on a particular
+    // bike. Change either and it stops describing them - marked stale
+    // rather than deleted, so the rider sees that it stopped applying
+    // instead of finding their estimates quietly different (spec 009).
+    CalibrationStore.instance.riderChanged(before, profile);
     notifyListeners();
   }
 }

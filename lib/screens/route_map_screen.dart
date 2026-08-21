@@ -17,6 +17,7 @@ import '../services/route_suggestion_store.dart';
 import '../services/terrain/route_finder.dart';
 import '../models/zone.dart';
 import '../services/rider_profile_store.dart';
+import '../widgets/model_state_chip.dart';
 import '../widgets/page_header.dart';
 import '../widgets/map_layers.dart';
 import '../widgets/stat_box.dart';
@@ -332,7 +333,15 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                     // The zone of this stretch, not a table of every zone: one
                     // chip says what the drawn line's colour means, and it is the
                     // zone on the rider's own table.
-                    ZonePill(zone: _matchedZone),
+                    Row(
+                      children: [
+                        ZonePill(zone: _matchedZone),
+                        const SizedBox(width: 8),
+                        // Which model these numbers came from. Spec 006
+                        // asks every suggestion to say so.
+                        ModelStateChip(),
+                      ],
+                    ),
                     const SizedBox(height: 16),
                     Row(
                       children: [

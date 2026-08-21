@@ -984,4 +984,23 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get builderSaveBlocked =>
       'Today already has a recorded result. Unlink the activity before changing the workout.';
+
+  @override
+  String get modelGeneric => 'Generic model';
+
+  @override
+  String modelCalibrated(int accuracy) {
+    return 'Calibrated · $accuracy% accurate';
+  }
+
+  @override
+  String get modelStale => 'Calibration out of date';
+
+  @override
+  String get modelGenericWhy =>
+      'Estimates use standard constants. After a few rides with power, the app learns yours.';
+
+  @override
+  String get modelStaleWhy =>
+      'You changed weight, FTP or equipment — what was learned no longer describes that combination.';
 }

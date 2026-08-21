@@ -481,5 +481,17 @@
   "routeSearching": "Looking for routes...",
   "builderSaveOnly": "Save the workout without a route",
   "builderSavedToday": "Workout saved to today",
-  "builderSaveBlocked": "Today already has a recorded result. Unlink the activity before changing the workout."
+  "builderSaveBlocked": "Today already has a recorded result. Unlink the activity before changing the workout.",
+  "modelGeneric": "Generic model",
+  "modelCalibrated": "Calibrated · {accuracy}% accurate",
+  "modelStale": "Calibration out of date",
+  "modelGenericWhy": "Estimates use standard constants. After a few rides with power, the app learns yours.",
+  "modelStaleWhy": "You changed weight, FTP or equipment — what was learned no longer describes that combination.",
+  "@modelCalibrated": {
+    "placeholders": {
+      "accuracy": {
+        "type": "int"
+      }
+    }
+  }
 }

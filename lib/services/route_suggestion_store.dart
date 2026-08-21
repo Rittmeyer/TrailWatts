@@ -6,6 +6,7 @@ import 'package:latlong2/latlong.dart';
 import '../models/rider_profile.dart';
 import '../models/search_context.dart';
 import '../models/workout_block.dart';
+import 'calibration_store.dart';
 import 'rider_profile_store.dart';
 import 'terrain/cycling_segment_source.dart';
 import 'terrain/elevation_service.dart';
@@ -32,7 +33,9 @@ class RouteSuggestionStore extends ChangeNotifier {
     TerrainIndex? index,
     RiderProfile Function()? rider,
   })  : _index = index ?? TerrainIndex(database: TerrainDatabase.forPlatform()),
-        _riderOf = rider ?? (() => RiderProfileStore.instance.profile) {
+        _riderOf = rider ??
+            (() => CalibrationStore.instance
+                .effective(RiderProfileStore.instance.profile)) {
     _source = CachedSegmentSource(
       source: source ?? OverpassSegmentSource(),
       index: _index,

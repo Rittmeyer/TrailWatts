@@ -311,5 +311,17 @@
   "routeSearching": "Procurando percursos...",
   "builderSaveOnly": "Salvar treino sem procurar rota",
   "builderSavedToday": "Treino salvo em hoje",
-  "builderSaveBlocked": "Hoje já tem um resultado registrado. Desassocie a atividade antes de trocar o treino."
+  "builderSaveBlocked": "Hoje já tem um resultado registrado. Desassocie a atividade antes de trocar o treino.",
+  "modelGeneric": "Modelo genérico",
+  "modelCalibrated": "Calibrado · {accuracy}% de acerto",
+  "modelStale": "Calibração desatualizada",
+  "modelGenericWhy": "As estimativas usam constantes padrão. Depois de algumas pedaladas com potência, o app aprende as suas.",
+  "modelStaleWhy": "Você mudou peso, FTP ou equipamento — o que foi aprendido não descreve mais essa combinação.",
+  "@modelCalibrated": {
+    "placeholders": {
+      "accuracy": {
+        "type": "int"
+      }
+    }
+  }
 }

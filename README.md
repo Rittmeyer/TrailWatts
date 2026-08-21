@@ -336,6 +336,53 @@ que ninguém quis pesquisar.
 "Nada encontrado" e "a busca não rodou" são mensagens diferentes. A
 primeira é uma resposta; a segunda não.
 
+### O ajuste ao atleta
+
+O motor de rotas roda com dois números que são do ciclista e da bicicleta,
+não da física: **CdA** (arrasto) e **Crr** (rolamento). Enquanto ninguém os
+mede, são chutes de catálogo — e são eles que decidem que velocidade um
+alvo compra num gradiente, ou seja, decidem a rota inteira.
+
+`lib/engine/calibration_engine.dart` aprende os dois a partir do que
+aconteceu na estrada. A equação **nunca muda** (spec 009, requisito 3); só
+as duas constantes se movem. O ajuste é exato, não iterativo: dividindo a
+equação de potência por `v` e passando a gravidade para o outro lado,
+
+```
+P*eta/v - m*g*sin0  =  Crr*(m*g*cos0)  +  CdA*(0.5*rho*v^2)
+```
+
+que é linear nas duas incógnitas — mínimos quadrados de duas colunas, sem
+chute inicial para errar e sem nada para convergir.
+
+Validado do jeito que um ajuste tem que ser validado: gerando pedaladas de
+um ciclista com CdA e Crr **conhecidos** e verificando que o fit os
+encontra. Recupera 0,281 e 0,0056 dentro da tolerância, inclusive com 6%
+de ruído.
+
+**E recusa mais do que aceita**, porque é assim que tem que ser:
+
+- descida é rejeitada — ali quem manda é vento e freio, não o ciclista;
+- rampa acima de 20% também — nada ali é regime permanente;
+- pedalada muito diferente da prescrita idem: não foi a pedalada planejada;
+- se todas as observações se parecerem (mesma velocidade, mesmo gradiente),
+  as duas constantes são **indistinguíveis** e o ajuste é descartado em vez
+  de jogar todo o erro numa delas;
+- ajuste que cai fora do fisicamente plausível vai fora.
+
+Mudar peso, FTP ou equipamento marca a calibração como **desatualizada**,
+não a apaga: o ciclista precisa ver que ela deixou de valer, em vez de
+achar as estimativas silenciosamente diferentes.
+
+E a rota diz de qual modelo os números vieram — genérico, calibrado com
+quantos por cento de acerto, ou desatualizado.
+
+**O que ainda falta:** a entrada. Calibrar exige (velocidade, gradiente,
+potência), e a atividade hoje guarda potência e duração, não velocidade nem
+gradiente. Isso vem dos streams de Strava/Garmin, que a camada de
+integração alcança mas ninguém consumiu ainda. Até lá o motor fica em
+genérico — e diz isso, em vez de fingir.
+
 ### Da fonte à sugestão
 
 O caminho completo, em `lib/services/terrain/`:
