@@ -16,6 +16,7 @@ dependencies:
   flutter_map_dragmarker: ^7.0.0  # draggable waypoints on screen 05
   latlong2: ^0.9.1
   http: ^1.2.2               # OSRM road-snapping / routing calls
+  web: ^1.1.0                # IndexedDB for the local terrain cache (web only)
   crypto: ^3.0.3             # PKCE challenge for the platform OAuth flows
   table_calendar: ^3.1.2     # for screens 08a/08b/08c (calendar week/month)
   intl: ^0.19.0

@@ -39,7 +39,6 @@ class CountingElevation implements ElevationService {
 List<CyclingWay> urbanArea({int streets = 1200, int nodes = 25}) {
   final ways = <CyclingWay>[];
   var lat = -23.55;
-  var base = 700.0;
   for (var w = 0; w < streets; w++) {
     final points = <LatLng>[];
     for (var i = 0; i < nodes; i++) {
@@ -47,7 +46,6 @@ List<CyclingWay> urbanArea({int streets = 1200, int nodes = 25}) {
     }
     ways.add(CyclingWay(id: 'w$w', name: 'Rua $w', points: points));
     lat = points.last.latitude;
-    base += 1;
   }
   return ways;
 }

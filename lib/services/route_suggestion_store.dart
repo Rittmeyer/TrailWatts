@@ -7,6 +7,7 @@ import 'rider_profile_store.dart';
 import 'terrain/cycling_segment_source.dart';
 import 'terrain/elevation_service.dart';
 import 'terrain/route_finder.dart';
+import 'terrain/terrain_database.dart';
 import 'terrain/terrain_elevation.dart';
 import 'terrain/terrain_index.dart';
 
@@ -27,7 +28,7 @@ class RouteSuggestionStore extends ChangeNotifier {
     ElevationService? elevation,
     TerrainIndex? index,
     RiderProfile Function()? rider,
-  })  : _index = index ?? TerrainIndex(),
+  })  : _index = index ?? TerrainIndex(database: TerrainDatabase.forPlatform()),
         _riderOf = rider ?? (() => RiderProfileStore.instance.profile) {
     _source = CachedSegmentSource(
       source: source ?? OverpassSegmentSource(),
@@ -69,6 +70,11 @@ class RouteSuggestionStore extends ChangeNotifier {
     _selected = i;
     notifyListeners();
   }
+
+  /// Reads back what earlier runs learned: which areas are already known,
+  /// and the heights bought for them. Doing it at startup means the first
+  /// search of the day does not wait for it.
+  Future<void> warmUp() => _index.load();
 
   Future<void> search({
     required RouteSearchContext context,

@@ -4,6 +4,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'l10n/app_localizations.dart';
 import 'services/integrations_store.dart';
 import 'services/locale_store.dart';
+import 'services/route_suggestion_store.dart';
 import 'services/platform/platform_oauth_service.dart';
 import 'theme/app_theme.dart';
 import 'screens/splash_screen.dart';
@@ -42,6 +43,9 @@ class _TrailwattAppState extends State<TrailwattApp> {
   void initState() {
     super.initState();
     _captureLaunchRedirect();
+    // Terrain a previous run downloaded is read back now rather than in the
+    // middle of the first search.
+    RouteSuggestionStore.instance.warmUp();
   }
 
   /// An OAuth redirect can be how the app was launched: on the web the

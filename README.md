@@ -294,10 +294,25 @@ busca, a tela diz isso — e diferencia "a fonte não respondeu" de "não há
 via pedalável nesse raio", porque a primeira se resolve tentando de novo
 e a segunda movendo o pino.
 
-O índice vive no `RouteSuggestionStore`, não numa tela, então sobrevive a
-ir e voltar. Ele é **por sessão**: manter entre aberturas do app exige uma
-dependência de armazenamento que este projeto ainda não tomou — a mesma
-decisão aberta de persistir os tokens.
+**`terrain_database.dart`** — a base local no disco. No web é
+**IndexedDB** (`package:web` + `dart:js_interop`), dimensionado para os
+megabytes de geometria e alturas que isto guarda, e não para os poucos
+kilobytes de um armazenamento chave-valor. Duas tabelas espelham como o
+índice lê: vias pelo próprio id, e por célula da grade os ids que caem
+nela — uma estrada longa é gravada uma vez e listada em várias.
+
+Na abertura o app lê de volta só a lista de células e as alturas: a lista
+é o que decide se a busca precisa tocar a rede, e as alturas são a metade
+cara (mil chamadas por dia). As vias são lidas por busca, para as células
+daquela busca.
+
+Tudo ali é cache, nunca fonte da verdade. Janela anônima, dados de site
+bloqueados, cota recusada — cada um desses termina com o app funcionando
+exatamente como antes de existir base: mais lento, nunca quebrado.
+
+**Em nativo ainda não há base.** O diretório de documentos do app exige um
+plugin que este projeto não tomou, e entregar meio funcionando seria pior
+que o índice em memória que já existe.
 
 ### Fonte de dados
 

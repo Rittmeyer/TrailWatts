@@ -37,6 +37,10 @@ class TerrainElevation {
       final value = values[i];
       if (value != null) index.rememberElevation(wanted[i], value);
     }
+    // Heights are the expensive half - a thousand API calls a day - so they
+    // go to disk as soon as they are known rather than at some later point
+    // the app may never reach.
+    await index.persistElevation();
   }
 
   double? at(LatLng point) => index.elevationAt(point);

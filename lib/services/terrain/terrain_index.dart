@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:latlong2/latlong.dart';
 
 import 'cycling_segment_source.dart';
+import 'terrain_database.dart';
 
 /// A local store of rideable ground, indexed by position.
 ///
@@ -41,7 +42,70 @@ class TerrainIndex {
   /// this feeds on, coarse enough to actually hit.
   final Map<String, double> _elevation = {};
 
-  TerrainIndex({this.cellDegrees = 0.01, this.maxWays = 20000});
+  /// Where the index is kept between runs. Always a cache: it may be empty,
+  /// refused or stale, and the index has to work when it is.
+  final TerrainDatabase database;
+
+  TerrainIndex({
+    this.cellDegrees = 0.01,
+    this.maxWays = 20000,
+    TerrainDatabase? database,
+  }) : database = database ?? const NoTerrainDatabase();
+
+  bool _loaded = false;
+
+  /// Brings back what a previous run learned. Cheap to call more than once.
+  ///
+  /// Only the cell list and the heights are read up front: the cell list is
+  /// what decides whether a search has to hit the network at all, and the
+  /// heights are the expensive half - a thousand API calls a day, against
+  /// geometry Overpass will hand back in one query. Ways are read per
+  /// search, for the cells that search touches.
+  Future<void> load() async {
+    if (_loaded) return;
+    _loaded = true;
+    await database.open();
+    _fetched.addAll(await database.fetchedCells());
+    _elevation.addAll(await database.elevations());
+  }
+
+  /// Pulls the stored ways for an area into memory.
+  Future<void> loadArea(LatLng centre, double radiusM) async {
+    await load();
+    final stored = await database.waysIn(cellsFor(centre, radiusM));
+    for (final way in stored) {
+      // Straight into the maps: re-adding through add() would write them
+      // back to the database they just came from.
+      _ways[way.id] = way;
+      final keys = _cellsOf(way).toSet();
+      _wayCells[way.id] = keys;
+      for (final key in keys) {
+        _cells.putIfAbsent(key, () {
+          _cellOrder.add(key);
+          return <String>{};
+        }).add(way.id);
+      }
+    }
+  }
+
+  /// Writes through what this search learned.
+  Future<void> persist(
+      Iterable<CyclingWay> ways, Iterable<String> cells) async {
+    if (ways.isNotEmpty) {
+      await database.putWays(ways, (way) => _cellsOf(way).toSet());
+    }
+    if (cells.isNotEmpty) await database.markCells(cells);
+  }
+
+  /// Heights learned since the last write.
+  final Map<String, double> _unsavedElevation = {};
+
+  Future<void> persistElevation() async {
+    if (_unsavedElevation.isEmpty) return;
+    final batch = Map<String, double>.from(_unsavedElevation);
+    _unsavedElevation.clear();
+    await database.putElevations(batch);
+  }
 
   int get wayCount => _ways.length;
   int get cellCount => _cells.length;
@@ -159,7 +223,9 @@ class TerrainIndex {
   double? elevationAt(LatLng point) => _elevation[_pointKey(point)];
 
   void rememberElevation(LatLng point, double metres) {
-    _elevation[_pointKey(point)] = metres;
+    final key = _pointKey(point);
+    _elevation[key] = metres;
+    _unsavedElevation[key] = metres;
   }
 
   /// Fills in what is already known and reports what is still missing, so
@@ -194,6 +260,9 @@ class CachedSegmentSource implements CyclingSegmentSource {
 
   @override
   Future<SegmentFetch> waysAround(LatLng centre, double radiusM) async {
+    // What a previous run already downloaded for this area.
+    await index.loadArea(centre, radiusM);
+
     if (index.covers(centre, radiusM)) {
       return SegmentFetch(index.near(centre, radiusM));
     }
@@ -209,6 +278,7 @@ class CachedSegmentSource implements CyclingSegmentSource {
 
     index.addAll(fetched.ways);
     index.markFetched(centre, radiusM);
+    await index.persist(fetched.ways, index.cellsFor(centre, radiusM));
     return SegmentFetch(index.near(centre, radiusM));
   }
 }
