@@ -18,7 +18,12 @@ class AppColors {
   /// A control that is present but cannot act right now. Distinct from
   /// [line] on purpose: a hairline is meant to disappear into the surface,
   /// and borrowing it for a disabled icon made the icon disappear too.
-  static const inkDisabled = Color(0xFF9AA5A3);
+  ///
+  /// Chosen to clear 3:1 against [paper], the contrast a non-text control
+  /// needs to be seen. Disabled controls are exempt from that rule, but
+  /// the exemption assumes the reader can tell the control is there at
+  /// all, which was the whole complaint.
+  static const inkDisabled = Color(0xFF868F8D);
   static const white = Colors.white;
 
   static const greenBg = Color(0xFFDCF3EA);
