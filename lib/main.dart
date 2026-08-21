@@ -2,7 +2,9 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'l10n/app_localizations.dart';
+import 'services/integrations_store.dart';
 import 'services/locale_store.dart';
+import 'services/platform/platform_oauth_service.dart';
 import 'theme/app_theme.dart';
 import 'screens/splash_screen.dart';
 import 'screens/auth_screen.dart';
@@ -28,8 +30,38 @@ void main() {
   runApp(const TrailwattApp());
 }
 
-class TrailwattApp extends StatelessWidget {
+class TrailwattApp extends StatefulWidget {
   const TrailwattApp({super.key});
+
+  @override
+  State<TrailwattApp> createState() => _TrailwattAppState();
+}
+
+class _TrailwattAppState extends State<TrailwattApp> {
+  @override
+  void initState() {
+    super.initState();
+    _captureLaunchRedirect();
+  }
+
+  /// An OAuth redirect can be how the app was launched: on the web the
+  /// platform sends the browser back to this page with the code in the URL,
+  /// which reloads the app. Reading it here is what turns "copy the address
+  /// and paste it back" into a connection that just completes.
+  ///
+  /// Anything that is not a redirect the app is waiting for is left alone -
+  /// a URL carrying a state nobody issued is not ours to act on.
+  Future<void> _captureLaunchRedirect() async {
+    final store = IntegrationsStore.instance;
+    final launch = Uri.base;
+    if (!store.awaitsRedirect(launch)) return;
+    try {
+      await store.completeFromRedirect(launch);
+    } on PlatformAuthException {
+      // The integrations screen shows the connection never happened; there
+      // is no screen yet at launch to put a message on.
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

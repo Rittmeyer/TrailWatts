@@ -413,15 +413,39 @@ OSRM: servem para desenvolvimento e precisam ser verificados contra a
 documentação e os termos de cada parceiro antes de publicar — é a decisão P0
 "Platform API capabilities" de `DECISIONS_REQUIRED.md`.
 
+### Habilitando de verdade
+
+O código do fluxo está pronto e testado. O que separa "implementado" de
+"funcionando" são os **client ids**, e só você pode obtê-los: são
+registros de aplicação que cada plataforma emite para o seu app.
+
+1. Registre um app em cada plataforma que for usar.
+2. Cadastre lá o redirect: `trailwatt://oauth/strava`, `/garmin`,
+   `/wahoo`, `/trainingpeaks` — no build web, o endereço da sua página em
+   vez do esquema.
+3. Passe os ids no build (veja "Configurando" acima). Sem id, a tela diz
+   **"Indisponível nesta build"** em vez de oferecer um botão que só
+   poderia falhar.
+
+O redirect volta sozinho: o esquema `trailwatt://` está registrado no
+`AndroidManifest.xml` e no `Info.plist`, e no web o app lê o `Uri.base` ao
+iniciar. A plataforma é identificada pelo `state` que ela devolve, não
+pelo formato da URL — cada uma monta o callback do seu jeito, e um
+redirect com um `state` que ninguém emitiu não é atribuído a ninguém.
+
+O ponto que fazia isso falhar: no web o redirect **recarrega a página**, e
+a verificação PKCE morria junto com a memória do app. Ela agora espera em
+`sessionStorage` (`lib/services/platform/auth_session_store.dart`), que
+morre com a aba — o tempo máximo que uma autorização pela metade deveria
+viver. Uma autorização vale por um redirect só: é lida e esquecida no
+mesmo passo, então uma URL reapresentada não reconecta nada.
+
+O diálogo de colar a URL continua ali como saída manual, para quando o
+redirect não voltar.
+
 ### O que ainda falta para produção
 
-Duas coisas, ambas de propósito fora daqui em vez de meio-feitas:
-
-- **Receber o redirect por deep link.** Hoje o app abre o endereço de
-  autorização e você cola de volta a URL para onde foi redirecionado. Um
-  build de produção registra o esquema `trailwatt://` e chama
-  `IntegrationsStore.completeConnect(platform, uri)` direto do handler —
-  mesmo fluxo, sem o passo manual.
+Uma coisa, de propósito fora daqui em vez de meio-feita:
 - **Guardar os tokens.** Eles vivem só em memória: persistir exige keystore
   do Android / keychain do iOS, e guardar token de plataforma em
   `shared_preferences` seria pior do que não guardar.

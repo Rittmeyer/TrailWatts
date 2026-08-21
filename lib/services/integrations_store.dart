@@ -5,6 +5,7 @@ import '../models/result_source.dart';
 import 'platform/oauth_tokens.dart';
 import 'platform/platform_api_client.dart';
 import 'platform/platform_credentials.dart';
+import 'platform/auth_session_store.dart';
 import 'platform/platform_oauth_service.dart';
 
 /// The rider's platform connections, shared across every screen that needs
@@ -30,13 +31,18 @@ class IntegrationsStore extends ChangeNotifier {
 
   final Map<ResultSource, OAuthTokens> _tokens = {};
   final Map<ResultSource, DateTime> _connectedAt = {};
-  final Map<ResultSource, PendingAuthorization> _pending = {};
+
+  /// Half-finished authorizations. Not a plain map because on the web the
+  /// redirect reloads the page and would take them with it.
+  final AuthSessionStore _sessions;
 
   IntegrationsStore({
     PlatformOAuthService? oauth,
     PlatformApiClient? api,
     Map<ResultSource, PlatformCredentials>? credentials,
-  })  : _oauth = oauth ?? PlatformOAuthService(),
+    AuthSessionStore? sessions,
+  })  : _sessions = sessions ?? AuthSessionStore.forPlatform(),
+        _oauth = oauth ?? PlatformOAuthService(),
         _api = api ?? PlatformApiClient(),
         _credentials = credentials ??
             {
@@ -90,15 +96,38 @@ class IntegrationsStore extends ChangeNotifier {
   /// build has no client id for the platform.
   PendingAuthorization beginConnect(ResultSource platform) {
     final pending = _oauth.beginAuthorization(credentialsFor(platform));
-    _pending[platform] = pending;
+    _sessions.save(platform, pending);
     return pending;
+  }
+
+  /// Finishes whatever authorization this redirect answers, without the
+  /// caller having to know which platform sent it.
+  ///
+  /// The platform is identified by the `state` the redirect carries, not by
+  /// the shape of its URL: each platform builds its callback differently,
+  /// and a redirect carrying a state nobody issued belongs to nobody.
+  Future<ResultSource?> completeFromRedirect(Uri redirect) async {
+    final state = redirect.queryParameters['state'];
+    if (state == null || state.isEmpty) return null;
+    final platform = _sessions.platformForState(state);
+    if (platform == null) return null;
+    await completeConnect(platform, redirect);
+    return platform;
+  }
+
+  /// True when this redirect is one the app is waiting for. Lets a launch
+  /// handler ignore ordinary URLs without starting a connection attempt.
+  bool awaitsRedirect(Uri redirect) {
+    final state = redirect.queryParameters['state'];
+    if (state == null || state.isEmpty) return false;
+    return _sessions.platformForState(state) != null;
   }
 
   /// Finishes the authorization the platform redirected back from. Wire this
   /// to the app's deep-link handler, or to the redirect URL the rider pastes
   /// back in.
   Future<void> completeConnect(ResultSource platform, Uri redirect) async {
-    final pending = _pending[platform];
+    final pending = _sessions.peek(platform);
     if (pending == null) {
       throw const PlatformAuthException(
           PlatformAuthFailure.noPendingAuthorization);
@@ -110,7 +139,7 @@ class IntegrationsStore extends ChangeNotifier {
       redirect: redirect,
     );
 
-    _pending.remove(platform);
+    _sessions.clear(platform);
     _tokens[platform] = tokens;
     _connectedAt[platform] = DateTime.now();
     notifyListeners();
@@ -121,7 +150,7 @@ class IntegrationsStore extends ChangeNotifier {
   void disconnect(ResultSource platform) {
     _tokens.remove(platform);
     _connectedAt.remove(platform);
-    _pending.remove(platform);
+    _sessions.clear(platform);
     notifyListeners();
   }
 
