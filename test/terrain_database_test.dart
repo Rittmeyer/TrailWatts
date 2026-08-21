@@ -147,9 +147,13 @@ void main() {
       final db = FakeDatabase();
       final source = CountingSource([road('a'), road('b')]);
 
-      final first = CachedSegmentSource(
-          source: source, index: TerrainIndex(database: db));
+      final firstIndex = TerrainIndex(database: db);
+      final first = CachedSegmentSource(source: source, index: firstIndex);
       await first.waysAround(centre, 1500);
+      // Writes are deliberately not on the search's critical path, so a
+      // test that reads them back has to wait for them on purpose rather
+      // than by luck of timing.
+      await firstIndex.settle();
       expect(source.calls, 1);
 
       // A new run of the app: nothing in memory, the same database.

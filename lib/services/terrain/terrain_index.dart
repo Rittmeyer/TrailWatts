@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../engine/geo_distance.dart';
@@ -108,23 +109,44 @@ class TerrainIndex {
     }
   }
 
-  /// Writes through what this search learned.
-  Future<void> persist(
-      Iterable<CyclingWay> ways, Iterable<String> cells) async {
-    if (ways.isNotEmpty) {
-      await database.putWays(ways, (way) => _cellsOf(way).toSet());
+  /// Writes still in flight. The search does not wait for them - what it
+  /// learned is already in memory, and the database is only for the next
+  /// run - but a test has to be able to.
+  final List<Future<void>> _writes = [];
+
+  /// Waits for every write this index has started.
+  @visibleForTesting
+  Future<void> settle() async {
+    while (_writes.isNotEmpty) {
+      final pending = List<Future<void>>.from(_writes);
+      _writes.clear();
+      await Future.wait(pending);
     }
-    if (cells.isNotEmpty) await database.markCells(cells);
+  }
+
+  /// Records a write without putting it on anybody's critical path.
+  void _write(Future<void> Function() action) {
+    late final Future<void> future;
+    future = action().whenComplete(() => _writes.remove(future));
+    _writes.add(future);
+  }
+
+  /// Writes through what this search learned.
+  void persist(Iterable<CyclingWay> ways, Iterable<String> cells) {
+    if (ways.isNotEmpty) {
+      _write(() => database.putWays(ways, (way) => _cellsOf(way).toSet()));
+    }
+    if (cells.isNotEmpty) _write(() => database.markCells(cells));
   }
 
   /// Heights learned since the last write.
   final Map<String, double> _unsavedElevation = {};
 
-  Future<void> persistElevation() async {
+  void persistElevation() {
     if (_unsavedElevation.isEmpty) return;
     final batch = Map<String, double>.from(_unsavedElevation);
     _unsavedElevation.clear();
-    await database.putElevations(batch);
+    _write(() => database.putElevations(batch));
   }
 
   int get wayCount => _ways.length;
@@ -282,8 +304,30 @@ class CachedSegmentSource implements CyclingSegmentSource {
   /// the cache exists to keep at zero.
   int fetches = 0;
 
+  /// Fetches already on their way, by area.
+  ///
+  /// Without this, a prefetch and the search it was meant to help both hit
+  /// the network for the same ground - the guess costing a query instead of
+  /// saving one. A second request for an area already in flight waits for
+  /// that one.
+  final Map<String, Future<SegmentFetch>> _inFlight = {};
+
+  static String _areaKey(LatLng centre, double radiusM) =>
+      '${centre.latitude.toStringAsFixed(3)},'
+      '${centre.longitude.toStringAsFixed(3)},${radiusM.round()}';
+
   @override
-  Future<SegmentFetch> waysAround(LatLng centre, double radiusM) async {
+  Future<SegmentFetch> waysAround(LatLng centre, double radiusM) {
+    final key = _areaKey(centre, radiusM);
+    final running = _inFlight[key];
+    if (running != null) return running;
+
+    final future = _fetch(centre, radiusM);
+    _inFlight[key] = future;
+    return future.whenComplete(() => _inFlight.remove(key));
+  }
+
+  Future<SegmentFetch> _fetch(LatLng centre, double radiusM) async {
     // Memory first. Reading the database on a search whose ground is
     // already in hand was pure cost - a decode of every stored way in the
     // area, on every repeat search, for rows the index was already holding.
@@ -309,7 +353,10 @@ class CachedSegmentSource implements CyclingSegmentSource {
 
     index.addAll(fetched.ways);
     index.markFetched(centre, radiusM);
-    await index.persist(fetched.ways, index.cellsFor(centre, radiusM));
+    // Not awaited: thousands of rows for a city-sized area, and the search
+    // already holds everything it needs. Making the rider wait for a write
+    // that only helps their next search is the wrong trade.
+    index.persist(fetched.ways, index.cellsFor(centre, radiusM));
     return SegmentFetch(index.near(centre, radiusM));
   }
 }

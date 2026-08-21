@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../models/rider_profile.dart';
 import '../models/search_context.dart';
@@ -75,6 +78,27 @@ class RouteSuggestionStore extends ChangeNotifier {
   /// and the heights bought for them. Doing it at startup means the first
   /// search of the day does not wait for it.
   Future<void> warmUp() => _index.load();
+
+  /// Ground the rider is probably about to ask for.
+  ///
+  /// The cold search is mostly waiting for Overpass, and by the time the
+  /// pin has settled the app knows where they want to start and roughly how
+  /// much ground the session needs. Fetching then, while they are still
+  /// setting the radius or reading the map, is time the rider does not
+  /// spend staring at a spinner. The cache means the real search finds it
+  /// already there.
+  ///
+  /// Deliberately silent: nothing is notified, nothing fails visibly. A
+  /// guess that does not pay off must cost the rider nothing.
+  void prefetchAround(LatLng centre, double radiusM) {
+    final key = '${centre.latitude.toStringAsFixed(3)},'
+        '${centre.longitude.toStringAsFixed(3)},${radiusM.round()}';
+    if (!_prefetched.add(key)) return;
+    unawaited(_source.waysAround(centre, radiusM).catchError(
+        (_) => const SegmentFetch.failed(SegmentFetchFailure.network)));
+  }
+
+  final Set<String> _prefetched = {};
 
   Future<void> search({
     required RouteSearchContext context,

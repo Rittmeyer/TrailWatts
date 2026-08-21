@@ -81,10 +81,41 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
   /// constant, which is how the map came to show the same three points in
   /// the same street whatever workout the rider had built - the suggestion
   /// changed underneath it and the picture never did.
-  List<LatLng> get _waypoints => [
-        for (final segment in suggestion?.path ?? const [])
-          LatLng(segment.lat, segment.lng),
+  RouteSuggestion? _builtFrom;
+  List<LatLng> _points = const [];
+  LatLng _middle = const LatLng(-23.5536, -46.6386);
+
+  /// The route's geometry, built once per suggestion.
+  ///
+  /// This was a getter that rebuilt the whole list on every read, and build
+  /// reads it four times - a six-hundred-point route meant thousands of
+  /// throwaway objects per frame, and the centre walked the list again.
+  List<LatLng> get _waypoints {
+    final route = suggestion;
+    if (route == null) {
+      _builtFrom = null;
+      _points = const [];
+      return _points;
+    }
+    if (!identical(route, _builtFrom)) {
+      _builtFrom = route;
+      _points = [
+        for (final segment in route.path) LatLng(segment.lat, segment.lng),
       ];
+      _middle = _centreOf(_points);
+    }
+    return _points;
+  }
+
+  static LatLng _centreOf(List<LatLng> points) {
+    if (points.isEmpty) return const LatLng(-23.5536, -46.6386);
+    var lat = 0.0, lng = 0.0;
+    for (final p in points) {
+      lat += p.latitude;
+      lng += p.longitude;
+    }
+    return LatLng(lat / points.length, lng / points.length);
+  }
 
   final _routing = OsrmRoutingService();
   RoutedPath? _path;
@@ -109,14 +140,8 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
   /// Enough of the route to frame it, without asking the map to fit bounds
   /// on a line that may be a single point.
   LatLng get _centre {
-    final points = _waypoints;
-    if (points.isEmpty) return const LatLng(-23.5536, -46.6386);
-    var lat = 0.0, lng = 0.0;
-    for (final p in points) {
-      lat += p.latitude;
-      lng += p.longitude;
-    }
-    return LatLng(lat / points.length, lng / points.length);
+    _waypoints;
+    return _middle;
   }
 
   /// Exports the suggested stretch to the selected platform.
@@ -237,6 +262,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
     if (route == null) return _NoRouteYet(store: RouteSuggestionStore.instance);
 
     final path = _path;
+    final points = _waypoints;
     final distanceLabel = path != null && path.followsRoads
         ? '${path.distanceM.round()}m'
         : '${route.distanceM}m';
@@ -271,21 +297,21 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                             trailwattTileLayer(),
                             PolylineLayer(polylines: [
                               Polyline(
-                                points: path?.polyline ?? _waypoints,
+                                points: path?.polyline ?? points,
                                 strokeWidth: 5,
                                 color: _matchedZone.color,
                               ),
                             ]),
-                            if (_waypoints.isNotEmpty)
+                            if (points.isNotEmpty)
                               MarkerLayer(markers: [
                                 Marker(
-                                  point: _waypoints.first,
+                                  point: points.first,
                                   width: 14,
                                   height: 14,
                                   child: const _EndCap(color: AppColors.accent),
                                 ),
                                 Marker(
-                                  point: _waypoints.last,
+                                  point: points.last,
                                   width: 14,
                                   height: 14,
                                   child: const _EndCap(color: AppColors.zone5),

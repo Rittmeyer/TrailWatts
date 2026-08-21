@@ -132,6 +132,34 @@ void main() {
     });
   });
 
+  group('two requests for the same ground are one request', () {
+    test('a search joins a prefetch already on its way', () async {
+      final source = _SlowSource([wayAt('a', -23.551, -46.63)]);
+      final cached = CachedSegmentSource(source: source, index: TerrainIndex());
+
+      // What the location screen does while the rider looks at the map,
+      // and then what the rider does when they tap.
+      final prefetch = cached.waysAround(centre, 2000);
+      final search = cached.waysAround(centre, 2000);
+
+      await Future.wait([prefetch, search]);
+
+      expect(source.calls, 1,
+          reason: 'the guess cost a query instead of saving one');
+    });
+
+    test('a different area is still its own request', () async {
+      final source = _SlowSource([wayAt('a', -23.551, -46.63)]);
+      final cached = CachedSegmentSource(source: source, index: TerrainIndex());
+
+      final a = cached.waysAround(centre, 2000);
+      final b = cached.waysAround(const LatLng(-23.70, -46.80), 2000);
+      await Future.wait([a, b]);
+
+      expect(source.calls, 2);
+    });
+  });
+
   group('elevation is fetched once per point', () {
     test('a second search asks for nothing it already knows', () async {
       final index = TerrainIndex();
@@ -184,4 +212,19 @@ class _PartialElevation implements ElevationService {
   @override
   Future<List<double?>> elevationsFor(List<LatLng> points) async =>
       [for (var i = 0; i < points.length; i++) i == 0 ? 700.0 : null];
+}
+
+/// Answers after a turn of the event loop, so two callers overlap the way
+/// a prefetch and a search do.
+class _SlowSource implements CyclingSegmentSource {
+  final List<CyclingWay> ways;
+  int calls = 0;
+  _SlowSource(this.ways);
+
+  @override
+  Future<SegmentFetch> waysAround(LatLng centre, double radiusM) async {
+    calls++;
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    return SegmentFetch(ways);
+  }
 }

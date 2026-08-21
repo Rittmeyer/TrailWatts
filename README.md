@@ -255,6 +255,47 @@ Antes da rodada de otimização, as duas últimas colunas eram 717/748 ms e
   candidato. Gradiente se repete ao longo de uma estrada.
 - **Comprimento de via medido uma vez por busca**, não a cada salto da
   caminhada.
+- **A gravação no banco saiu do caminho crítico.** Milhares de linhas numa
+  área urbana, e a busca já tem tudo em memória — fazer o ciclista esperar
+  por uma escrita que só ajuda a *próxima* busca é a troca errada.
+
+### Onde o tempo ainda está
+
+Medido isolando cada parte, em vez de supor:
+
+| | tempo |
+|---|---|
+| navegar para uma tela **sem** mapa | 52 ms |
+| navegar para uma tela **com** FlutterMap | 195 ms |
+| busca repetida inteira | ~250 ms |
+
+Ou seja: dos ~250 ms, cerca de **145 ms são inicialização do mapa** e
+~52 ms navegação. **A busca em si custa ~60 ms.** O algoritmo deixou de ser
+o gargalo; o que resta é custo da biblioteca de mapa.
+
+Uma tentativa que **não** funcionou, registrada porque medir foi o que
+disse: cachear a geometria da rota para não realocar 600 `LatLng` a cada
+quadro. Está no código porque é menos lixo por quadro, mas não moveu o
+número — o tempo não estava ali.
+
+### A busca fria: sobrepor, já que não dá para encurtar
+
+A primeira busca é ~87% espera de rede, e nada deste lado encurta isso. O
+que dá para fazer é não esperar em série: quando o pino assenta, o app já
+sabe de onde o ciclista quer sair e quanto terreno a sessão precisa, e
+começa a buscar enquanto ele ainda ajusta o raio.
+
+| tempo no mapa antes de pedir a rota | busca fria |
+|---|---|
+| toque imediato | 3702 ms |
+| 1,8 s | 3067 ms |
+| 2,5 s | 2244 ms |
+| 4 s | **880 ms** |
+
+Isso só funciona porque requisições para a mesma área são **deduplicadas em
+voo**: a busca entra na consulta que o prefetch já começou. Sem isso o
+palpite custava uma consulta em vez de economizar — medido, eram duas
+chamadas ao Overpass.
 
 Uma chamada ao Overpass e **uma** de elevação, em qualquer densidade. A
 terceira linha é depois de recarregar a página: zero rede, servida pelo

@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_dragmarker/flutter_map_dragmarker.dart';
 import 'package:latlong2/latlong.dart';
 import '../l10n/app_localizations.dart';
+import '../engine/workout_demand.dart';
 import '../models/search_context.dart';
 import '../models/workout_block.dart';
 import '../services/geocoding_service.dart';
+import '../services/rider_profile_store.dart';
 import '../services/route_suggestion_store.dart';
 import '../services/routing_service.dart';
 import '../l10n/domain_labels.dart';
@@ -61,7 +64,12 @@ class _WorkoutLocationScreenState extends State<WorkoutLocationScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final argument = ModalRoute.of(context)?.settings.arguments;
-    if (argument is List<WorkoutBlockGroup>) _plan = argument;
+    if (argument is List<WorkoutBlockGroup>) {
+      _plan = argument;
+      // The rider arrived with a workout and a pin already on the map, so
+      // the guess about what they will ask for is already a good one.
+      _warmGround();
+    }
   }
 
   /// Runs the real search and only then opens the map. Navigating first and
@@ -102,6 +110,7 @@ class _WorkoutLocationScreenState extends State<WorkoutLocationScreen> {
 
   @override
   void dispose() {
+    _prefetch?.cancel();
     _debounce?.cancel();
     _searchController.dispose();
     super.dispose();
@@ -166,7 +175,27 @@ class _WorkoutLocationScreenState extends State<WorkoutLocationScreen> {
       _center = snapped.point;
       _snapping = false;
     });
+    _warmGround();
   }
+
+  /// Starts fetching the ground around the pin while the rider is still
+  /// looking at the map. Debounced, because a rider dragging the pin across
+  /// a city would otherwise fire a query per stop.
+  void _warmGround() {
+    if (_plan.isEmpty) return;
+    _prefetch?.cancel();
+    _prefetch = Timer(const Duration(milliseconds: 1200), () {
+      final demand =
+          WorkoutDemand.of(_plan, RiderProfileStore.instance.profile);
+      RouteSuggestionStore.instance.prefetchAround(
+        _center,
+        math.max(
+            _radiusKm * 1000, demand.searchRadiusM(RepetitionShape.outAndBack)),
+      );
+    });
+  }
+
+  Timer? _prefetch;
 
   /// What the field says under itself. A search that found nothing and a
   /// search that did not run are different messages: the first is an
