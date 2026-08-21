@@ -211,6 +211,28 @@ void main() {
     });
   });
 
+  group('the database is not read when memory already has the area', () {
+    test('a repeat search in the same run touches no storage', () async {
+      final db = _CountingDatabase();
+      final source = CountingSource([road('a'), road('b')]);
+      final cached = CachedSegmentSource(
+          source: source, index: TerrainIndex(database: db));
+
+      await cached.waysAround(centre, 1500);
+      final afterFirst = db.reads;
+
+      await cached.waysAround(centre, 1500);
+      await cached.waysAround(centre, 1500);
+
+      // Decoding every stored way again, for rows the index was already
+      // holding, cost more than the search itself: measured in a browser,
+      // a repeat search went from 1145 ms to 275 ms once this stopped.
+      expect(db.reads, afterFirst,
+          reason: 'read the database ${db.reads - afterFirst} more times '
+              'for ground already in memory');
+    });
+  });
+
   group('no database', () {
     test('everything still works, just without memory', () async {
       final source = CountingSource([road('a')]);
@@ -229,4 +251,15 @@ class _FailingSource implements CyclingSegmentSource {
   @override
   Future<SegmentFetch> waysAround(LatLng centre, double radiusM) async =>
       const SegmentFetch.failed(SegmentFetchFailure.rateLimited);
+}
+
+/// Counts how often stored ways are read back.
+class _CountingDatabase extends FakeDatabase {
+  int reads = 0;
+
+  @override
+  Future<List<CyclingWay>> waysIn(Iterable<String> cellKeys) {
+    reads++;
+    return super.waysIn(cellKeys);
+  }
 }

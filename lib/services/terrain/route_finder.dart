@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:latlong2/latlong.dart';
 
+import '../../engine/geo_distance.dart';
 import '../../engine/workout_demand.dart';
 
 import '../../engine/workout_route_matcher.dart';
@@ -106,8 +107,6 @@ class RouteFinder {
     this.sampleSpacingM = 80,
   });
 
-  static const _distance = Distance();
-
   /// The most points a candidate is sampled at, whatever its length.
   ///
   /// A 200 km route at 80 m spacing would be 2,500 points: 25 elevation
@@ -162,7 +161,7 @@ class RouteFinder {
       final key = path.map((w) => w.id).join('>');
       if (!seen.add(key)) continue;
 
-      final sampled = _sample(path, outAndBack: true);
+      final sampled = _sample(path, outAndBack: true, graph: graph);
       if (sampled.points.length < 2) continue;
       candidates[label] = (path: path, sampled: sampled);
     }
@@ -244,11 +243,12 @@ class RouteFinder {
   ///
   /// Thinning here rather than after: every point kept is a point the
   /// elevation API is asked about, and a point the matcher has to score.
-  _Sampled _sample(List<CyclingWay> path, {required bool outAndBack}) {
+  _Sampled _sample(List<CyclingWay> path,
+      {required bool outAndBack, required _WayGraph graph}) {
     // Spacing widens on a long route so the point count stays bounded. A
     // 200 km candidate at the nominal 80 m would be 2,500 points and 25
     // elevation calls; at this cap it is 600 and one.
-    final rough = path.fold(0.0, (sum, w) => sum + _WayGraph.lengthOf(w)) *
+    final rough = path.fold(0.0, (sum, w) => sum + graph.lengthOf(w)) *
         (outAndBack ? 2 : 1);
     final spacing = math.max(sampleSpacingM, rough / _maxSamplesPerCandidate);
 
@@ -268,7 +268,8 @@ class RouteFinder {
       for (var i = 0; i < ordered.length; i++) {
         final point = ordered[i];
         if (points.isNotEmpty) {
-          final gap = _distance.as(LengthUnit.Meter, points.last, point);
+          // Only decides whether to keep a sample, so the cheap one.
+          final gap = approxMetresBetween(points.last, point);
           if (gap < spacing) continue;
         }
         points.add(point);
@@ -302,6 +303,9 @@ class RouteFinder {
   List<RouteSegment> _segmentsFor(_Sampled sampled) {
     final points = sampled.points;
     final segments = <RouteSegment>[];
+    // One timestamp for the whole candidate: they all came from the same
+    // fetch, and DateTime.now() per segment was thousands of allocations.
+    final fetchedAt = DateTime.now();
 
     for (var i = 0; i < points.length; i++) {
       final here = points[i];
@@ -310,8 +314,7 @@ class RouteFinder {
       if (i < points.length - 1) {
         final next = sampled.heights[i + 1] ?? elevation?.at(points[i + 1]);
         if (height != null && next != null) {
-          final run =
-              _distance.as(LengthUnit.Meter, here, points[i + 1]).toDouble();
+          final run = metresBetween(here, points[i + 1]);
           if (run > 1) gradient = (next - height) / run * 100;
         }
       }
@@ -326,7 +329,7 @@ class RouteFinder {
         safetyLevel: sampled.safety[i],
         sourceMetadata: SegmentSourceMetadata(
           source: 'openstreetmap',
-          fetchedAt: DateTime.now(),
+          fetchedAt: fetchedAt,
         ),
       ));
     }
@@ -340,9 +343,7 @@ class RouteFinder {
     for (var i = 0; i < segments.length - 1; i++) {
       final a = segments[i];
       final b = segments[i + 1];
-      metres += _distance
-          .as(LengthUnit.Meter, LatLng(a.lat, a.lng), LatLng(b.lat, b.lng))
-          .toDouble();
+      metres += metresBetween(LatLng(a.lat, a.lng), LatLng(b.lat, b.lng));
       final rise = (b.elevationM ?? 0) - (a.elevationM ?? 0);
       if (a.elevationM != null && b.elevationM != null && rise > 0) {
         gain += rise;
@@ -417,6 +418,15 @@ class _WayGraph {
   final List<CyclingWay> ways;
   final Map<String, List<CyclingWay>> _byEndpoint = {};
 
+  /// Length per way, measured once per search. The walk asks for it on
+  /// every hop, for every neighbour it considers, so recomputing it made a
+  /// long route pay for the same road hundreds of times.
+  ///
+  /// Held by the graph rather than statically: a cache keyed by way id that
+  /// outlives the search would grow without bound and would go stale the
+  /// day a way's geometry changes under the same id.
+  final Map<String, double> _lengths = {};
+
   _WayGraph(this.ways) {
     for (final way in ways) {
       for (final end in [way.points.first, way.points.last]) {
@@ -428,17 +438,13 @@ class _WayGraph {
   static String _key(LatLng p) =>
       '${p.latitude.toStringAsFixed(6)},${p.longitude.toStringAsFixed(6)}';
 
-  static const _distance = Distance();
-
-  static double lengthOf(CyclingWay way) {
-    var metres = 0.0;
-    for (var i = 0; i < way.points.length - 1; i++) {
-      metres += _distance
-          .as(LengthUnit.Meter, way.points[i], way.points[i + 1])
-          .toDouble();
-    }
-    return metres;
-  }
+  double lengthOf(CyclingWay way) => _lengths.putIfAbsent(way.id, () {
+        var metres = 0.0;
+        for (var i = 0; i < way.points.length - 1; i++) {
+          metres += metresBetween(way.points[i], way.points[i + 1]);
+        }
+        return metres;
+      });
 
   /// Walks from the way nearest [start], taking the best-scoring unvisited
   /// neighbour each time, until the chain is long enough or runs out.
@@ -450,7 +456,8 @@ class _WayGraph {
     var closest = double.infinity;
     for (final way in ways) {
       for (final point in way.points) {
-        final d = _distance.as(LengthUnit.Meter, start, point).toDouble();
+        // Picking the nearest way, not reporting a distance.
+        final d = approxMetresBetween(start, point);
         if (d < closest) {
           closest = d;
           first = way;

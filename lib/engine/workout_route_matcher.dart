@@ -8,6 +8,7 @@ import '../models/terrain_target.dart';
 import '../models/workout_block.dart';
 import '../models/zone.dart';
 import 'cycling_power_model.dart';
+import 'geo_distance.dart';
 
 /// Matches a whole workout against a route.
 ///
@@ -47,8 +48,6 @@ class WorkoutRouteMatcher {
   static const _minDurationRatio = 0.35;
   static const _maxDurationRatio = 2.5;
 
-  static const _distance = Distance();
-
   RouteMatch match({
     required List<WorkoutTimelineStep> steps,
     required List<RouteSegment> path,
@@ -76,9 +75,7 @@ class WorkoutRouteMatcher {
     for (var i = 0; i < path.length - 1; i++) {
       final a = path[i];
       final b = path[i + 1];
-      final metres = _distance
-          .as(LengthUnit.Meter, LatLng(a.lat, a.lng), LatLng(b.lat, b.lng))
-          .toDouble();
+      final metres = metresBetween(LatLng(a.lat, a.lng), LatLng(b.lat, b.lng));
       if (metres <= 0) continue;
       out.add(_Stretch(
         distanceM: metres,
@@ -122,18 +119,32 @@ class WorkoutRouteMatcher {
     final seconds = List<double>.filled(stretches.length, 0);
     final quality = List<double>.filled(stretches.length, 0);
 
+    // The solver bisects sixty times per call and the matcher wants one per
+    // (step, stretch): twenty steps over six hundred stretches is twelve
+    // thousand solves per candidate. Gradients repeat all over a road, so
+    // they are answered once per hundredth of a percent and reused.
+    final solvedCache = <int, RidingSolution>{};
+    final coastCache = <int, RidingSolution>{};
+    int keyFor(_Stretch s) =>
+        (s.gradientPct * 100).round() * 8 + s.surface.index;
+
     for (var i = 0; i < stretches.length; i++) {
       final s = stretches[i];
-      final solved = model.solveSpeed(
-        powerW: target,
-        gradientPct: s.gradientPct,
-        surface: s.surface,
-      );
-      final coast = model.solveSpeed(
-        powerW: 0,
-        gradientPct: s.gradientPct,
-        surface: s.surface,
-      );
+      final key = keyFor(s);
+      final solved = solvedCache.putIfAbsent(
+          key,
+          () => model.solveSpeed(
+                powerW: target,
+                gradientPct: s.gradientPct,
+                surface: s.surface,
+              ));
+      final coast = coastCache.putIfAbsent(
+          key,
+          () => model.solveSpeed(
+                powerW: 0,
+                gradientPct: s.gradientPct,
+                surface: s.surface,
+              ));
 
       final speed = math.max(solved.speedMs, 0.1);
       seconds[i] = s.distanceM / speed;

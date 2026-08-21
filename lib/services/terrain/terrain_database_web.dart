@@ -106,27 +106,49 @@ class WebTerrainDatabase implements TerrainDatabase {
     final db = _db;
     if (db == null) return const [];
 
+    // One transaction for all the cells, and one for all the ways. A
+    // transaction per row meant thousands of them for a city-sized area,
+    // and each carries its own round trip through the browser's storage
+    // thread - it was the whole cost of the first search after a reload.
     final ids = <String>{};
-    for (final cell in cellKeys) {
-      final listed = await _get(_cellIndex, cell);
-      if (listed is List) {
-        for (final id in listed) {
-          ids.add('$id');
+    try {
+      final tx = db.transaction(_cellIndex.toJS, 'readonly');
+      final store = tx.objectStore(_cellIndex);
+      final pending = <Future<Object?>>[
+        for (final cell in cellKeys)
+          _await<JSAny?>(store.get(cell.toJS)).then((v) => v.dartify()),
+      ];
+      for (final listed in await Future.wait(pending)) {
+        if (listed is List) {
+          for (final id in listed) {
+            ids.add('$id');
+          }
         }
       }
+    } catch (_) {
+      return const [];
     }
     if (ids.isEmpty) return const [];
 
     final out = <CyclingWay>[];
-    for (final id in ids) {
-      final raw = await _get(_ways, id);
-      if (raw is! String) continue;
-      try {
-        final way = decodeWay(jsonDecode(raw));
-        if (way != null) out.add(way);
-      } catch (_) {
-        // A row written by an older shape is skipped, not repaired.
+    try {
+      final tx = db.transaction(_ways.toJS, 'readonly');
+      final store = tx.objectStore(_ways);
+      final pending = <Future<Object?>>[
+        for (final id in ids)
+          _await<JSAny?>(store.get(id.toJS)).then((v) => v.dartify()),
+      ];
+      for (final raw in await Future.wait(pending)) {
+        if (raw is! String) continue;
+        try {
+          final way = decodeWay(jsonDecode(raw));
+          if (way != null) out.add(way);
+        } catch (_) {
+          // A row written by an older shape is skipped, not repaired.
+        }
       }
+    } catch (_) {
+      return out;
     }
     return out;
   }

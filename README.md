@@ -233,9 +233,28 @@ injetada — 3000 ms no Overpass, 300 ms por chamada de elevação.
 
 | vias no raio | 1ª busca (fria) | 2ª (memória) | 3ª (após recarregar a página) |
 |---|---|---|---|
-| 400 | 3762 ms | 363 ms | 414 ms |
-| 1500 | 3755 ms | 717 ms | 748 ms |
-| 4000 | 3929 ms | 1229 ms | 1229 ms |
+| 1500 | 3796 ms | 250 ms | 393 ms |
+| 4000 | 3888 ms | 275 ms | 520 ms |
+
+Antes da rodada de otimização, as duas últimas colunas eram 717/748 ms e
+1145/1229 ms. O que mudou, em ordem de ganho:
+
+- **A base local não é lida quando a memória já tem a área.** Decodificar
+  todas as vias guardadas de novo, para linhas que o índice já segurava,
+  custava mais que a própria busca.
+- **Uma transação para tudo, não uma por linha.** O IndexedDB abria uma
+  transação por via — milhares numa área urbana, cada uma com sua ida ao
+  thread de armazenamento do navegador.
+- **Haversine no lugar de Vincenty.** `const Distance()` usa Vincenty por
+  padrão, uma geodésica iterativa: 83 ms contra 21 ms em 200 mil chamadas,
+  por uma diferença que ninguém pedala. Onde o número só decide algo — cabe
+  no círculo? vale manter esta amostra? — vai uma aproximação plana, 14×
+  mais barata; onde o número é mostrado, vai o exato.
+- **O solver de potência é memoizado por gradiente.** Ele bisseciona 60
+  vezes por chamada e o casador quer uma por (passo, trecho): 12 mil por
+  candidato. Gradiente se repete ao longo de uma estrada.
+- **Comprimento de via medido uma vez por busca**, não a cada salto da
+  caminhada.
 
 Uma chamada ao Overpass e **uma** de elevação, em qualquer densidade. A
 terceira linha é depois de recarregar a página: zero rede, servida pelo

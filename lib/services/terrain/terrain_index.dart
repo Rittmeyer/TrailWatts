@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:latlong2/latlong.dart';
 
+import '../../engine/geo_distance.dart';
 import 'cycling_segment_source.dart';
 import 'terrain_database.dart';
 
@@ -34,6 +35,10 @@ class TerrainIndex {
   /// every other cell to learn whether a way is still referenced, which
   /// turns a cleanup into a quadratic one exactly when the store is large.
   final Map<String, Set<String>> _wayCells = {};
+
+  /// One box per way, so a lookup can reject most of them without measuring
+  /// a distance to any of their points.
+  final Map<String, _Box> _boxes = {};
   final Set<String> _fetched = {};
   final List<String> _cellOrder = [];
 
@@ -69,9 +74,24 @@ class TerrainIndex {
     _elevation.addAll(await database.elevations());
   }
 
+  /// Cells whose stored ways are already in memory, so the database is not
+  /// read for them twice.
+  final Set<String> _loadedCells = {};
+
+  /// True when every cell of this area has already been read from the
+  /// database in this run.
+  bool hasLoadedArea(LatLng centre, double radiusM) {
+    if (!_loaded) return false;
+    for (final key in cellsFor(centre, radiusM)) {
+      if (!_loadedCells.contains(key)) return false;
+    }
+    return covers(centre, radiusM);
+  }
+
   /// Pulls the stored ways for an area into memory.
   Future<void> loadArea(LatLng centre, double radiusM) async {
     await load();
+    _loadedCells.addAll(cellsFor(centre, radiusM));
     final stored = await database.waysIn(cellsFor(centre, radiusM));
     for (final way in stored) {
       // Straight into the maps: re-adding through add() would write them
@@ -129,6 +149,7 @@ class TerrainIndex {
 
   void add(CyclingWay way) {
     _ways[way.id] = way;
+    _boxes[way.id] = _Box.of(way.points);
     final keys = _cellsOf(way).toSet();
     _wayCells[way.id] = keys;
     for (final key in keys) {
@@ -182,7 +203,6 @@ class TerrainIndex {
 
   /// Ways with at least one point inside the circle.
   List<CyclingWay> near(LatLng centre, double radiusM) {
-    const distance = Distance();
     final seen = <String>{};
     final out = <CyclingWay>[];
     for (final key in cellsFor(centre, radiusM)) {
@@ -190,8 +210,12 @@ class TerrainIndex {
         if (!seen.add(id)) continue;
         final way = _ways[id];
         if (way == null) continue;
-        final touches = way.points
-            .any((p) => distance.as(LengthUnit.Meter, centre, p) <= radiusM);
+        // A box test first: it rejects most ways without measuring a single
+        // point, and only what survives pays for real distances.
+        final box = _boxes[id];
+        if (box != null && !box.mayReach(centre, radiusM)) continue;
+        final touches =
+            way.points.any((p) => approxMetresBetween(centre, p) <= radiusM);
         if (touches) out.add(way);
       }
     }
@@ -260,7 +284,14 @@ class CachedSegmentSource implements CyclingSegmentSource {
 
   @override
   Future<SegmentFetch> waysAround(LatLng centre, double radiusM) async {
-    // What a previous run already downloaded for this area.
+    // Memory first. Reading the database on a search whose ground is
+    // already in hand was pure cost - a decode of every stored way in the
+    // area, on every repeat search, for rows the index was already holding.
+    if (index.hasLoadedArea(centre, radiusM)) {
+      return SegmentFetch(index.near(centre, radiusM));
+    }
+
+    // Otherwise, what a previous run downloaded for this area.
     await index.loadArea(centre, radiusM);
 
     if (index.covers(centre, radiusM)) {
@@ -280,5 +311,35 @@ class CachedSegmentSource implements CyclingSegmentSource {
     index.markFetched(centre, radiusM);
     await index.persist(fetched.ways, index.cellsFor(centre, radiusM));
     return SegmentFetch(index.near(centre, radiusM));
+  }
+}
+
+/// The rectangle a way lives in.
+class _Box {
+  final double minLat, maxLat, minLon, maxLon;
+  const _Box(this.minLat, this.maxLat, this.minLon, this.maxLon);
+
+  factory _Box.of(List<LatLng> points) {
+    var minLat = points.first.latitude, maxLat = minLat;
+    var minLon = points.first.longitude, maxLon = minLon;
+    for (final p in points) {
+      if (p.latitude < minLat) minLat = p.latitude;
+      if (p.latitude > maxLat) maxLat = p.latitude;
+      if (p.longitude < minLon) minLon = p.longitude;
+      if (p.longitude > maxLon) maxLon = p.longitude;
+    }
+    return _Box(minLat, maxLat, minLon, maxLon);
+  }
+
+  /// Generous on purpose: it may say yes to a way that turns out to be just
+  /// outside, and must never say no to one that is inside.
+  bool mayReach(LatLng centre, double radiusM) {
+    final latPad = radiusM / 110000;
+    final lonPad = radiusM /
+        (110000 * math.max(math.cos(centre.latitude * math.pi / 180), 0.01));
+    return centre.latitude >= minLat - latPad &&
+        centre.latitude <= maxLat + latPad &&
+        centre.longitude >= minLon - lonPad &&
+        centre.longitude <= maxLon + lonPad;
   }
 }
