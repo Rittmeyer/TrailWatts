@@ -472,5 +472,11 @@
         "type": "String"
       }
     }
-  }
+  },
+  "routeSearchNotRun": "No route search yet. Set where you want to start and generate suggestions.",
+  "routeSearchSourceDown": "The map source did not answer. Try again shortly.",
+  "routeSearchNoGround": "No rideable road within that radius. Move the start or widen it.",
+  "routeSearchNoCandidate": "The roads here do not make a route for this workout.",
+  "routeSearchGo": "Choose where to start",
+  "routeSearching": "Looking for routes..."
 }

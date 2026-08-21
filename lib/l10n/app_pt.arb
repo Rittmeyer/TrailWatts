@@ -302,5 +302,11 @@
         "type": "String"
       }
     }
-  }
+  },
+  "routeSearchNotRun": "Nenhuma busca de rota ainda. Marque onde quer partir e gere as sugestões.",
+  "routeSearchSourceDown": "A fonte de mapas não respondeu. Tente de novo em instantes.",
+  "routeSearchNoGround": "Nenhuma via pedalável nesse raio. Mova o ponto de partida ou aumente o raio.",
+  "routeSearchNoCandidate": "As vias por aqui não formam um percurso para este treino.",
+  "routeSearchGo": "Escolher onde partir",
+  "routeSearching": "Procurando percursos..."
 }

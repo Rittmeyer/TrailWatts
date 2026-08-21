@@ -196,7 +196,11 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
   /// The fields are free text, so every value is brought into the range the
   /// model guarantees rather than being trusted: a duration of at least a
   /// minute, a non-negative target, and a maximum no lower than its minimum.
-  List<WorkoutBlock> _toBlocks() {
+  /// The plan as the rider authored it - blocks with their repeats intact.
+  /// The route search wants this rather than the flattened list, because a
+  /// block repeated four times is four intervals to place, and it has to
+  /// know that before it starts looking for ground.
+  List<WorkoutBlockGroup> _toGroups() {
     WorkoutBlock blockFrom(_BlockForm form, String groupName) {
       final min = (int.tryParse(form.minTarget.text) ?? 0).clamp(0, 9999);
       final max = (int.tryParse(form.maxTarget.text) ?? min).clamp(0, 9999);
@@ -219,14 +223,17 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
       );
     }
 
-    return flattenBlockGroups([
+    return [
       for (final g in _groups)
         WorkoutBlockGroup(
           repeatCount: g.repeatCount,
           stimuli: [for (final b in g.stimuli) blockFrom(b, g.name.text)],
         ),
-    ]);
+    ];
   }
+
+  /// The physically real sequence, for anything that stores a plan.
+  List<WorkoutBlock> _toBlocks() => flattenBlockGroups(_toGroups());
 
   /// Writes the workout onto the day the rider selected and goes back to the
   /// calendar they came from.
@@ -470,8 +477,13 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
                   label:
                       _planDay == null ? t.builderContinue : t.builderSaveToDay,
                   onPressed: _planDay == null
-                      ? () => Navigator.of(context)
-                          .pushNamed('/workout-builder/map')
+                      ? () => Navigator.of(context).pushNamed(
+                            '/workout-builder/map',
+                            // The search needs the workout, not just the
+                            // place: which ground serves the session is the
+                            // whole question.
+                            arguments: _toGroups(),
+                          )
                       : _saveToPlan,
                 ),
                 const SizedBox(height: 14),

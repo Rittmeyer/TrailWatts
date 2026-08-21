@@ -1783,6 +1783,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start placed on the map'**
   String get locationStartOnMap;
+
+  /// No description provided for @routeSearchNotRun.
+  ///
+  /// In en, this message translates to:
+  /// **'No route search yet. Set where you want to start and generate suggestions.'**
+  String get routeSearchNotRun;
+
+  /// No description provided for @routeSearchSourceDown.
+  ///
+  /// In en, this message translates to:
+  /// **'The map source did not answer. Try again shortly.'**
+  String get routeSearchSourceDown;
+
+  /// No description provided for @routeSearchNoGround.
+  ///
+  /// In en, this message translates to:
+  /// **'No rideable road within that radius. Move the start or widen it.'**
+  String get routeSearchNoGround;
+
+  /// No description provided for @routeSearchNoCandidate.
+  ///
+  /// In en, this message translates to:
+  /// **'The roads here do not make a route for this workout.'**
+  String get routeSearchNoCandidate;
+
+  /// No description provided for @routeSearchGo.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose where to start'**
+  String get routeSearchGo;
+
+  /// No description provided for @routeSearching.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking for routes...'**
+  String get routeSearching;
 }
 
 class _AppLocalizationsDelegate

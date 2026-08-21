@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:trailwatt/models/search_context.dart';
+import 'package:trailwatt/models/workout_block.dart';
+import 'package:trailwatt/services/route_suggestion_store.dart';
+import 'package:trailwatt/services/terrain/cycling_segment_source.dart';
+
 import 'package:trailwatt/models/rider_profile.dart';
 import 'package:trailwatt/models/zone.dart';
 import 'package:trailwatt/screens/calendar_month_screen.dart';
@@ -112,6 +118,7 @@ void main() {
 
     testWidgets('the route names the zone of that one stretch', (tester) async {
       store.save(_fiveZoneRider);
+      await seedRoute();
 
       await tester.pumpWidget(localized(const RouteMapScreen()));
       await tester.pump();
@@ -220,4 +227,56 @@ void main() {
           reason: 'the save must actually have run for this to prove anything');
     });
   });
+}
+
+/// Puts a real suggestion in the store by running the actual search over
+/// ground this test owns. Seeding a fake result would test the screen
+/// against something the engine never produces.
+Future<void> seedRoute() async {
+  final ways = <CyclingWay>[];
+  var lat = -23.55;
+  var base = 700.0;
+  for (var w = 0; w < 6; w++) {
+    final up = w.isEven;
+    final points = <LatLng>[];
+    final ele = <double>[];
+    for (var i = 0; i < 20; i++) {
+      points.add(LatLng(lat + i * (100 / 111320), -46.63));
+      ele.add(base + i * (up ? 5 : -5));
+    }
+    ways.add(CyclingWay(
+        id: 'w$w', name: 'Trecho $w', points: points, elevationM: ele));
+    lat = points.last.latitude;
+    base = ele.last;
+  }
+
+  RouteSuggestionStore.instance.useSource(_FixedWays(ways));
+  await RouteSuggestionStore.instance.search(
+    context: const RouteSearchContext(
+      start: RouteStart(
+          lat: -23.55, lng: -46.63, source: RouteStartSource.mapSelection),
+      area: SearchArea(centerLat: -23.55, centerLng: -46.63, radiusM: 8000),
+    ),
+    plan: [
+      WorkoutBlockGroup(stimuli: [
+        WorkoutBlock(
+          zone: const TrainingZone(
+              metric: ZoneMetric.power, scale: ZoneScale.five, index: 4),
+          durationMin: 5,
+          role: WorkoutBlockRole.work,
+          target: const WorkoutTarget(
+              metric: ZoneMetric.power, minValue: 220, maxValue: 245),
+        ),
+      ]),
+    ],
+  );
+}
+
+class _FixedWays implements CyclingSegmentSource {
+  final List<CyclingWay> ways;
+  const _FixedWays(this.ways);
+
+  @override
+  Future<SegmentFetch> waysAround(LatLng centre, double radiusM) async =>
+      SegmentFetch(ways);
 }

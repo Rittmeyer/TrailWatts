@@ -954,4 +954,26 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get locationStartOnMap => 'Partida marcada no mapa';
+
+  @override
+  String get routeSearchNotRun =>
+      'Nenhuma busca de rota ainda. Marque onde quer partir e gere as sugestões.';
+
+  @override
+  String get routeSearchSourceDown =>
+      'A fonte de mapas não respondeu. Tente de novo em instantes.';
+
+  @override
+  String get routeSearchNoGround =>
+      'Nenhuma via pedalável nesse raio. Mova o ponto de partida ou aumente o raio.';
+
+  @override
+  String get routeSearchNoCandidate =>
+      'As vias por aqui não formam um percurso para este treino.';
+
+  @override
+  String get routeSearchGo => 'Escolher onde partir';
+
+  @override
+  String get routeSearching => 'Procurando percursos...';
 }

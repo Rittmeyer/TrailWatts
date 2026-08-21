@@ -247,6 +247,48 @@ que ninguém quis pesquisar.
 "Nada encontrado" e "a busca não rodou" são mensagens diferentes. A
 primeira é uma resposta; a segunda não.
 
+### Da fonte à sugestão
+
+O caminho completo, em `lib/services/terrain/`:
+
+**`cycling_segment_source.dart`** — OpenStreetMap via Overpass. A consulta
+pede só o que uma bicicleta pode usar: sem via expressa, sem
+`bicycle=no`, sem `access=private`. Uma sugestão que o ciclista não tem
+direito de pedalar é pior que sugestão nenhuma. `out geom` traz a
+geometria embutida, o que reduz ida-e-volta de way + nós a uma só.
+Superfície, trânsito e segurança saem das tags — e a classe da via como
+proxy de trânsito é dito como proxy, não como medição.
+
+**`elevation_service.dart`** — OpenTopoData sobre DEM aberto. O gradiente
+é o insumo principal do casador e o OSM quase não traz `ele`, então é
+consulta separada. Ponto fora do DEM volta **null**, nunca zero: nível do
+mar é uma altura real, e uma rota "a 0 m" seria pontuada como plana em
+vez de desconhecida. Lotes de 100 pontos, que é o limite documentado.
+
+**`terrain_index.dart`** — a base local. Grade espacial por célula, então
+achar as vias perto de um ponto é consulta de célula, não varredura de
+tudo que já se baixou. E área já buscada **nunca é buscada de novo** — a
+chamada de rede é a parte cara por ordens de grandeza e o terreno não
+muda entre dois pedais. Área vazia é lembrada como vazia; falha **não**
+é cacheada, senão um minuto ruim viraria um dia ruim.
+
+**`route_finder.dart`** — encadeia ways adjacentes num grafo para formar
+percursos maiores que qualquer via isolada (uma sessão não cabe numa via
+só, e casar via a via daria nota baixa em todo candidato por um motivo
+que não tem nada a ver com o terreno), roda o casador e ordena. Uma
+caminhada por preferência, então as alternativas diferem no que foram
+construídas para buscar.
+
+A `const` escrita à mão que as telas mostravam **saiu**. Onde não há
+busca, a tela diz isso — e diferencia "a fonte não respondeu" de "não há
+via pedalável nesse raio", porque a primeira se resolve tentando de novo
+e a segunda movendo o pino.
+
+O índice vive no `RouteSuggestionStore`, não numa tela, então sobrevive a
+ir e voltar. Ele é **por sessão**: manter entre aberturas do app exige uma
+dependência de armazenamento que este projeto ainda não tomou — a mesma
+decisão aberta de persistir os tokens.
+
 ### Fonte de dados
 
 Ainda a decidir, e é a P0 "candidate map/road data source" de

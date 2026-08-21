@@ -13,6 +13,8 @@ import '../theme/app_text_styles.dart';
 import '../models/result_source.dart';
 import '../models/rider_profile.dart';
 import '../models/route_suggestion.dart';
+import '../services/route_suggestion_store.dart';
+import '../services/terrain/route_finder.dart';
 import '../models/zone.dart';
 import '../services/rider_profile_store.dart';
 import '../widgets/page_header.dart';
@@ -46,24 +48,11 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
 
   bool _exporting = false;
 
-  static const suggestion = RouteSuggestion(
-    id: 'demo-route-01',
-    name: 'Subida da Serra',
-    routeType: RouteType.loop,
-    distanceM: 850,
-    elevationGainM: 44,
-    estimatedMovingTimeMin: 3,
-    score: RouteScoreBreakdown(
-      intensityMatchPct: 98,
-      durationMatchPct: 96,
-      sequenceMatchPct: 100,
-      continuityScorePct: 95,
-      safetyScorePct: 95,
-      trafficScorePct: 90,
-      surfaceScorePct: 100,
-      practicalityScorePct: 96,
-    ),
-  );
+  /// The route the store settled on. There is no fallback constant: a
+  /// screen that invents a suggestion when none was searched for is how the
+  /// app shipped for months looking like it had a route engine.
+  RouteSuggestion? get suggestion =>
+      RouteSuggestionStore.instance.selected?.suggestion;
 
   /// This demo workout is prescribed in watts. The zone comes from the
   /// rider's own table rather than a fixed seven: the same effort sits at a
@@ -114,11 +103,14 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
     final platform = _platform;
     final label = platform.label(t);
 
+    final route = suggestion;
+    if (route == null) return;
+
     setState(() => _exporting = true);
     try {
       final tokens = await store.validTokensFor(platform);
       final gpx = buildRouteGpx(
-        name: suggestion.name,
+        name: route.name,
         points: [
           for (final point in _path?.polyline ?? _waypoints)
             GpxRoutePoint(point),
@@ -128,8 +120,8 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
       final result = await store.api.exportRoute(
         credentials: store.credentialsFor(platform),
         tokens: tokens,
-        routeId: suggestion.id,
-        name: suggestion.name,
+        routeId: route.id,
+        name: route.name,
         gpx: gpx,
       );
 
@@ -212,10 +204,13 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
   @override
   Widget build(BuildContext context) {
     final t = tr(context);
+    final route = suggestion;
+    if (route == null) return _NoRouteYet(store: RouteSuggestionStore.instance);
+
     final path = _path;
     final distanceLabel = path != null && path.followsRoads
         ? '${path.distanceM.round()}m'
-        : '${suggestion.distanceM}m';
+        : '${route.distanceM}m';
 
     return Scaffold(
       body: ContentWidth(
@@ -228,7 +223,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     PageHeader(
-                      title: suggestion.name,
+                      title: route.name,
                       subtitle: t.routeSubtitle,
                     ),
                     const SizedBox(height: 14),
@@ -297,7 +292,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                         Expanded(
                             child: StatBox(
                                 label: t.routeMatch,
-                                value: '${suggestion.matchPct}%',
+                                value: '${route.matchPct}%',
                                 valueColor: AppColors.greenText)),
                       ],
                     ),
@@ -369,6 +364,48 @@ class _EndCap extends StatelessWidget {
         color: color,
         shape: BoxShape.circle,
         border: Border.all(color: AppColors.white, width: 2.5),
+      ),
+    );
+  }
+}
+
+/// What the map shows before a search has been run, or when one came back
+/// with nothing. It is a real state, not an error: the rider has simply not
+/// asked for a route yet, and saying so beats showing an invented one.
+class _NoRouteYet extends StatelessWidget {
+  final RouteSuggestionStore store;
+
+  const _NoRouteYet({required this.store});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = tr(context);
+    final reason = switch (store.failure) {
+      RouteSearchFailure.source => t.routeSearchSourceDown,
+      RouteSearchFailure.noGround => t.routeSearchNoGround,
+      RouteSearchFailure.noCandidate => t.routeSearchNoCandidate,
+      null => t.routeSearchNotRun,
+    };
+
+    return Scaffold(
+      body: ContentWidth(
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                PageHeader(title: t.routeSearchGo, subtitle: reason),
+                const SizedBox(height: 20),
+                TrailwattButton(
+                  label: t.routeSearchGo,
+                  onPressed: () =>
+                      Navigator.of(context).pushNamed('/workout-builder/map'),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -5,7 +5,10 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_dragmarker/flutter_map_dragmarker.dart';
 import 'package:latlong2/latlong.dart';
 import '../l10n/app_localizations.dart';
+import '../models/search_context.dart';
+import '../models/workout_block.dart';
 import '../services/geocoding_service.dart';
+import '../services/route_suggestion_store.dart';
 import '../services/routing_service.dart';
 import '../l10n/domain_labels.dart';
 import '../theme/app_colors.dart';
@@ -46,8 +49,48 @@ class _WorkoutLocationScreenState extends State<WorkoutLocationScreen> {
   final _searchController = TextEditingController();
   final _mapController = MapController();
 
+  /// The workout this search is for, handed over by the builder. Without
+  /// it there is nothing to match ground against.
+  List<WorkoutBlockGroup> _plan = const [];
+
   bool _snapping = false;
+  bool _generating = false;
   bool _searching = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final argument = ModalRoute.of(context)?.settings.arguments;
+    if (argument is List<WorkoutBlockGroup>) _plan = argument;
+  }
+
+  /// Runs the real search and only then opens the map. Navigating first and
+  /// searching there would show an empty map that fills in later, which
+  /// reads as a broken screen rather than as a search in progress.
+  Future<void> _generate() async {
+    setState(() => _generating = true);
+    await RouteSuggestionStore.instance.search(
+      context: RouteSearchContext(
+        start: RouteStart(
+          lat: _center.latitude,
+          lng: _center.longitude,
+          source: _chosenPlace == null
+              ? RouteStartSource.mapSelection
+              : RouteStartSource.savedLocation,
+        ),
+        area: SearchArea(
+          centerLat: _center.latitude,
+          centerLng: _center.longitude,
+          radiusM: _radiusKm * 1000,
+        ),
+      ),
+      plan: _plan,
+    );
+    if (!mounted) return;
+    setState(() => _generating = false);
+    Navigator.of(context).pushNamed('/route-map');
+  }
+
   Timer? _debounce;
   List<GeocodedPlace> _results = const [];
   GeocodingFailure? _searchFailure;
@@ -294,9 +337,8 @@ class _WorkoutLocationScreenState extends State<WorkoutLocationScreen> {
                   ),
                   const SizedBox(height: 8),
                   TrailwattButton(
-                    label: t.locationGenerate,
-                    onPressed: () =>
-                        Navigator.of(context).pushNamed('/route-map'),
+                    label: _generating ? t.routeSearching : t.locationGenerate,
+                    onPressed: _generating ? null : _generate,
                   ),
                 ],
               ),

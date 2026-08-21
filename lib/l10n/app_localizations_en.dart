@@ -952,4 +952,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get locationStartOnMap => 'Start placed on the map';
+
+  @override
+  String get routeSearchNotRun =>
+      'No route search yet. Set where you want to start and generate suggestions.';
+
+  @override
+  String get routeSearchSourceDown =>
+      'The map source did not answer. Try again shortly.';
+
+  @override
+  String get routeSearchNoGround =>
+      'No rideable road within that radius. Move the start or widen it.';
+
+  @override
+  String get routeSearchNoCandidate =>
+      'The roads here do not make a route for this workout.';
+
+  @override
+  String get routeSearchGo => 'Choose where to start';
+
+  @override
+  String get routeSearching => 'Looking for routes...';
 }

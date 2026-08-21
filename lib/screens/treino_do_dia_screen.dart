@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../l10n/domain_labels.dart';
+import '../services/route_suggestion_store.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
-import '../models/route_suggestion.dart';
 import '../widgets/app_shell.dart';
 import '../widgets/stat_box.dart';
 import '../widgets/trailwatt_button.dart';
@@ -15,26 +15,8 @@ class TreinoDoDiaScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const suggestion = RouteSuggestion(
-      id: 'demo-route-01',
-      name: 'Subida da Serra',
-      routeType: RouteType.loop,
-      distanceM: 850,
-      elevationGainM: 44,
-      estimatedMovingTimeMin: 3,
-      score: RouteScoreBreakdown(
-        intensityMatchPct: 98,
-        durationMatchPct: 96,
-        sequenceMatchPct: 100,
-        continuityScorePct: 95,
-        safetyScorePct: 95,
-        trafficScorePct: 90,
-        surfaceScorePct: 100,
-        practicalityScorePct: 96,
-      ),
-    );
-
     final t = tr(context);
+    final suggestion = RouteSuggestionStore.instance.selected?.suggestion;
     return TrailwattShell(
       navIndex: 0,
       child: Padding(
@@ -57,43 +39,69 @@ class TreinoDoDiaScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 20),
+            // Nothing here until a search has run. The card used to show a
+            // route that did not exist, which read as a working engine.
             InkWell(
               borderRadius: BorderRadius.circular(10),
-              onTap: () => Navigator.of(context).pushNamed('/route-map'),
+              onTap: () => Navigator.of(context).pushNamed(
+                  suggestion == null ? '/workout-builder/map' : '/route-map'),
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.accent, width: 1.5),
+                  border: Border.all(
+                      color: suggestion == null
+                          ? AppColors.line
+                          : AppColors.accent,
+                      width: 1.5),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(suggestion.name,
-                            style: AppTextStyles.body
-                                .copyWith(fontWeight: FontWeight.w700)),
-                        const SizedBox(height: 2),
-                        Text(
-                            '${suggestion.gradientAvgPct.toStringAsFixed(1)}% · ${suggestion.distanceM}m',
-                            style: AppTextStyles.label),
-                      ],
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 7, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: AppColors.greenBg,
-                        borderRadius: BorderRadius.circular(6),
+                child: suggestion == null
+                    ? Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Flexible(
+                            child: Text(t.routeSearchNotRun,
+                                style: AppTextStyles.label),
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.chevron_right,
+                              size: 18, color: AppColors.primary),
+                        ],
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                    suggestion.name.isEmpty
+                                        ? t.routeSubtitle
+                                        : suggestion.name,
+                                    style: AppTextStyles.body
+                                        .copyWith(fontWeight: FontWeight.w700)),
+                                const SizedBox(height: 2),
+                                Text(
+                                    '${suggestion.gradientAvgPct.toStringAsFixed(1)}% · '
+                                    '${suggestion.distanceM}m',
+                                    style: AppTextStyles.label),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 7, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: AppColors.greenBg,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text('${suggestion.matchPct}%',
+                                style: AppTextStyles.numeric.copyWith(
+                                    fontSize: 12, color: AppColors.greenText)),
+                          ),
+                        ],
                       ),
-                      child: Text('${suggestion.matchPct}%',
-                          style: AppTextStyles.numeric.copyWith(
-                              fontSize: 12, color: AppColors.greenText)),
-                    ),
-                  ],
-                ),
               ),
             ),
             const SizedBox(height: 16),
