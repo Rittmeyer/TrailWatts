@@ -308,5 +308,8 @@
   "routeSearchNoGround": "Nenhuma via pedalável nesse raio. Mova o ponto de partida ou aumente o raio.",
   "routeSearchNoCandidate": "As vias por aqui não formam um percurso para este treino.",
   "routeSearchGo": "Escolher onde partir",
-  "routeSearching": "Procurando percursos..."
+  "routeSearching": "Procurando percursos...",
+  "builderSaveOnly": "Salvar treino sem procurar rota",
+  "builderSavedToday": "Treino salvo em hoje",
+  "builderSaveBlocked": "Hoje já tem um resultado registrado. Desassocie a atividade antes de trocar o treino."
 }

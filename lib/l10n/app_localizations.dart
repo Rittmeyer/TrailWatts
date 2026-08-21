@@ -1819,6 +1819,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Looking for routes...'**
   String get routeSearching;
+
+  /// No description provided for @builderSaveOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Save the workout without a route'**
+  String get builderSaveOnly;
+
+  /// No description provided for @builderSavedToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout saved to today'**
+  String get builderSavedToday;
+
+  /// No description provided for @builderSaveBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Today already has a recorded result. Unlink the activity before changing the workout.'**
+  String get builderSaveBlocked;
 }
 
 class _AppLocalizationsDelegate

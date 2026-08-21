@@ -478,5 +478,8 @@
   "routeSearchNoGround": "No rideable road within that radius. Move the start or widen it.",
   "routeSearchNoCandidate": "The roads here do not make a route for this workout.",
   "routeSearchGo": "Choose where to start",
-  "routeSearching": "Looking for routes..."
+  "routeSearching": "Looking for routes...",
+  "builderSaveOnly": "Save the workout without a route",
+  "builderSavedToday": "Workout saved to today",
+  "builderSaveBlocked": "Today already has a recorded result. Unlink the activity before changing the workout."
 }

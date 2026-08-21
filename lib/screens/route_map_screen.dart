@@ -63,18 +63,28 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
   RiderProfile get _rider => RiderProfileStore.instance.profile;
   ZoneScale get _workoutScale => _rider.powerZones.scale;
 
-  /// ~180 w for this demo stretch, resolved on the rider's own power table.
-  TrainingZone get _matchedZone =>
-      _rider.zoneFor(180, _workoutMetric) ??
-      TrainingZone(metric: _workoutMetric, scale: _workoutScale, index: 1);
+  /// The zone this route was matched for.
+  ///
+  /// Taken from the work intervals of the session the search ran against,
+  /// because that is what the route was chosen to serve. It used to be a
+  /// fixed 180 w "demo stretch", so the line and the chip said Z2 whatever
+  /// the rider had actually built.
+  TrainingZone get _matchedZone {
+    final match = RouteSuggestionStore.instance.selected?.match;
+    final steps = match?.intervals.toList() ?? const [];
+    final placed = steps.isNotEmpty ? steps : (match?.steps ?? const []);
+    if (placed.isNotEmpty) return placed.first.step.zone;
+    return TrainingZone(metric: _workoutMetric, scale: _workoutScale, index: 1);
+  }
 
-  /// Control points of the suggested stretch; the drawn line between them is
-  /// resolved against the road network.
-  static const _waypoints = [
-    LatLng(-23.5566, -46.6414),
-    LatLng(-23.5540, -46.6385),
-    LatLng(-23.5505, -46.6355),
-  ];
+  /// The geometry of the route that was actually found. This used to be a
+  /// constant, which is how the map came to show the same three points in
+  /// the same street whatever workout the rider had built - the suggestion
+  /// changed underneath it and the picture never did.
+  List<LatLng> get _waypoints => [
+        for (final segment in suggestion?.path ?? const [])
+          LatLng(segment.lat, segment.lng),
+      ];
 
   final _routing = OsrmRoutingService();
   RoutedPath? _path;
@@ -85,9 +95,28 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
     _load();
   }
 
+  /// A route from the engine is already a road-following polyline, so there
+  /// is nothing to resolve. The router is still asked when the engine gave
+  /// only a couple of control points, which is what the hand-edited route
+  /// screen produces.
   Future<void> _load() async {
-    final path = await _routing.routeThrough(_waypoints);
+    final points = _waypoints;
+    if (points.length < 2 || points.length > 2) return;
+    final path = await _routing.routeThrough(points);
     if (mounted) setState(() => _path = path);
+  }
+
+  /// Enough of the route to frame it, without asking the map to fit bounds
+  /// on a line that may be a single point.
+  LatLng get _centre {
+    final points = _waypoints;
+    if (points.isEmpty) return const LatLng(-23.5536, -46.6386);
+    var lat = 0.0, lng = 0.0;
+    for (final p in points) {
+      lat += p.latitude;
+      lng += p.longitude;
+    }
+    return LatLng(lat / points.length, lng / points.length);
   }
 
   /// Exports the suggested stretch to the selected platform.
@@ -232,11 +261,11 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                       child: SizedBox(
                         height: 230,
                         child: FlutterMap(
-                          options: const MapOptions(
-                            initialCenter: LatLng(-23.5536, -46.6386),
-                            initialZoom: 14.4,
-                            interactionOptions:
-                                InteractionOptions(flags: InteractiveFlag.none),
+                          options: MapOptions(
+                            initialCenter: _centre,
+                            initialZoom: 13.4,
+                            interactionOptions: const InteractionOptions(
+                                flags: InteractiveFlag.none),
                           ),
                           children: [
                             trailwattTileLayer(),
@@ -244,24 +273,24 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                               Polyline(
                                 points: path?.polyline ?? _waypoints,
                                 strokeWidth: 5,
-                                // Z4 - the zone this stretch is matched to.
                                 color: _matchedZone.color,
                               ),
                             ]),
-                            MarkerLayer(markers: [
-                              Marker(
-                                point: _waypoints.first,
-                                width: 14,
-                                height: 14,
-                                child: const _EndCap(color: AppColors.accent),
-                              ),
-                              Marker(
-                                point: _waypoints.last,
-                                width: 14,
-                                height: 14,
-                                child: const _EndCap(color: AppColors.zone5),
-                              ),
-                            ]),
+                            if (_waypoints.isNotEmpty)
+                              MarkerLayer(markers: [
+                                Marker(
+                                  point: _waypoints.first,
+                                  width: 14,
+                                  height: 14,
+                                  child: const _EndCap(color: AppColors.accent),
+                                ),
+                                Marker(
+                                  point: _waypoints.last,
+                                  width: 14,
+                                  height: 14,
+                                  child: const _EndCap(color: AppColors.zone5),
+                                ),
+                              ]),
                             trailwattAttribution(context),
                           ],
                         ),

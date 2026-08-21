@@ -974,4 +974,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get routeSearching => 'Looking for routes...';
+
+  @override
+  String get builderSaveOnly => 'Save the workout without a route';
+
+  @override
+  String get builderSavedToday => 'Workout saved to today';
+
+  @override
+  String get builderSaveBlocked =>
+      'Today already has a recorded result. Unlink the activity before changing the workout.';
 }

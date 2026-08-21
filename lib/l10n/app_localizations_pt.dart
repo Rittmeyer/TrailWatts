@@ -976,4 +976,14 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get routeSearching => 'Procurando percursos...';
+
+  @override
+  String get builderSaveOnly => 'Salvar treino sem procurar rota';
+
+  @override
+  String get builderSavedToday => 'Treino salvo em hoje';
+
+  @override
+  String get builderSaveBlocked =>
+      'Hoje já tem um resultado registrado. Desassocie a atividade antes de trocar o treino.';
 }

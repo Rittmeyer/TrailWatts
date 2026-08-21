@@ -235,6 +235,29 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
   /// The physically real sequence, for anything that stores a plan.
   List<WorkoutBlock> _toBlocks() => flattenBlockGroups(_toGroups());
 
+  /// Writes the workout onto today without going near a route.
+  ///
+  /// Today is the day a workout built from the home screen belongs to; the
+  /// calendar entry point already carries its own day.
+  void _saveToToday() {
+    final t = tr(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    try {
+      WorkoutPlanStore.instance.savePlanned(today, _toBlocks());
+    } on StateError {
+      // A day with a recorded result is not editable - the plan it was
+      // measured against would no longer be the plan.
+      messenger.showSnackBar(SnackBar(content: Text(t.builderSaveBlocked)));
+      return;
+    }
+
+    messenger.showSnackBar(SnackBar(content: Text(t.builderSavedToday)));
+    Navigator.of(context).pushNamedAndRemoveUntil('/home', (r) => false);
+  }
+
   /// Writes the workout onto the day the rider selected and goes back to the
   /// calendar they came from.
   void _saveToPlan() {
@@ -486,6 +509,18 @@ class _WorkoutBuilderScreenState extends State<WorkoutBuilderScreen> {
                           )
                       : _saveToPlan,
                 ),
+                // Saving used to be reachable only by going on to the map.
+                // Writing down a session and finding ground for it are two
+                // different intentions, and a rider who has one should not
+                // have to perform the other.
+                if (_planDay == null) ...[
+                  const SizedBox(height: 8),
+                  TrailwattButton(
+                    label: t.builderSaveOnly,
+                    style: TrailwattButtonStyle.secondary,
+                    onPressed: _saveToToday,
+                  ),
+                ],
                 const SizedBox(height: 14),
                 Text(
                   t.builderFootnote,
