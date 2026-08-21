@@ -224,6 +224,35 @@ O teste que importa compara contra um casador guloso escrito no próprio
 teste: na rota-armadilha, o guloso serve menos séries. É a afirmação
 central, verificada em vez de prometida.
 
+### O que a busca custa, medido
+
+Medido no app compilado, no Chromium, com Overpass e elevação
+interceptados: payload no formato real do Overpass (`out geom tags`, vias
+que compartilham nó nos cruzamentos como no OSM), latência de servidor
+injetada — 3000 ms no Overpass, 300 ms por chamada de elevação.
+
+| vias no raio | 1ª busca (fria) | 2ª (memória) | 3ª (após recarregar a página) |
+|---|---|---|---|
+| 400 | 3762 ms | 363 ms | 414 ms |
+| 1500 | 3755 ms | 717 ms | 748 ms |
+| 4000 | 3929 ms | 1229 ms | 1229 ms |
+
+Uma chamada ao Overpass e **uma** de elevação, em qualquer densidade. A
+terceira linha é depois de recarregar a página: zero rede, servida pelo
+IndexedDB.
+
+O que a medição corrigiu: a busca fria custava 5,7 s e ~2 s disso era
+espera **nossa**, não do servidor. A elevação era pedida por candidato —
+três chamadas para 79 pontos que cabem numa — e o serviço segura um
+segundo entre chamadas por política. Pedindo os quatro candidatos de uma
+vez, 5,7 s viraram 3,8 s.
+
+O que não está medido: a latência real do Overpass público e do DEM, e a
+densidade real de uma cidade real. Os 3000 ms são parâmetro, não medição —
+a rede externa é bloqueada neste ambiente. O que a tabela mostra é que o
+custo do lado do cliente é pequeno e cresce devagar: 10× mais vias
+somaram ~170 ms na busca fria.
+
 ### Ponto de partida
 
 Três formas de dizer de onde sair, porque num mapa elas não são

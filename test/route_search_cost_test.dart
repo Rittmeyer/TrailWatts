@@ -97,6 +97,25 @@ void main() {
               'waiting before the rider sees anything');
     });
 
+    test('every candidate is covered by one request, not one each', () async {
+      final index = TerrainIndex();
+      final elevation = CountingElevation();
+      final finder = RouteFinder(
+        source: CachedSegmentSource(source: Ground(urbanArea()), index: index),
+        rider: rider,
+        elevation: TerrainElevation(service: elevation, index: index),
+      );
+
+      await finder.suggestionsFor(context: context, plan: plan);
+
+      // The service holds a second between calls by policy, so each extra
+      // call is a second of the rider watching nothing happen. Measured in
+      // a browser: three calls cost 5.7 s on a cold search, one costs 3.8 s.
+      expect(elevation.calls, lessThanOrEqualTo(1),
+          reason: '${elevation.calls} calls for '
+              '${elevation.points} points that fit in one');
+    });
+
     test('a point is never asked for twice, across candidates or searches',
         () async {
       final index = TerrainIndex();

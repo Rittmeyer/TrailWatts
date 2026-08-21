@@ -103,11 +103,12 @@ class RouteFinder {
     final graph = _WayGraph(fetched.ways);
     final matcher = WorkoutRouteMatcher(rider);
 
-    final ranked = <RankedSuggestion>[];
-    final seen = <String>{};
-
     // One walk per preference, so the alternatives differ in what they were
     // built for rather than being the same route scored four ways.
+    final candidates =
+        <SuggestionLabel, ({List<CyclingWay> path, _Sampled sampled})>{};
+    final seen = <String>{};
+
     for (final label in SuggestionLabel.values) {
       final path = graph.walkFrom(start, wantedM / 2, _biasFor(label));
       if (path.isEmpty) continue;
@@ -117,19 +118,33 @@ class RouteFinder {
 
       final sampled = _sample(path, outAndBack: true);
       if (sampled.points.length < 2) continue;
+      candidates[label] = (path: path, sampled: sampled);
+    }
 
-      // Only now, and only for the points nothing already knows.
-      final missing = sampled.pointsNeedingHeight;
-      if (missing.isNotEmpty) await elevation?.prefetch(missing);
+    // Every candidate's missing heights in one request. Asking per candidate
+    // was three calls for what fits in one, and the elevation service holds
+    // a second between calls by policy - so it cost two seconds of doing
+    // nothing on every cold search.
+    final missing = <String, LatLng>{};
+    for (final candidate in candidates.values) {
+      for (final point in candidate.sampled.pointsNeedingHeight) {
+        missing['${point.latitude},${point.longitude}'] = point;
+      }
+    }
+    if (missing.isNotEmpty) {
+      await elevation?.prefetch(missing.values.toList());
+    }
 
-      final segments = _segmentsFor(sampled);
+    final ranked = <RankedSuggestion>[];
+    for (final entry in candidates.entries) {
+      final segments = _segmentsFor(entry.value.sampled);
       if (segments.length < 2) continue;
 
       final match = matcher.match(steps: steps, path: segments);
       ranked.add(RankedSuggestion(
-        suggestion: _describe(path, segments, match, start),
+        suggestion: _describe(entry.value.path, segments, match, start),
         match: match,
-        label: label,
+        label: entry.key,
       ));
     }
 
