@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:latlong2/latlong.dart';
 
+import '../../engine/workout_demand.dart';
+
 import '../../engine/workout_route_matcher.dart';
 import '../../models/rider_profile.dart';
 import '../../models/route_suggestion.dart';
@@ -20,10 +22,42 @@ class RouteSearchResult {
   final List<RankedSuggestion> suggestions;
   final RouteSearchFailure? failure;
 
-  const RouteSearchResult(this.suggestions) : failure = null;
-  const RouteSearchResult.failed(this.failure) : suggestions = const [];
+  /// What the session asked for, and what the terrain allowed. Kept apart
+  /// because a search that comes up short must say so rather than handing
+  /// back a shorter route as if it were the answer (Feature 011).
+  final double requestedDistanceM;
+  final double deliveredDistanceM;
+
+  /// Which repetition shape produced this. The rider can ask for another.
+  final RepetitionShape shape;
+
+  const RouteSearchResult(
+    this.suggestions, {
+    this.requestedDistanceM = 0,
+    this.deliveredDistanceM = 0,
+    this.shape = RepetitionShape.outAndBack,
+  }) : failure = null;
+
+  const RouteSearchResult.failed(this.failure)
+      : suggestions = const [],
+        requestedDistanceM = 0,
+        deliveredDistanceM = 0,
+        shape = RepetitionShape.outAndBack;
 
   bool get ok => failure == null;
+
+  /// Short by enough that the rider would notice. A tenth is the line: a
+  /// route is built from roads that do not end where the arithmetic wants.
+  bool get fallsShort =>
+      ok &&
+      requestedDistanceM > 0 &&
+      deliveredDistanceM < requestedDistanceM * 0.9;
+
+  int get shortfallPct => requestedDistanceM <= 0
+      ? 0
+      : (100 - deliveredDistanceM / requestedDistanceM * 100)
+          .round()
+          .clamp(0, 100);
 }
 
 /// A suggestion plus the match it came from, so the screen can say why it
@@ -74,13 +108,18 @@ class RouteFinder {
 
   static const _distance = Distance();
 
-  /// Rough pace used only to decide how long a candidate needs to be. The
-  /// real speed per stretch comes from the power model inside the matcher.
-  static const _nominalKmh = 24.0;
+  /// The most points a candidate is sampled at, whatever its length.
+  ///
+  /// A 200 km route at 80 m spacing would be 2,500 points: 25 elevation
+  /// calls, and the service holds a second between them. Spacing widens on
+  /// a long route instead, which costs gradient detail nobody rides at that
+  /// scale anyway.
+  static const _maxSamplesPerCandidate = 600;
 
   Future<RouteSearchResult> suggestionsFor({
     required RouteSearchContext context,
     required List<WorkoutBlockGroup> plan,
+    RepetitionShape shape = RepetitionShape.outAndBack,
     int limit = 4,
   }) async {
     final steps = expandWorkout(flattenBlockGroups(plan));
@@ -88,8 +127,17 @@ class RouteFinder {
       return const RouteSearchResult.failed(RouteSearchFailure.noCandidate);
     }
 
+    // What the session actually asks for, from the power model rather than
+    // from a nominal pace, and how much ground that needs once repetitions
+    // are reused (Feature 011).
+    final demand = WorkoutDemand.of(plan, rider);
     final start = LatLng(context.start.lat, context.start.lng);
-    final fetched = await source.waysAround(start, context.area.radiusM);
+
+    // The rider's radius is a preference; a session that cannot fit inside
+    // it is not served by pretending it can. The wider of the two is used
+    // and the shortfall is reported.
+    final radius = math.max(context.area.radiusM, demand.searchRadiusM(shape));
+    final fetched = await source.waysAround(start, radius);
     if (!fetched.ok) {
       return const RouteSearchResult.failed(RouteSearchFailure.source);
     }
@@ -97,9 +145,7 @@ class RouteFinder {
       return const RouteSearchResult.failed(RouteSearchFailure.noGround);
     }
 
-    final wantedM =
-        workoutDurationMin(flattenBlockGroups(plan)) / 60 * _nominalKmh * 1000;
-
+    final wantedM = demand.riddenDistanceM;
     final graph = _WayGraph(fetched.ways);
     final matcher = WorkoutRouteMatcher(rider);
 
@@ -154,7 +200,14 @@ class RouteFinder {
 
     ranked
         .sort((a, b) => b.suggestion.matchPct.compareTo(a.suggestion.matchPct));
-    return RouteSearchResult(ranked.take(limit).toList());
+    final best = ranked.take(limit).toList();
+    return RouteSearchResult(
+      best,
+      requestedDistanceM: wantedM,
+      deliveredDistanceM:
+          best.isEmpty ? 0 : best.first.suggestion.distanceM.toDouble(),
+      shape: shape,
+    );
   }
 
   /// What each alternative is built to prefer when choosing the next way.
@@ -192,6 +245,13 @@ class RouteFinder {
   /// Thinning here rather than after: every point kept is a point the
   /// elevation API is asked about, and a point the matcher has to score.
   _Sampled _sample(List<CyclingWay> path, {required bool outAndBack}) {
+    // Spacing widens on a long route so the point count stays bounded. A
+    // 200 km candidate at the nominal 80 m would be 2,500 points and 25
+    // elevation calls; at this cap it is 600 and one.
+    final rough = path.fold(0.0, (sum, w) => sum + _WayGraph.lengthOf(w)) *
+        (outAndBack ? 2 : 1);
+    final spacing = math.max(sampleSpacingM, rough / _maxSamplesPerCandidate);
+
     final points = <LatLng>[];
     final surfaces = <SurfaceType>[];
     final traffic = <TrafficLevel>[];
@@ -209,7 +269,7 @@ class RouteFinder {
         final point = ordered[i];
         if (points.isNotEmpty) {
           final gap = _distance.as(LengthUnit.Meter, points.last, point);
-          if (gap < sampleSpacingM) continue;
+          if (gap < spacing) continue;
         }
         points.add(point);
         surfaces.add(way.surface);
@@ -404,9 +464,13 @@ class _WayGraph {
     var total = lengthOf(first);
     var tail = first.points.last;
 
-    // Bounded so a dense city grid cannot walk forever; a chain this long
-    // already covers any session the builder can express.
-    for (var hop = 0; hop < 200 && total < wantedM; hop++) {
+    // The cap follows the distance asked for rather than being a fixed
+    // number. At 200 it stopped a 200 km request at 79.6 km and reported
+    // that as a normal result; ways are often 100 m, so the ceiling has to
+    // scale with the route. Still bounded, so a dense grid cannot walk
+    // forever.
+    final maxHops = math.min(20000, 200 + (wantedM / 50).ceil());
+    for (var hop = 0; hop < maxHops && total < wantedM; hop++) {
       CyclingWay? best;
       var bestScore = double.negativeInfinity;
       var bestReversed = false;
