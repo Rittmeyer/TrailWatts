@@ -9,6 +9,7 @@ import '../../models/terrain_target.dart';
 import '../../models/search_context.dart';
 import '../../models/workout_block.dart';
 import 'cycling_segment_source.dart';
+import 'terrain_elevation.dart';
 
 /// Why a search came back with nothing. Distinguished because the answers
 /// are different: no data is something the rider can retry, no rideable
@@ -51,7 +52,25 @@ class RouteFinder {
   final CyclingSegmentSource source;
   final RiderProfile rider;
 
-  RouteFinder({required this.source, required this.rider});
+  /// Heights, fetched for the candidates that get built rather than for the
+  /// whole search area. Null leaves gradients unknown, which the matcher
+  /// already handles by capping what it will claim.
+  final TerrainElevation? elevation;
+
+  /// Distance between the points a candidate is sampled at.
+  ///
+  /// OSM nodes can be metres apart, and a gradient measured over a few
+  /// metres is noise, not terrain. Sampling also decides the cost of the
+  /// search: every kept point is a point the elevation API has to answer
+  /// for, at a hundred per call and a call per second.
+  final double sampleSpacingM;
+
+  RouteFinder({
+    required this.source,
+    required this.rider,
+    this.elevation,
+    this.sampleSpacingM = 80,
+  });
 
   static const _distance = Distance();
 
@@ -96,7 +115,14 @@ class RouteFinder {
       final key = path.map((w) => w.id).join('>');
       if (!seen.add(key)) continue;
 
-      final segments = _segmentsFor(path, outAndBack: true);
+      final sampled = _sample(path, outAndBack: true);
+      if (sampled.points.length < 2) continue;
+
+      // Only now, and only for the points nothing already knows.
+      final missing = sampled.pointsNeedingHeight;
+      if (missing.isNotEmpty) await elevation?.prefetch(missing);
+
+      final segments = _segmentsFor(sampled);
       if (segments.length < 2) continue;
 
       final match = matcher.match(steps: steps, path: segments);
@@ -144,10 +170,13 @@ class RouteFinder {
             },
       };
 
-  /// The chained ways as the sampled path the matcher reads, optionally
-  /// doubled back so the ride returns to where it started.
-  List<RouteSegment> _segmentsFor(List<CyclingWay> path,
-      {required bool outAndBack}) {
+  /// The chained ways walked into one ordered path, thinned to
+  /// [sampleSpacingM] and optionally doubled back so the ride returns to
+  /// where it started.
+  ///
+  /// Thinning here rather than after: every point kept is a point the
+  /// elevation API is asked about, and a point the matcher has to score.
+  _Sampled _sample(List<CyclingWay> path, {required bool outAndBack}) {
     final points = <LatLng>[];
     final surfaces = <SurfaceType>[];
     final traffic = <TrafficLevel>[];
@@ -156,18 +185,22 @@ class RouteFinder {
 
     void append(CyclingWay way, {required bool reversed}) {
       final ordered = reversed ? way.points.reversed.toList() : way.points;
-      final elevations = way.hasElevation
+      // A source that already carries heights - a GPX import, a fixture -
+      // must not be sent to the elevation API to be told what it knows.
+      final known = way.hasElevation
           ? (reversed ? way.elevationM!.reversed.toList() : way.elevationM!)
           : null;
       for (var i = 0; i < ordered.length; i++) {
-        // Chained ways share an endpoint; keeping both would create a
-        // zero-length stretch the matcher would have to skip.
-        if (points.isNotEmpty && ordered[i] == points.last) continue;
-        points.add(ordered[i]);
+        final point = ordered[i];
+        if (points.isNotEmpty) {
+          final gap = _distance.as(LengthUnit.Meter, points.last, point);
+          if (gap < sampleSpacingM) continue;
+        }
+        points.add(point);
         surfaces.add(way.surface);
         traffic.add(way.traffic);
         safety.add(way.safety);
-        heights.add(elevations?[i]);
+        heights.add(known?[i]);
       }
     }
 
@@ -180,28 +213,42 @@ class RouteFinder {
       }
     }
 
+    return _Sampled(
+      points: points,
+      surfaces: surfaces,
+      traffic: traffic,
+      safety: safety,
+      heights: heights,
+    );
+  }
+
+  /// The sampled path as the matcher reads it, with gradients resolved from
+  /// whatever heights are known.
+  List<RouteSegment> _segmentsFor(_Sampled sampled) {
+    final points = sampled.points;
     final segments = <RouteSegment>[];
+
     for (var i = 0; i < points.length; i++) {
       final here = points[i];
+      final height = sampled.heights[i] ?? elevation?.at(here);
       double gradient = 0;
-      if (i < points.length - 1 &&
-          heights[i] != null &&
-          heights[i + 1] != null) {
-        final run =
-            _distance.as(LengthUnit.Meter, here, points[i + 1]).toDouble();
-        if (run > 1) {
-          gradient = (heights[i + 1]! - heights[i]!) / run * 100;
+      if (i < points.length - 1) {
+        final next = sampled.heights[i + 1] ?? elevation?.at(points[i + 1]);
+        if (height != null && next != null) {
+          final run =
+              _distance.as(LengthUnit.Meter, here, points[i + 1]).toDouble();
+          if (run > 1) gradient = (next - height) / run * 100;
         }
       }
       segments.add(RouteSegment(
         id: 'seg-$i',
         lat: here.latitude,
         lng: here.longitude,
-        elevationM: heights[i],
+        elevationM: height,
         gradientPct: gradient,
-        surfaceType: surfaces[i],
-        trafficLevel: traffic[i],
-        safetyLevel: safety[i],
+        surfaceType: sampled.surfaces[i],
+        trafficLevel: sampled.traffic[i],
+        safetyLevel: sampled.safety[i],
         sourceMetadata: SegmentSourceMetadata(
           source: 'openstreetmap',
           fetchedAt: DateTime.now(),
@@ -264,6 +311,33 @@ class RouteFinder {
 /// score every candidate badly for a reason that has nothing to do with the
 /// terrain. Endpoints are matched on rounded coordinates - OSM ways that
 /// meet share a node, so their ends are identical rather than merely close.
+/// One candidate's path, thinned and carrying the tags of the way each
+/// point came from.
+class _Sampled {
+  final List<LatLng> points;
+  final List<SurfaceType> surfaces;
+  final List<TrafficLevel> traffic;
+  final List<CyclingSafetyLevel> safety;
+
+  /// Heights the source already knew, per kept point. Null where it did not,
+  /// which is what the elevation service is asked about.
+  final List<double?> heights;
+
+  const _Sampled({
+    required this.points,
+    required this.surfaces,
+    required this.traffic,
+    required this.safety,
+    required this.heights,
+  });
+
+  /// Only the points nothing already knows a height for.
+  List<LatLng> get pointsNeedingHeight => [
+        for (var i = 0; i < points.length; i++)
+          if (heights[i] == null) points[i],
+      ];
+}
+
 class _WayGraph {
   final List<CyclingWay> ways;
   final Map<String, List<CyclingWay>> _byEndpoint = {};

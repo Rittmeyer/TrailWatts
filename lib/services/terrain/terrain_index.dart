@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:latlong2/latlong.dart';
 
 import 'cycling_segment_source.dart';
-import 'elevation_service.dart';
 
 /// A local store of rideable ground, indexed by position.
 ///
@@ -186,13 +185,8 @@ class TerrainIndex {
 class CachedSegmentSource implements CyclingSegmentSource {
   final CyclingSegmentSource source;
   final TerrainIndex index;
-  final ElevationService? elevation;
 
-  CachedSegmentSource({
-    required this.source,
-    required this.index,
-    this.elevation,
-  });
+  CachedSegmentSource({required this.source, required this.index});
 
   /// Round trips made to the wrapped source. Read by tests, and the number
   /// the cache exists to keep at zero.
@@ -215,54 +209,6 @@ class CachedSegmentSource implements CyclingSegmentSource {
 
     index.addAll(fetched.ways);
     index.markFetched(centre, radiusM);
-
-    final withHeights = await _fillElevation(index.near(centre, radiusM));
-    return SegmentFetch(withHeights);
-  }
-
-  /// Elevation for everything not already known, in one pass over the whole
-  /// set: the service batches by hundreds, so asking way by way would cost
-  /// a round trip per road.
-  Future<List<CyclingWay>> _fillElevation(List<CyclingWay> ways) async {
-    final service = elevation;
-    if (service == null) return ways;
-
-    final wanted = <LatLng>[];
-    for (final way in ways) {
-      if (way.hasElevation) continue;
-      for (final point in way.points) {
-        if (index.elevationAt(point) == null) wanted.add(point);
-      }
-    }
-
-    if (wanted.isNotEmpty) {
-      final values = await service.elevationsFor(wanted);
-      for (var i = 0; i < wanted.length && i < values.length; i++) {
-        final value = values[i];
-        if (value != null) index.rememberElevation(wanted[i], value);
-      }
-    }
-
-    final out = <CyclingWay>[];
-    for (final way in ways) {
-      if (way.hasElevation) {
-        out.add(way);
-        continue;
-      }
-      final heights = [
-        for (final point in way.points) index.elevationAt(point),
-      ];
-      // A way is given elevation only when every point has it. A polyline
-      // with holes would produce gradients between a known and an invented
-      // height, which is worse than admitting the whole way is unknown.
-      if (heights.every((h) => h != null)) {
-        final resolved = way.withElevation(heights.cast<double>());
-        index.add(resolved);
-        out.add(resolved);
-      } else {
-        out.add(way);
-      }
-    }
-    return out;
+    return SegmentFetch(index.near(centre, radiusM));
   }
 }

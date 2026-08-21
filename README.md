@@ -265,6 +265,16 @@ consulta separada. Ponto fora do DEM volta **null**, nunca zero: nível do
 mar é uma altura real, e uma rota "a 0 m" seria pontuada como plana em
 vez de desconhecida. Lotes de 100 pontos, que é o limite documentado.
 
+**`terrain_elevation.dart`** — alturas para os pontos que a rota **usa**,
+não para a área. Foi aqui que a busca ficou lenta: pedir elevação de todo
+nó de toda via no raio dá, numa área urbana de 8 km, **30.000 pontos =
+300 chamadas**. A cada 100 pontos por chamada e uma chamada por segundo,
+são **5 minutos por busca** — e um terço da cota diária gasto de uma vez.
+Agora só os candidatos que o finder constrói pedem altura, já
+reamostrados: **15 pontos, 1 chamada**. O ponto repetido (uma ida-e-volta
+passa duas vezes por tudo) é pedido uma vez só, e o memo vive no índice,
+então a segunda busca não pede nada.
+
 **`terrain_index.dart`** — a base local. Grade espacial por célula, então
 achar as vias perto de um ponto é consulta de célula, não varredura de
 tudo que já se baixou. E área já buscada **nunca é buscada de novo** — a

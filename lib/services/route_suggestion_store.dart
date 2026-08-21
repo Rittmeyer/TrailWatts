@@ -7,6 +7,7 @@ import 'rider_profile_store.dart';
 import 'terrain/cycling_segment_source.dart';
 import 'terrain/elevation_service.dart';
 import 'terrain/route_finder.dart';
+import 'terrain/terrain_elevation.dart';
 import 'terrain/terrain_index.dart';
 
 enum RouteSearchState { idle, searching, ready, failed }
@@ -31,7 +32,10 @@ class RouteSuggestionStore extends ChangeNotifier {
     _source = CachedSegmentSource(
       source: source ?? OverpassSegmentSource(),
       index: _index,
-      elevation: elevation ?? OpenTopoElevationService(),
+    );
+    _elevation = TerrainElevation(
+      service: elevation ?? OpenTopoElevationService(),
+      index: _index,
     );
   }
 
@@ -40,6 +44,7 @@ class RouteSuggestionStore extends ChangeNotifier {
   final TerrainIndex _index;
   final RiderProfile Function() _riderOf;
   late CachedSegmentSource _source;
+  TerrainElevation? _elevation;
 
   RouteSearchState _state = RouteSearchState.idle;
   List<RankedSuggestion> _suggestions = const [];
@@ -73,7 +78,11 @@ class RouteSuggestionStore extends ChangeNotifier {
     _failure = null;
     notifyListeners();
 
-    final finder = RouteFinder(source: _source, rider: _riderOf());
+    final finder = RouteFinder(
+      source: _source,
+      rider: _riderOf(),
+      elevation: _elevation,
+    );
     final result = await finder.suggestionsFor(context: context, plan: plan);
 
     _suggestions = result.suggestions;
@@ -87,8 +96,11 @@ class RouteSuggestionStore extends ChangeNotifier {
   /// search path - cache, finder, matcher - rather than seeding fake
   /// results past it.
   @visibleForTesting
-  void useSource(CyclingSegmentSource source) {
+  void useSource(CyclingSegmentSource source, {ElevationService? elevation}) {
     _source = CachedSegmentSource(source: source, index: _index);
+    if (elevation != null) {
+      _elevation = TerrainElevation(service: elevation, index: _index);
+    }
   }
 
   /// Test seam: drop everything, including the cached ground.

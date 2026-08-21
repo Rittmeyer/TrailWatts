@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:trailwatt/services/terrain/cycling_segment_source.dart';
 import 'package:trailwatt/services/terrain/elevation_service.dart';
+import 'package:trailwatt/services/terrain/terrain_elevation.dart';
 import 'package:trailwatt/services/terrain/terrain_index.dart';
 
 class RecordingSource implements CyclingSegmentSource {
@@ -132,36 +133,48 @@ void main() {
   });
 
   group('elevation is fetched once per point', () {
-    test('ways come back with heights, and the second search asks for none',
-        () async {
-      final source = RecordingSource([wayAt('a', -23.551, -46.63)]);
-      final elevation = CountingElevation();
+    test('a second search asks for nothing it already knows', () async {
       final index = TerrainIndex();
-      final cached = CachedSegmentSource(
-          source: source, index: index, elevation: elevation);
+      final elevation = CountingElevation();
+      final terrain = TerrainElevation(service: elevation, index: index);
 
-      final first = await cached.waysAround(centre, 2000);
-      expect(first.ways.single.hasElevation, isTrue);
-      expect(elevation.pointsAsked, 4);
+      final points = [
+        for (var i = 0; i < 40; i++) LatLng(-23.55 + i * 0.001, -46.63),
+      ];
 
-      await cached.waysAround(centre, 2000);
+      await terrain.prefetch(points);
+      expect(elevation.pointsAsked, 40);
+      expect(terrain.at(points.first), isNotNull);
+
+      await terrain.prefetch(points);
       expect(elevation.calls, 1,
           reason: 'the ground did not move between the two searches');
     });
 
-    test('a way with an unknown point keeps no elevation at all', () async {
-      final source = RecordingSource([wayAt('a', -23.551, -46.63)]);
+    test('a point repeated along the route is asked for once', () async {
       final index = TerrainIndex();
-      final cached = CachedSegmentSource(
-        source: source,
-        index: index,
-        elevation: _PartialElevation(),
-      );
+      final elevation = CountingElevation();
+      final terrain = TerrainElevation(service: elevation, index: index);
 
-      final result = await cached.waysAround(centre, 2000);
-      expect(result.ways.single.hasElevation, isFalse,
-          reason: 'a gradient between a known and an invented height is '
-              'worse than admitting the way is unknown');
+      const point = LatLng(-23.55, -46.63);
+      // What an out-and-back does: every point appears twice.
+      await terrain.prefetch([point, point, point]);
+
+      expect(elevation.pointsAsked, 1);
+    });
+
+    test('a point the DEM does not cover stays unknown', () async {
+      final index = TerrainIndex();
+      final terrain =
+          TerrainElevation(service: _PartialElevation(), index: index);
+
+      const a = LatLng(-23.55, -46.63);
+      const b = LatLng(-23.56, -46.63);
+      await terrain.prefetch([a, b]);
+
+      expect(terrain.at(a), isNotNull);
+      expect(terrain.at(b), isNull,
+          reason: 'a height nobody measured must not become a gradient');
     });
   });
 }
