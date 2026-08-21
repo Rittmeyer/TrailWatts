@@ -192,6 +192,59 @@ mapa realmente melhora com espaço.
 de no canto da janela, a algumas centenas de pixels do formulário em que ele
 age.
 
+## O motor de rotas
+
+O casamento treino x terreno vive em `lib/engine/`, sem dependência de UI,
+porque é a parte licenciável sozinha (Artigo VIII).
+
+**`cycling_power_model.dart`** — uma fórmula de potência para todo mundo
+(spec 001): resistência de rolamento, gravidade e arrasto. A
+personalização move constantes (massa, CdA, Crr, eficiência), nunca a
+fórmula. Resolve nos dois sentidos: potência a partir da velocidade, e
+velocidade a partir da potência.
+
+**`workout_route_matcher.dart`** — casa o treino **inteiro** contra a rota.
+Escolher o melhor morro para a primeira série e só depois procurar a
+próxima é uma caminhada gulosa que gasta o terreno de que uma série
+posterior precisava — é por isso que uma rota parece perfeita para um
+estímulo e é inútil para a sessão. Aqui todos os passos da timeline
+expandida, aquecimento e recuperação inclusive, são posicionados de uma
+vez, e vence a distribuição que serve melhor a sessão como um todo, mesmo
+onde isso dá terreno pior a uma série individual.
+
+O posicionamento é um programa dinâmico sobre (passo, distância na rota):
+os passos ocupam trechos consecutivos, sem sobreposição e em ordem. Os
+inícios candidatos ficam dentro de uma janela de duração — um passo que
+quer 8 minutos não é servido por 40 — o que transforma uma varredura
+quadrática numa deslizante e deixa o casamento **linear em (passos ×
+trechos)**. Uma rota de 20 km amostrada a cada 10 m contra uma sessão de
+21 passos é medida em teste e fica bem abaixo de 1 segundo.
+
+O teste que importa compara contra um casador guloso escrito no próprio
+teste: na rota-armadilha, o guloso serve menos séries. É a afirmação
+central, verificada em vez de prometida.
+
+### Fonte de dados
+
+Ainda a decidir, e é a P0 "candidate map/road data source" de
+`DECISIONS_REQUIRED.md`. O matcher recebe `List<RouteSegment>` e não sabe
+de onde veio, então a escolha não toca no motor.
+
+**Wikiloc não serve.** Não há API pública para consultar trilhas em
+massa; existe widget de incorporação e acordo comercial. Raspar o site
+violaria os termos deles e a regra deste repo de nunca usar endpoint não
+documentado — a mesma regra que vale para as integrações.
+
+O que serve, e é específico para ciclismo:
+
+- **OpenStreetMap via Overpass** — `highway=cycleway`, `bicycle=designated`,
+  relações `route=bicycle` (`lcn`/`rcn`/`ncn`/`icn`), `surface`,
+  `smoothness`. Licença ODbL: atribuição e share-alike sobre base derivada.
+- **BRouter** — roteador de bicicleta open source, com perfis de ciclismo,
+  auto-hospedável e rápido.
+- **Elevação** — o gradiente é o insumo principal do modelo e o OSM quase
+  não traz `ele`. Precisa de um DEM (SRTM/Copernicus) próprio.
+
 ## Navegação
 
 Duas regras, e um teste para cada uma.
