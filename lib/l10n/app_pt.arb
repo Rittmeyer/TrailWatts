@@ -80,7 +80,7 @@
   "locationTitle": "Criar treino",
   "locationSubtitle": "Continuação - onde treinar",
   "locationWhere": "ONDE TREINAR",
-  "locationHint": "Toque no mapa para marcar a área · raio {radius} km",
+  "locationHint": "Arraste o pino ou toque no mapa · raio {radius} km",
   "locationGenerate": "Gerar sugestões de rota",
   "todayTitle": "Treino de hoje",
   "todaySubtitle": "4x8min a 180w",
@@ -281,5 +281,26 @@
   "builderBlockNameLabel": "Nome do bloco",
   "builderMoveUp": "Subir",
   "builderMoveDown": "Descer",
-  "builderInsertHere": "+ Inserir bloco aqui"
+  "builderInsertHere": "+ Inserir bloco aqui",
+  "locationSearchLabel": "Onde você quer partir",
+  "locationSearchHint": "Endereço, bairro ou lugar",
+  "locationSearchEmpty": "Nada encontrado com esse nome",
+  "locationSearchFailed": "A busca não respondeu. Tente de novo.",
+  "locationSearchBusy": "Buscando...",
+  "locationStartAt": "Partida: {place}",
+  "locationStartOnMap": "Partida marcada no mapa",
+  "@locationHint": {
+    "placeholders": {
+      "radius": {
+        "type": "int"
+      }
+    }
+  },
+  "@locationStartAt": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  }
 }

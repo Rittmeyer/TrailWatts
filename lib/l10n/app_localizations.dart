@@ -581,7 +581,7 @@ abstract class AppLocalizations {
   /// No description provided for @locationHint.
   ///
   /// In en, this message translates to:
-  /// **'Tap the map to mark the area · {radius} km radius'**
+  /// **'Drag the pin or tap the map · {radius} km radius'**
   String locationHint(int radius);
 
   /// No description provided for @locationGenerate.
@@ -1741,6 +1741,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'+ Insert block here'**
   String get builderInsertHere;
+
+  /// No description provided for @locationSearchLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Where you want to start'**
+  String get locationSearchLabel;
+
+  /// No description provided for @locationSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Address, neighbourhood or place'**
+  String get locationSearchHint;
+
+  /// No description provided for @locationSearchEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing found by that name'**
+  String get locationSearchEmpty;
+
+  /// No description provided for @locationSearchFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The search did not answer. Try again.'**
+  String get locationSearchFailed;
+
+  /// No description provided for @locationSearchBusy.
+  ///
+  /// In en, this message translates to:
+  /// **'Searching...'**
+  String get locationSearchBusy;
+
+  /// No description provided for @locationStartAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Start: {place}'**
+  String locationStartAt(String place);
+
+  /// No description provided for @locationStartOnMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Start placed on the map'**
+  String get locationStartOnMap;
 }
 
 class _AppLocalizationsDelegate

@@ -111,7 +111,7 @@
   "locationTitle": "Create workout",
   "locationSubtitle": "Continued - where to ride",
   "locationWhere": "WHERE TO RIDE",
-  "locationHint": "Tap the map to mark the area · {radius} km radius",
+  "locationHint": "Drag the pin or tap the map · {radius} km radius",
   "@locationHint": {
     "placeholders": {
       "radius": {
@@ -458,5 +458,19 @@
   "builderBlockNameLabel": "Block name",
   "builderMoveUp": "Move up",
   "builderMoveDown": "Move down",
-  "builderInsertHere": "+ Insert block here"
+  "builderInsertHere": "+ Insert block here",
+  "locationSearchLabel": "Where you want to start",
+  "locationSearchHint": "Address, neighbourhood or place",
+  "locationSearchEmpty": "Nothing found by that name",
+  "locationSearchFailed": "The search did not answer. Try again.",
+  "locationSearchBusy": "Searching...",
+  "locationStartAt": "Start: {place}",
+  "locationStartOnMap": "Start placed on the map",
+  "@locationStartAt": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  }
 }

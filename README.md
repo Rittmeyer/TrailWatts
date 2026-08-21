@@ -224,6 +224,29 @@ O teste que importa compara contra um casador guloso escrito no próprio
 teste: na rota-armadilha, o guloso serve menos séries. É a afirmação
 central, verificada em vez de prometida.
 
+### Ponto de partida
+
+Três formas de dizer de onde sair, porque num mapa elas não são
+intercambiáveis: **arrastar** o pino quando o lugar certo está à vista,
+**tocar** quando está mais longe, e **escrever** quando o ciclista sabe o
+nome do lugar mas não onde ele fica no mapa. Qualquer uma das três assenta
+o ponto na via mais próxima, então a busca sempre parte de algo pedalável.
+
+O arraste usa o mesmo `flutter_map_dragmarker` dos waypoints da edição de
+rota — arrastar um ponto num mapa se comporta igual em todo o app.
+
+A busca por nome usa **Nominatim**, o geocodificador do próprio
+OpenStreetMap (`lib/services/geocoding_service.dart`). A política de uso
+dele faz parte do contrato, não é rodapé: no máximo uma requisição por
+segundo e um `User-Agent` que identifique a aplicação. As duas coisas são
+impostas dentro do serviço, não deixadas para quem chama — uma tela que
+esquecesse bloquearia o app inteiro, não só a si mesma. A digitação ainda
+tem debounce de 450 ms, senão cada letra viraria uma busca por um prefixo
+que ninguém quis pesquisar.
+
+"Nada encontrado" e "a busca não rodou" são mensagens diferentes. A
+primeira é uma resposta; a segunda não.
+
 ### Fonte de dados
 
 Ainda a decidir, e é a P0 "candidate map/road data source" de

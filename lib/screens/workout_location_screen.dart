@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
+
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_dragmarker/flutter_map_dragmarker.dart';
 import 'package:latlong2/latlong.dart';
+import '../l10n/app_localizations.dart';
+import '../services/geocoding_service.dart';
 import '../services/routing_service.dart';
 import '../l10n/domain_labels.dart';
 import '../theme/app_colors.dart';
@@ -9,14 +14,22 @@ import '../theme/app_text_styles.dart';
 import '../widgets/page_header.dart';
 import '../widgets/map_layers.dart';
 import '../widgets/trailwatt_button.dart';
+import '../widgets/trailwatt_field.dart';
 
 /// Port of screen 02b(3/3) - "Onde treinar". One map for the whole
-/// workout, whatever the number of blocks above. Tap anywhere on the map
-/// to move the pin - it settles onto the nearest road, so the search is
-/// always centred somewhere rideable. The radius is rider-editable, 8 km
-/// by default per DECISIONS_REQUIRED.md.
+/// workout, whatever the number of blocks above. The radius is
+/// rider-editable, 8 km by default per DECISIONS_REQUIRED.md.
+///
+/// Three ways to say where to start, because on a map they are not
+/// interchangeable: drag the pin when the right spot is in view, tap when
+/// it is further off, and type when the rider knows the name of the place
+/// but not where it sits on the map. Whichever is used, the point settles
+/// onto the nearest road, so the search is always centred somewhere
+/// rideable.
 class WorkoutLocationScreen extends StatefulWidget {
-  const WorkoutLocationScreen({super.key});
+  final GeocodingService? geocoder;
+
+  const WorkoutLocationScreen({super.key, this.geocoder});
 
   @override
   State<WorkoutLocationScreen> createState() => _WorkoutLocationScreenState();
@@ -27,21 +40,101 @@ class _WorkoutLocationScreenState extends State<WorkoutLocationScreen> {
   double _radiusKm = 8;
 
   final _routing = OsrmRoutingService();
-  bool _snapping = false;
+  late final GeocodingService _geocoder =
+      widget.geocoder ?? NominatimGeocodingService();
 
-  /// Drop the pin where the rider tapped, then settle it onto the nearest
-  /// road so the search starts from somewhere they can actually ride.
-  Future<void> _placePin(LatLng tapped) async {
+  final _searchController = TextEditingController();
+  final _mapController = MapController();
+
+  bool _snapping = false;
+  bool _searching = false;
+  Timer? _debounce;
+  List<GeocodedPlace> _results = const [];
+  GeocodingFailure? _searchFailure;
+
+  /// The place the rider chose by name, kept so the field can say where the
+  /// pin is rather than leaving them to read coordinates. Cleared as soon as
+  /// they move the pin themselves, because it would then be a lie.
+  String? _chosenPlace;
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  /// Typing runs the search, but not on every keystroke: Nominatim's policy
+  /// is one request a second, and a request per letter would burn it on
+  /// prefixes nobody meant to search for.
+  void _onQueryChanged(String value) {
+    _debounce?.cancel();
+    if (value.trim().length < 3) {
+      setState(() {
+        _results = const [];
+        _searchFailure = null;
+        _searching = false;
+      });
+      return;
+    }
+    setState(() => _searching = true);
+    _debounce =
+        Timer(const Duration(milliseconds: 450), () => _runSearch(value));
+  }
+
+  Future<void> _runSearch(String query) async {
+    final result = await _geocoder.search(query, near: _center);
+    if (!mounted) return;
     setState(() {
-      _center = tapped;
-      _snapping = true;
+      _searching = false;
+      _results = result.places;
+      _searchFailure = result.failure;
     });
-    final snapped = await _routing.snapToRoad(tapped);
+  }
+
+  Future<void> _choosePlace(GeocodedPlace place) async {
+    setState(() {
+      _results = const [];
+      _chosenPlace = place.name;
+      _searchController.text = place.name;
+    });
+    await _moveTo(place.point, keepPlaceName: true);
+    _mapController.move(_center, 13);
+  }
+
+  /// Put the pin somewhere and settle it onto the nearest road, so the
+  /// search starts from somewhere the rider can actually ride. Shared by
+  /// all three ways of choosing a start.
+  Future<void> _moveTo(LatLng point, {bool keepPlaceName = false}) async {
+    setState(() {
+      _center = point;
+      _snapping = true;
+      if (!keepPlaceName) {
+        // The pin no longer stands where the named place was.
+        _chosenPlace = null;
+        _searchController.clear();
+        _results = const [];
+        _searchFailure = null;
+      }
+    });
+    final snapped = await _routing.snapToRoad(point);
     if (!mounted) return;
     setState(() {
       _center = snapped.point;
       _snapping = false;
     });
+  }
+
+  /// What the field says under itself. A search that found nothing and a
+  /// search that did not run are different messages: the first is an
+  /// answer, the second is not.
+  String? _searchHelper(AppLocalizations t) {
+    if (_searching) return t.locationSearchBusy;
+    if (_searchFailure != null) return t.locationSearchFailed;
+    if (_searchController.text.trim().length >= 3 && _results.isEmpty) {
+      return t.locationSearchEmpty;
+    }
+    return null;
   }
 
   @override
@@ -69,16 +162,57 @@ class _WorkoutLocationScreenState extends State<WorkoutLocationScreen> {
                           color: AppColors.primary,
                           fontWeight: FontWeight.w700)),
                   const SizedBox(height: 8),
+                  TrailwattField(
+                    label: t.locationSearchLabel,
+                    hint: t.locationSearchHint,
+                    controller: _searchController,
+                    onChanged: _onQueryChanged,
+                    helperText: _searchHelper(t),
+                  ),
+                  if (_results.isNotEmpty)
+                    Container(
+                      constraints: const BoxConstraints(maxHeight: 168),
+                      margin: const EdgeInsets.only(bottom: 8),
+                      decoration: BoxDecoration(
+                        color: AppColors.white,
+                        border: Border.all(color: AppColors.line),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: ListView.separated(
+                        shrinkWrap: true,
+                        padding: EdgeInsets.zero,
+                        itemCount: _results.length,
+                        separatorBuilder: (_, __) =>
+                            const Divider(height: 1, color: AppColors.line),
+                        itemBuilder: (context, i) {
+                          final place = _results[i];
+                          return ListTile(
+                            dense: true,
+                            visualDensity: VisualDensity.compact,
+                            title: Text(place.name,
+                                style: AppTextStyles.body
+                                    .copyWith(fontWeight: FontWeight.w600)),
+                            subtitle: Text(place.address,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style:
+                                    AppTextStyles.label.copyWith(fontSize: 10)),
+                            onTap: () => _choosePlace(place),
+                          );
+                        },
+                      ),
+                    ),
                   Expanded(
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(13),
                       child: Stack(
                         children: [
                           FlutterMap(
+                            mapController: _mapController,
                             options: MapOptions(
                               initialCenter: _center,
                               initialZoom: 12,
-                              onTap: (tapPosition, point) => _placePin(point),
+                              onTap: (tapPosition, point) => _moveTo(point),
                             ),
                             children: [
                               trailwattTileLayer(),
@@ -92,13 +226,23 @@ class _WorkoutLocationScreenState extends State<WorkoutLocationScreen> {
                                   borderStrokeWidth: 1.5,
                                 ),
                               ]),
-                              MarkerLayer(markers: [
-                                Marker(
+                              // Draggable rather than a plain marker: the
+                              // same handle the route editor uses for
+                              // waypoints, so dragging a point on a map
+                              // behaves the same way everywhere in the app.
+                              DragMarkers(markers: [
+                                DragMarker(
+                                  key: const ValueKey('start-pin'),
                                   point: _center,
-                                  width: 32,
-                                  height: 32,
-                                  child: const Icon(Icons.location_on,
-                                      color: AppColors.primary, size: 32),
+                                  size: const Size(44, 44),
+                                  onDragEnd: (_, point) => _moveTo(point),
+                                  builder: (context, point, isDragging) => Icon(
+                                    Icons.location_on,
+                                    color: isDragging
+                                        ? AppColors.accent
+                                        : AppColors.primary,
+                                    size: isDragging ? 40 : 34,
+                                  ),
                                 ),
                               ]),
                               trailwattAttribution(context),
@@ -127,7 +271,9 @@ class _WorkoutLocationScreenState extends State<WorkoutLocationScreen> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
-                                t.locationHint(_radiusKm.round()),
+                                _chosenPlace == null
+                                    ? t.locationHint(_radiusKm.round())
+                                    : t.locationStartAt(_chosenPlace!),
                                 style:
                                     AppTextStyles.label.copyWith(fontSize: 9),
                               ),

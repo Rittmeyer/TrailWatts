@@ -268,7 +268,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String locationHint(int radius) {
-    return 'Toque no mapa para marcar a área · raio $radius km';
+    return 'Arraste o pino ou toque no mapa · raio $radius km';
   }
 
   @override
@@ -931,4 +931,27 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get builderInsertHere => '+ Inserir bloco aqui';
+
+  @override
+  String get locationSearchLabel => 'Onde você quer partir';
+
+  @override
+  String get locationSearchHint => 'Endereço, bairro ou lugar';
+
+  @override
+  String get locationSearchEmpty => 'Nada encontrado com esse nome';
+
+  @override
+  String get locationSearchFailed => 'A busca não respondeu. Tente de novo.';
+
+  @override
+  String get locationSearchBusy => 'Buscando...';
+
+  @override
+  String locationStartAt(String place) {
+    return 'Partida: $place';
+  }
+
+  @override
+  String get locationStartOnMap => 'Partida marcada no mapa';
 }
