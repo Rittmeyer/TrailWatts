@@ -1,4 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
+
+import '../models/result_source.dart';
+import 'calibration_store.dart';
+import 'integrations_store.dart';
+import 'rider_profile_store.dart';
 
 import '../models/history_entry.dart';
 import '../screens/calendar_demo_data.dart';
@@ -72,7 +79,34 @@ class ActivityStore extends ChangeNotifier {
           activity,
     ];
 
-    if (changed) notifyListeners();
+    if (changed) {
+      notifyListeners();
+      _learnFrom(activityId);
+    }
+  }
+
+  /// A ride the rider has confirmed is the result of a workout is the best
+  /// calibration evidence there is: they vouched for it.
+  ///
+  /// Deliberately not awaited and deliberately silent. Linking a ride must
+  /// feel instant, and a platform that cannot hand over the ride detail is
+  /// a reason the model stays generic - which the model chip already says -
+  /// not an error to interrupt the rider with.
+  void _learnFrom(String activityId) {
+    final matches = _activities.where((a) => a.id == activityId);
+    if (matches.isEmpty) return;
+    final activity = matches.first;
+    // A hand-typed result has no per-sample record behind it, so there is
+    // nothing to read and nothing to learn.
+    if (activity.source == ResultSource.manual) return;
+
+    unawaited(CalibrationStore.instance.learnFrom(
+      platform: activity.source,
+      activityId: activity.id,
+      ridenAt: activity.date,
+      rider: RiderProfileStore.instance.profile,
+      integrations: IntegrationsStore.instance,
+    ));
   }
 
   /// Takes the result off whatever day it was on. The activity stays - it

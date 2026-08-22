@@ -64,13 +64,16 @@ class CalibrationEngine {
     // Too slow for drag to be measurable, so the fit cannot separate CdA
     // from Crr at all.
     if (o.observedSpeedKmh < 12) return CalibrationQuality.low;
-    // A power number wildly away from what was asked usually means the
-    // ride was not the ride that was planned.
-    final drift = o.predictedPowerWatts <= 0
-        ? 1.0
-        : (o.actualPowerWatts - o.predictedPowerWatts).abs() /
-            o.predictedPowerWatts;
-    if (drift > 0.6) return CalibrationQuality.rejected;
+    // Implausible for a human on a bicycle, so it is a sensor fault rather
+    // than a ride.
+    if (o.actualPowerWatts > 2000) return CalibrationQuality.rejected;
+    if (o.observedSpeedKmh > 90) return CalibrationQuality.rejected;
+
+    // Note what is deliberately *not* a reason to reject: a large gap
+    // between predicted and actual power. That gap is the entire signal
+    // calibration exists to learn from, and an earlier version of this gate
+    // threw it away - it would have refused exactly the rides that had
+    // something to teach, and left the model stuck on its guesses.
 
     if (o.observedSpeedKmh >= 25 && o.gradientPct.abs() <= 6) {
       // Fast and flattish is where drag dominates and CdA is observable.

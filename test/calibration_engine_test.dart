@@ -165,9 +165,28 @@ void main() {
       expect(engine.qualityOf(observed(32, 1)), CalibrationQuality.high);
     });
 
-    test('a ride nothing like the one prescribed is rejected', () {
-      expect(engine.qualityOf(observed(28, 0, predicted: 400)),
-          CalibrationQuality.rejected);
+    test('a power number no human produces is rejected', () {
+      final o = observed(30, 0);
+      final broken = CalibrationObservation(
+        observedAt: o.observedAt,
+        predictedPowerWatts: o.predictedPowerWatts,
+        actualPowerWatts: 2600,
+        predictedSpeedKmh: o.predictedSpeedKmh,
+        observedSpeedKmh: o.observedSpeedKmh,
+        gradientPct: o.gradientPct,
+        systemMassKg: o.systemMassKg,
+        activitySource: o.activitySource,
+        quality: o.quality,
+      );
+      expect(engine.qualityOf(broken), CalibrationQuality.rejected);
+    });
+
+    test('a ride far from the prediction is kept, because that is the point',
+        () {
+      // An earlier gate rejected these. It would have refused exactly the
+      // observations with something to teach.
+      expect(engine.qualityOf(observed(30, 0, predicted: 400)),
+          isNot(CalibrationQuality.rejected));
     });
   });
 

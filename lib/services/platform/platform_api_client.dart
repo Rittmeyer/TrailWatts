@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../../models/platform_integration.dart';
+import '../../engine/activity_stream.dart';
 import '../../models/result_source.dart';
 import 'oauth_tokens.dart';
 import 'platform_credentials.dart';
@@ -181,6 +182,76 @@ class PlatformApiClient {
     // for its candidate list.
     candidates.sort((a, b) => b.confidencePct.compareTo(a.confidencePct));
     return candidates;
+  }
+
+  /// The per-sample record of a ride, for calibration.
+  ///
+  /// Only Strava is implemented: its streams endpoint is documented, keyed
+  /// by type, and returns exactly the four series this needs. Garmin and
+  /// Wahoo expose ride detail differently and this repo does not guess at
+  /// an endpoint it has not read the documentation for - the same rule that
+  /// keeps route export to documented uploads. They report notSupported,
+  /// which the caller shows as "this platform cannot calibrate yet" rather
+  /// than as a failure.
+  Future<ActivityStream> activityStream({
+    required PlatformCredentials credentials,
+    required OAuthTokens tokens,
+    required String activityId,
+  }) async {
+    if (!credentials.capabilities.activityRead ||
+        credentials.platform != ResultSource.strava) {
+      throw const PlatformApiException(PlatformApiFailure.notSupported);
+    }
+
+    final base = credentials.apiBaseUrl;
+    final uri = base.replace(
+      path: '${base.path}/activities/$activityId/streams',
+      queryParameters: {
+        'keys': 'time,distance,altitude,watts',
+        'key_by_type': 'true',
+      },
+    );
+
+    final response = await _send(() => _client.get(uri, headers: {
+          'Authorization': 'Bearer ${tokens.accessToken}',
+          'Accept': 'application/json',
+        }).timeout(timeout));
+
+    _throwForStatus(response);
+
+    final decoded = _decode(response.body);
+    if (decoded is! Map) {
+      throw const PlatformApiException(PlatformApiFailure.invalidResponse);
+    }
+
+    List<double?> series(String key) {
+      final entry = decoded[key];
+      final data = entry is Map ? entry['data'] : null;
+      if (data is! List) return const [];
+      return [for (final v in data) v is num ? v.toDouble() : null];
+    }
+
+    final time = series('time');
+    final distance = series('distance');
+    if (time.length < 2 || distance.length != time.length) {
+      // Without time and distance lined up there is no speed, and a stream
+      // with no speed teaches nothing.
+      throw const PlatformApiException(PlatformApiFailure.invalidResponse);
+    }
+
+    List<double?> padded(String key) {
+      final values = series(key);
+      if (values.length == time.length) return values;
+      return List<double?>.filled(time.length, null);
+    }
+
+    return ActivityStream(
+      timeS: [for (final t in time) t ?? 0],
+      distanceM: [for (final d in distance) d ?? 0],
+      altitudeM: padded('altitude'),
+      powerW: padded('watts'),
+      source: credentials.platform.name,
+    );
   }
 
   Uri _activitiesUri(PlatformCredentials credentials, DateTime since) {

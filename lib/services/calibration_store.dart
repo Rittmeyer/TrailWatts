@@ -1,8 +1,13 @@
 import 'package:flutter/foundation.dart';
 
+import '../engine/activity_stream.dart';
 import '../engine/calibration_engine.dart';
+import '../engine/cycling_power_model.dart';
 import '../models/calibration.dart';
+import '../models/result_source.dart';
 import '../models/rider_profile.dart';
+import 'integrations_store.dart';
+import 'platform/platform_api_client.dart';
 import 'rider_profile_store.dart';
 
 /// What the app has learned about this rider, and whether it still applies.
@@ -97,6 +102,54 @@ class CalibrationStore extends ChangeNotifier {
     // not evidence about this one.
     _observations.clear();
     notifyListeners();
+  }
+
+  /// Learns from a ride the rider just linked to a workout.
+  ///
+  /// Everything that can be absent is treated as absent rather than as
+  /// zero: a platform with no documented stream endpoint, a ride with no
+  /// power meter, a session whose token expired. None of those is an error
+  /// worth interrupting the rider for - they are reasons the model stays
+  /// generic, and the chip already says that it is.
+  ///
+  /// Returns how many usable stretches the ride contributed, so a caller
+  /// can tell the rider what their ride was worth.
+  Future<int> learnFrom({
+    required ResultSource platform,
+    required String activityId,
+    required DateTime ridenAt,
+    required RiderProfile rider,
+    required IntegrationsStore integrations,
+    ActivityStreamReader reader = const ActivityStreamReader(),
+  }) async {
+    final ActivityStream stream;
+    try {
+      final tokens = await integrations.validTokensFor(platform);
+      stream = await integrations.api.activityStream(
+        credentials: integrations.credentialsFor(platform),
+        tokens: tokens,
+        activityId: activityId,
+      );
+    } on PlatformApiException {
+      return 0;
+    }
+
+    final model = CyclingPowerModel(effective(rider));
+    final observations = reader.observationsFrom(
+      stream,
+      systemMassKg: rider.systemMassKg,
+      ridenAt: ridenAt,
+      // What the model would have said, kept for showing the rider how far
+      // off it was - never used to decide whether to keep the stretch.
+      predictPower: (speedKmh, gradientPct) => model.powerFor(
+        speedMs: speedKmh / 3.6,
+        gradientPct: gradientPct,
+      ),
+    );
+
+    if (observations.isEmpty) return 0;
+    observeAll(observations, rider);
+    return observations.length;
   }
 
   @visibleForTesting

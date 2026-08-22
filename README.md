@@ -377,11 +377,30 @@ achar as estimativas silenciosamente diferentes.
 E a rota diz de qual modelo os números vieram — genérico, calibrado com
 quantos por cento de acerto, ou desatualizado.
 
-**O que ainda falta:** a entrada. Calibrar exige (velocidade, gradiente,
-potência), e a atividade hoje guarda potência e duração, não velocidade nem
-gradiente. Isso vem dos streams de Strava/Garmin, que a camada de
-integração alcança mas ninguém consumiu ainda. Até lá o motor fica em
-genérico — e diz isso, em vez de fingir.
+**De onde vêm as observações.** Quando você associa uma pedalada a um
+treino, o app busca o registro amostra a amostra dela (tempo, distância,
+altitude, potência) e recorta em janelas de um minuto. Uma janela só entra
+se você estava fazendo **uma coisa só** o tempo todo:
+
+- parada no semáforo não vira "trecho devagar" — a janela é descartada;
+- buraco no medidor de potência descarta a janela; ausência **não é zero
+  watt**;
+- esforço oscilando demais (ou velocidade) não é regime permanente;
+- pedalada sem medidor de potência ou sem barômetro não rende nada, e o app
+  diz isso em vez de inventar.
+
+Validado de ponta a ponta: uma pedalada sintetizada de um ciclista com
+CdA 0,294 e Crr 0,0048 atravessa leitor e ajuste e sai com aquelas
+constantes. E uma pedalada plana inteira, por mais longa que seja, é
+**recusada** — a uma velocidade só num gradiente só, as duas constantes são
+indistinguíveis.
+
+**Só o Strava está implementado.** O endpoint de streams dele é
+documentado, vem indexado por tipo e traz exatamente as quatro séries. O de
+Garmin e Wahoo é diferente e este repositório não chuta endpoint que
+ninguém leu a documentação — a mesma regra que mantém a exportação de rota
+em upload documentado. Eles respondem "não suportado", e a checagem de que
+**nem tentam a chamada** está em teste.
 
 ### Da fonte à sugestão
 
